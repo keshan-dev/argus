@@ -36,10 +36,67 @@ Phases 2 and 3 run in parallel. That is the point of the lane split.
 
 ---
 
+# Task to issue index
+
+All 47 tasks are tracked as GitHub issues in [`keshan-dev/argus`](https://github.com/keshan-dev/argus/issues). Issue numbers match task order.
+
+| Issue | Task | Title | Owner | Pri | Milestone |
+|---|---|---|---|---|---|
+| [#1](https://github.com/keshan-dev/argus/issues/1) | `P0-001` | Create the repository and configure collaboration settings | Both | P0 | Sprint 0 |
+| [#2](https://github.com/keshan-dev/argus/issues/2) | `P0-002` | Provision real Jira and GitHub test data and capture fixtures | Both | P0 | Sprint 0 |
+| [#3](https://github.com/keshan-dev/argus/issues/3) | `P0-003` | Python project skeleton and Docker Compose | Both | P0 | Sprint 0 |
+| [#4](https://github.com/keshan-dev/argus/issues/4) | `P0-004` | CI pipeline with lint, tests, secret scan and migration checks | Both | P0 | Sprint 0 |
+| [#5](https://github.com/keshan-dev/argus/issues/5) | `P0-005` | Set the Anthropic API key spend cap | Both | P0 | Sprint 0 |
+| [#6](https://github.com/keshan-dev/argus/issues/6) | `P0-006` | Ratify the architecture decisions | Both | P0 | Sprint 0 |
+| [#7](https://github.com/keshan-dev/argus/issues/7) | `P1-001` | Canonical SQLAlchemy models and the first Alembic migration | Both | P0 | Sprint 0 |
+| [#8](https://github.com/keshan-dev/argus/issues/8) | `P1-002` | Freeze the Pydantic contracts | Both | P0 | Sprint 0 |
+| [#9](https://github.com/keshan-dev/argus/issues/9) | `P1-003` | Configuration module with all named constants | Both | P0 | Sprint 0 |
+| [#10](https://github.com/keshan-dev/argus/issues/10) | `P1-004` | Database session management and statement timeouts | Both | P1 | Sprint 0 |
+| [#11](https://github.com/keshan-dev/argus/issues/11) | `P1-005` | Identity map file format and loader | Both | P0 | Sprint 0 |
+| [#12](https://github.com/keshan-dev/argus/issues/12) | `P2-001` | Shared HTTP client with timeout, retry and typed failures | Keshan | P0 | Sprint 1 |
+| [#13](https://github.com/keshan-dev/argus/issues/13) | `P2-002` | GitHub read-only client | Keshan | P0 | Sprint 1 |
+| [#14](https://github.com/keshan-dev/argus/issues/14) | `P2-003` | GitHub normalization into canonical tables | Keshan | P0 | Sprint 1 |
+| [#15](https://github.com/keshan-dev/argus/issues/15) | `P2-004` | Jira read-only client | Keshan | P0 | Sprint 1 |
+| [#16](https://github.com/keshan-dev/argus/issues/16) | `P2-005` | Jira normalization into canonical tables | Keshan | P0 | Sprint 1 |
+| [#17](https://github.com/keshan-dev/argus/issues/17) | `P2-006` | Identity resolution and the unmatched queue | Keshan | P0 | Sprint 2 |
+| [#18](https://github.com/keshan-dev/argus/issues/18) | `P2-007` | Work item link builder | Keshan | P0 | Sprint 2 |
+| [#19](https://github.com/keshan-dev/argus/issues/19) | `P2-008` | Sync CLI with run state and cursors | Keshan | P0 | Sprint 2 |
+| [#20](https://github.com/keshan-dev/argus/issues/20) | `P2-009` | Demo seeding through the real ingestion path | Keshan | P1 | Sprint 2 |
+| [#21](https://github.com/keshan-dev/argus/issues/21) | `P3-001` | FastAPI application, login stub and authorization seam | Isiwara | P0 | Sprint 1 |
+| [#22](https://github.com/keshan-dev/argus/issues/22) | `P3-002` | Read tools T-001 to T-006 | Isiwara | P0 | Sprint 1 |
+| [#23](https://github.com/keshan-dev/argus/issues/23) | `P3-003` | Source health tool T-007 | Isiwara | P0 | Sprint 1 |
+| [#24](https://github.com/keshan-dev/argus/issues/24) | `P3-004` | Planner and orchestrator skeleton | Isiwara | P0 | Sprint 1 |
+| [#25](https://github.com/keshan-dev/argus/issues/25) | `P4-001` | Evidence builder with stable IDs | Isiwara | P0 | Sprint 1 |
+| [#26](https://github.com/keshan-dev/argus/issues/26) | `P4-002` | Conflict detection rules | Isiwara | P0 | Sprint 2 |
+| [#27](https://github.com/keshan-dev/argus/issues/27) | `P4-003` | Blocker and risk detection rules | Isiwara | P0 | Sprint 2 |
+| [#28](https://github.com/keshan-dev/argus/issues/28) | `P4-004` | Confidence rules | Isiwara | P0 | Sprint 2 |
+| [#29](https://github.com/keshan-dev/argus/issues/29) | `P4-005` | Reasoning stage, the single LLM call | Isiwara | P0 | Sprint 2 |
+| [#30](https://github.com/keshan-dev/argus/issues/30) | `P4-006` | Validator, the hallucination defence | Isiwara | P0 | Sprint 2 |
+| [#31](https://github.com/keshan-dev/argus/issues/31) | `P4-007` | Agent run persistence and the insight cache | Isiwara | P1 | Sprint 2 |
+| [#32](https://github.com/keshan-dev/argus/issues/32) | `P4-008` | Deterministic member summary and fallback | Isiwara | P0 | Sprint 1 |
+| [#33](https://github.com/keshan-dev/argus/issues/33) | `P5-001` | Member insight and team overview endpoints | Isiwara | P0 | Sprint 3 |
+| [#34](https://github.com/keshan-dev/argus/issues/34) | `P5-002` | Member profile page | Isiwara | P0 | Sprint 3 |
+| [#35](https://github.com/keshan-dev/argus/issues/35) | `P5-003` | Evidence drawer | Isiwara | P0 | Sprint 3 |
+| [#36](https://github.com/keshan-dev/argus/issues/36) | `P5-004` | Team overview page | Isiwara | P1 | Sprint 3 |
+| [#37](https://github.com/keshan-dev/argus/issues/37) | `P5-005` | Unmatched identity view | Isiwara | P1 | Sprint 3 |
+| [#38](https://github.com/keshan-dev/argus/issues/38) | `P5-006` | Freshness and degraded-state display | Isiwara | P1 | Sprint 3 |
+| [#39](https://github.com/keshan-dev/argus/issues/39) | `P6-001` | Write-path test suite | Keshan | P0 | Sprint 3 |
+| [#40](https://github.com/keshan-dev/argus/issues/40) | `P6-002` | Read-path and rules test suite | Isiwara | P0 | Sprint 3 |
+| [#41](https://github.com/keshan-dev/argus/issues/41) | `P6-003` | Evaluation harness | Both | P0 | Sprint 3 |
+| [#42](https://github.com/keshan-dev/argus/issues/42) | `P6-004` | The 12 evaluation scenarios | Both | P0 | Sprint 3 |
+| [#43](https://github.com/keshan-dev/argus/issues/43) | `P6-005` | End-to-end integration test | Both | P1 | Sprint 3 |
+| [#44](https://github.com/keshan-dev/argus/issues/44) | `P7-001` | Security pass | Both | P0 | Sprint 3 |
+| [#45](https://github.com/keshan-dev/argus/issues/45) | `P7-002` | Cost and performance verification | Isiwara | P1 | Sprint 3 |
+| [#46](https://github.com/keshan-dev/argus/issues/46) | `P7-003` | README verification and the 10 minute setup test | Both | P1 | Sprint 3 |
+| [#47](https://github.com/keshan-dev/argus/issues/47) | `P7-004` | Demo run and v0.1.0 tag | Both | P0 | Sprint 3 |
+
+---
+
 # Phase 0: Project Initialization
 
 ## P0-001
 
+**Issue:** [#1](https://github.com/keshan-dev/argus/issues/1)
 **Title:** Create the repository and configure collaboration settings
 **Objective:** A protected repository both developers can work in, with the board and
 labels ready.
@@ -86,6 +143,7 @@ pull request.
 
 ## P0-002
 
+**Issue:** [#2](https://github.com/keshan-dev/argus/issues/2)
 **Title:** Provision real Jira and GitHub test data and capture fixtures
 **Objective:** Real API responses from a real Jira project and a real GitHub repository,
 saved as fixtures.
@@ -146,6 +204,7 @@ findings.
 
 ## P0-003
 
+**Issue:** [#3](https://github.com/keshan-dev/argus/issues/3)
 **Title:** Python project skeleton and Docker Compose
 **Objective:** `docker compose up` starts PostgreSQL and a FastAPI health endpoint on both
 machines.
@@ -188,6 +247,7 @@ machines.
 
 ## P0-004
 
+**Issue:** [#4](https://github.com/keshan-dev/argus/issues/4)
 **Title:** CI pipeline with lint, tests, secret scan and migration checks
 **Objective:** Every pull request is automatically checked.
 **Why:** Catching a broken migration or a committed secret in CI is far cheaper than after
@@ -230,6 +290,7 @@ then a second head).
 
 ## P0-005
 
+**Issue:** [#5](https://github.com/keshan-dev/argus/issues/5)
 **Title:** Set the Anthropic API key spend cap
 **Objective:** A hard spend limit is configured before the first model call.
 **Why:** The only paid dependency. A loop or an accidental re-run must not produce a
@@ -269,6 +330,7 @@ the agreed budget.
 
 ## P0-006
 
+**Issue:** [#6](https://github.com/keshan-dev/argus/issues/6)
 **Title:** Ratify the architecture decisions
 **Objective:** Both developers have read `DECISIONS.md` and agree to DEC-001 to DEC-015,
 moving each from `Proposed` to `Accepted`.
@@ -315,6 +377,7 @@ Phase 1 is the handoff point between the 2 developers (DEC-015). Do it together.
 
 ## P1-001
 
+**Issue:** [#7](https://github.com/keshan-dev/argus/issues/7)
 **Title:** Canonical SQLAlchemy models and the first Alembic migration
 **Objective:** All 17 tables exist and the migration applies cleanly to an empty database.
 **Why:** Both lanes build on this schema. It is the only artefact they share.
@@ -364,6 +427,7 @@ open branches. Spend the time now.
 
 ## P1-002
 
+**Issue:** [#8](https://github.com/keshan-dev/argus/issues/8)
 **Title:** Freeze the Pydantic contracts
 **Objective:** Tool inputs and outputs, evidence, claims and the response shape are defined
 and merged.
@@ -416,6 +480,7 @@ Copy the tool input and output models from `AGENT_TOOLS.md` exactly.
 
 ## P1-003
 
+**Issue:** [#9](https://github.com/keshan-dev/argus/issues/9)
 **Title:** Configuration module with all named constants
 **Objective:** Every threshold and setting is a named constant read from environment or
 defined in 1 place.
@@ -461,6 +526,7 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 
 ## P1-004
 
+**Issue:** [#10](https://github.com/keshan-dev/argus/issues/10)
 **Title:** Database session management and statement timeouts
 **Objective:** A session factory with a statement timeout for the read path.
 **Why:** A slow query in the request path must fail fast with `TIMEOUT` rather than hang.
@@ -494,6 +560,7 @@ path can run longer queries.
 
 ## P1-005
 
+**Issue:** [#11](https://github.com/keshan-dev/argus/issues/11)
 **Title:** Identity map file format and loader
 **Objective:** `seed/identity_map.yml` defines verified account mappings, and a loader
 writes them as `identity_link` rows with `match_method = manual`.
@@ -554,6 +621,7 @@ Runs in parallel with Phase 3.
 
 ## P2-001
 
+**Issue:** [#12](https://github.com/keshan-dev/argus/issues/12)
 **Title:** Shared HTTP client with timeout, retry and typed failures
 **Objective:** 1 HTTP layer that every integration uses, with the reliability rules built in.
 **Why:** Timeouts and retry limits are mandatory on every call (NFR-001, NFR-002). Building
@@ -602,6 +670,7 @@ typed failure mapping. An injectable transport so fixtures can replace it.
 
 ## P2-002
 
+**Issue:** [#13](https://github.com/keshan-dev/argus/issues/13)
 **Title:** GitHub read-only client
 **Objective:** Fetch pull requests, reviews, commits and branches from GitHub.
 **Why:** GitHub is the authoritative source for code activity.
@@ -643,6 +712,7 @@ commits and branches for a repository, returning raw validated payloads.
 
 ## P2-003
 
+**Issue:** [#14](https://github.com/keshan-dev/argus/issues/14)
 **Title:** GitHub normalization into canonical tables
 **Objective:** GitHub payloads become `pull_request`, `commit`, `review` and `repository`
 rows.
@@ -686,6 +756,7 @@ idempotency (run twice, assert row counts).
 
 ## P2-004
 
+**Issue:** [#15](https://github.com/keshan-dev/argus/issues/15)
 **Title:** Jira read-only client
 **Objective:** Fetch issues, statuses, assignees, links and flags from Jira.
 **Why:** Jira is the authoritative source for assignment and status.
@@ -729,6 +800,7 @@ and is why DEC-008 exists. Record the finding.
 
 ## P2-005
 
+**Issue:** [#16](https://github.com/keshan-dev/argus/issues/16)
 **Title:** Jira normalization into canonical tables
 **Objective:** Jira payloads become `work_item`, `project` and `work_item_dependency` rows.
 **Why:** Same as P2-003, for the Jira side.
@@ -772,6 +844,7 @@ enough to extend without a code change in every place.
 
 ## P2-006
 
+**Issue:** [#17](https://github.com/keshan-dev/argus/issues/17)
 **Title:** Identity resolution and the unmatched queue
 **Objective:** Ingested records are attributed to internal people, and unmappable accounts
 are queued rather than guessed or dropped.
@@ -820,6 +893,7 @@ the demo data.
 
 ## P2-007
 
+**Issue:** [#18](https://github.com/keshan-dev/argus/issues/18)
 **Title:** Work item link builder
 **Objective:** Populate `work_item_link` connecting Jira work items to branches, pull
 requests, commits and reviews.
@@ -869,6 +943,7 @@ demo fixtures.
 
 ## P2-008
 
+**Issue:** [#19](https://github.com/keshan-dev/argus/issues/19)
 **Title:** Sync CLI with run state and cursors
 **Objective:** `python -m app.sync --source <s> --team <id>` runs ingestion end to end and
 records what happened.
@@ -918,6 +993,7 @@ against P0-002 data.
 
 ## P2-009
 
+**Issue:** [#20](https://github.com/keshan-dev/argus/issues/20)
 **Title:** Demo seeding through the real ingestion path
 **Objective:** `python seed/seed_demo.py` produces a complete demo database from fixtures
 with no network call.
@@ -969,6 +1045,7 @@ P2-009 lands, against the seeded database.
 
 ## P3-001
 
+**Issue:** [#21](https://github.com/keshan-dev/argus/issues/21)
 **Title:** FastAPI application, login stub and authorization seam
 **Objective:** The application serves routes, identifies an actor, and every member-data
 route passes through `can_view_member`.
@@ -1008,6 +1085,7 @@ every route.
 
 ## P3-002
 
+**Issue:** [#22](https://github.com/keshan-dev/argus/issues/22)
 **Title:** Read tools T-001 to T-006
 **Objective:** 6 typed read functions over PostgreSQL.
 **Why:** They are the agent's only access to data (DEC-002).
@@ -1048,6 +1126,7 @@ every route.
 
 ## P3-003
 
+**Issue:** [#23](https://github.com/keshan-dev/argus/issues/23)
 **Title:** Source health tool T-007
 **Objective:** Report whether each source is fresh, stale or unavailable.
 **Why:** It is the difference between "no blockers" and "Jira has been down for 2 days".
@@ -1090,6 +1169,7 @@ rows in a test database.
 
 ## P3-004
 
+**Issue:** [#24](https://github.com/keshan-dev/argus/issues/24)
 **Title:** Planner and orchestrator skeleton
 **Objective:** Stages S1 and S2 run, producing a retrieval result and source health.
 **Why:** The frame every later stage plugs into.
@@ -1137,6 +1217,7 @@ unavailable-source paths.
 
 ## P4-001
 
+**Issue:** [#25](https://github.com/keshan-dev/argus/issues/25)
 **Title:** Evidence builder with stable IDs
 **Objective:** Stage S3 produces the frozen, ID-labelled evidence set.
 **Why:** The evidence set is what makes validation possible (DEC-004). Everything after it
@@ -1185,6 +1266,7 @@ it.
 
 ## P4-002
 
+**Issue:** [#26](https://github.com/keshan-dev/argus/issues/26)
 **Title:** Conflict detection rules
 **Objective:** Detect CF-1 to CF-4 in code.
 **Why:** Conflicts are often the most useful thing on the page, and the model must not be
@@ -1225,6 +1307,7 @@ trusted to find them.
 
 ## P4-003
 
+**Issue:** [#27](https://github.com/keshan-dev/argus/issues/27)
 **Title:** Blocker and risk detection rules
 **Objective:** Detect BL-1 to BL-8 and RK-1 to RK-4 in code.
 **Why:** Slack is out of scope, so blockers come from Jira and GitHub structure (DEC-014).
@@ -1266,6 +1349,7 @@ against the review time. Get the comparison direction right and test it.
 
 ## P4-004
 
+**Issue:** [#28](https://github.com/keshan-dev/argus/issues/28)
 **Title:** Confidence rules
 **Objective:** Assign HIGH, MEDIUM, LOW or UNKNOWN from resolved evidence.
 **Why:** Confidence must be explainable and must not come from the model (DEC-006).
@@ -1309,6 +1393,7 @@ worked examples.
 
 ## P4-005
 
+**Issue:** [#29](https://github.com/keshan-dev/argus/issues/29)
 **Title:** Reasoning stage, the single LLM call
 **Objective:** 1 Anthropic call turns the evidence set into labelled, cited claims.
 **Why:** The only place a language model is used (DEC-005).
@@ -1364,6 +1449,7 @@ token counts.
 
 ## P4-006
 
+**Issue:** [#30](https://github.com/keshan-dev/argus/issues/30)
 **Title:** Validator, the hallucination defence
 **Objective:** Reject unsupported claims and assemble the validated insight.
 **Why:** This is what makes DEC-004 real. Without it the evidence IDs are decoration.
@@ -1417,6 +1503,7 @@ output.
 
 ## P4-007
 
+**Issue:** [#31](https://github.com/keshan-dev/argus/issues/31)
 **Title:** Agent run persistence and the insight cache
 **Objective:** Every run is recorded, and identical evidence returns a cached answer with
 no model call.
@@ -1463,6 +1550,7 @@ counts.
 
 ## P4-008
 
+**Issue:** [#32](https://github.com/keshan-dev/argus/issues/32)
 **Title:** Deterministic member summary and fallback
 **Objective:** A complete member summary produced with no model call.
 **Why:** It answers most of the question with zero inference risk, and it is the fallback
@@ -1508,6 +1596,7 @@ produces it when the model fails.
 
 ## P5-001
 
+**Issue:** [#33](https://github.com/keshan-dev/argus/issues/33)
 **Title:** Member insight and team overview endpoints
 **Objective:** 2 API endpoints returning `MemberInsight` and the team overview.
 **Why:** The UI and any future client consume these.
@@ -1549,6 +1638,7 @@ unavailable-source case.
 
 ## P5-002
 
+**Issue:** [#34](https://github.com/keshan-dev/argus/issues/34)
 **Title:** Member profile page
 **Objective:** A page showing 1 member with the 3 question types.
 **Why:** The primary user interface.
@@ -1592,6 +1682,7 @@ unavailable-source member.
 
 ## P5-003
 
+**Issue:** [#35](https://github.com/keshan-dev/argus/issues/35)
 **Title:** Evidence drawer
 **Objective:** Any claim expands to show its evidence with working source links.
 **Why:** This is what makes the product trustworthy. Without it, ARGUS is another
@@ -1636,6 +1727,7 @@ links resolve.
 
 ## P5-004
 
+**Issue:** [#36](https://github.com/keshan-dev/argus/issues/36)
 **Title:** Team overview page
 **Objective:** A page listing members with state and attention items.
 **Why:** The lead's starting point: "who needs my attention today".
@@ -1675,6 +1767,7 @@ the unmatched identity count.
 
 ## P5-005
 
+**Issue:** [#37](https://github.com/keshan-dev/argus/issues/37)
 **Title:** Unmatched identity view
 **Objective:** Show the unmatched entity queue so a human can see what is unattributed.
 **Why:** Silent data loss is the failure mode this prevents (FR-003).
@@ -1714,6 +1807,7 @@ account.
 
 ## P5-006
 
+**Issue:** [#38](https://github.com/keshan-dev/argus/issues/38)
 **Title:** Freshness and degraded-state display
 **Objective:** Every page shows source freshness, and degraded answers say why.
 **Why:** The staleness cost of DEC-002 is only acceptable because it is visible.
@@ -1756,6 +1850,7 @@ account.
 
 ## P6-001
 
+**Issue:** [#39](https://github.com/keshan-dev/argus/issues/39)
 **Title:** Write-path test suite
 **Objective:** Integration and ingestion code is covered by deterministic tests.
 **Why:** These paths touch external APIs and must be tested without them.
@@ -1791,6 +1886,7 @@ test.
 
 ## P6-002
 
+**Issue:** [#40](https://github.com/keshan-dev/argus/issues/40)
 **Title:** Read-path and rules test suite
 **Objective:** Tools, rules and the validator are covered.
 **Why:** The rules are where correctness lives, and they are all pure functions.
@@ -1827,6 +1923,7 @@ model response is needed.
 
 ## P6-003
 
+**Issue:** [#41](https://github.com/keshan-dev/argus/issues/41)
 **Title:** Evaluation harness
 **Objective:** A repeatable way to run the 12 evaluation scenarios against fixed data.
 **Why:** Without it, a behaviour regression is invisible (DEC-011).
@@ -1867,6 +1964,7 @@ pytest marker so it stays out of CI.
 
 ## P6-004
 
+**Issue:** [#42](https://github.com/keshan-dev/argus/issues/42)
 **Title:** The 12 evaluation scenarios
 **Objective:** EV-01 to EV-12 from `TESTING_AND_EVALUATION.md` 11.2 implemented and passing.
 **Why:** These define acceptable agent behaviour. They are the release gate.
@@ -1907,6 +2005,7 @@ Check early.
 
 ## P6-005
 
+**Issue:** [#43](https://github.com/keshan-dev/argus/issues/43)
 **Title:** End-to-end integration test
 **Objective:** 1 test that seeds, syncs, asks and asserts the full response.
 **Why:** Unit tests can all pass while the wiring is broken.
@@ -1942,6 +2041,7 @@ path is covered by P6-004.
 
 ## P7-001
 
+**Issue:** [#44](https://github.com/keshan-dev/argus/issues/44)
 **Title:** Security pass
 **Objective:** Verify every security constraint holds in the built system.
 **Why:** Constraints written in a document are not constraints until they are checked.
@@ -1978,6 +2078,7 @@ path is covered by P6-004.
 
 ## P7-002
 
+**Issue:** [#45](https://github.com/keshan-dev/argus/issues/45)
 **Title:** Cost and performance verification
 **Objective:** Confirm measured cost and latency meet the targets.
 **Why:** Both are stated goals (G-6, G-8) and both are now measurable from `agent_run`.
@@ -2014,6 +2115,7 @@ else.
 
 ## P7-003
 
+**Issue:** [#46](https://github.com/keshan-dev/argus/issues/46)
 **Title:** README verification and the 10 minute setup test
 **Objective:** Someone who has never run ARGUS can get it working in under 10 minutes.
 **Why:** A stated success criterion, and the demo depends on it.
@@ -2048,6 +2150,7 @@ runs it, on a machine with a cleared Docker state.
 
 ## P7-004
 
+**Issue:** [#47](https://github.com/keshan-dev/argus/issues/47)
 **Title:** Demo run and v0.1.0 tag
 **Objective:** A rehearsed end-to-end demonstration and a tagged release.
 **Why:** The MVP deliverable.
@@ -2232,19 +2335,19 @@ developers can run the application and have ratified the decisions.
 
 ### Active tasks
 
-| Task | Title | Owner | Status |
-|---|---|---|---|
-| P0-001 | Create repository and collaboration settings | Shared | READY |
-| P0-002 | Provision real Jira and GitHub data, capture fixtures | Shared | READY |
-| P0-005 | Set the Anthropic spend cap | Shared | READY |
-| P0-006 | Ratify the architecture decisions | Shared | READY |
+| Issue | Task | Title | Owner | Status |
+|---|---|---|---|---|
+| [#1](https://github.com/keshan-dev/argus/issues/1) | P0-001 | Create repository and collaboration settings | Shared | READY |
+| [#2](https://github.com/keshan-dev/argus/issues/2) | P0-002 | Provision real Jira and GitHub data, capture fixtures | Shared | READY |
+| [#5](https://github.com/keshan-dev/argus/issues/5) | P0-005 | Set the Anthropic spend cap | Shared | READY |
+| [#6](https://github.com/keshan-dev/argus/issues/6) | P0-006 | Ratify the architecture decisions | Shared | READY |
 
 ### Next up, once P0-001 is done
 
-| Task | Title | Owner |
-|---|---|---|
-| P0-003 | Python skeleton and Docker Compose | Shared |
-| P0-004 | CI pipeline | Shared |
+| Issue | Task | Title | Owner |
+|---|---|---|---|
+| [#3](https://github.com/keshan-dev/argus/issues/3) | P0-003 | Python skeleton and Docker Compose | Shared |
+| [#4](https://github.com/keshan-dev/argus/issues/4) | P0-004 | CI pipeline | Shared |
 
 ### Blocked
 
@@ -2252,13 +2355,13 @@ None.
 
 ### Start here, in this order
 
-1. **P0-006** ratify the decisions. 1 hour. Do it before any code, because DEC-002 and
+1. **P0-006** ([#6](https://github.com/keshan-dev/argus/issues/6)) ratify the decisions. 1 hour. Do it before any code, because DEC-002 and
    DEC-004 shape everything.
-2. **P0-001** create the repository.
-3. **P0-002** create real Jira and GitHub data. This removes the largest correctness risk
+2. **P0-001** ([#1](https://github.com/keshan-dev/argus/issues/1)) create the repository.
+3. **P0-002** ([#2](https://github.com/keshan-dev/argus/issues/2)) create real Jira and GitHub data. This removes the largest correctness risk
    and unblocks both lanes.
-4. **P0-005** set the spend cap. 10 minutes.
-5. **P0-003** then **P0-004**.
+4. **P0-005** ([#5](https://github.com/keshan-dev/argus/issues/5)) set the spend cap. 10 minutes.
+5. **P0-003** ([#3](https://github.com/keshan-dev/argus/issues/3)) then **P0-004** ([#4](https://github.com/keshan-dev/argus/issues/4)).
 
 ---
 
