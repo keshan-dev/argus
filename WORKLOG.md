@@ -60,6 +60,75 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-13 | Keshan | P0-001, P0-005, P0-006
+Status: IN_PROGRESS
+
+### Completed
+Switched the project off a hosted LLM API and onto Ollama, which is a hard requirement.
+Added DEC-017 (local inference), DEC-018 (the model writes the narrative, code produces the
+findings) and DEC-019 (lane rebalance). Amended DEC-005, DEC-011 and DEC-015 rather than
+rewriting them.
+
+Created all 49 tasks as GitHub issues with labels, milestones, assignees and clickable
+dependency links. Triaged them for the 3 week deadline: 40 demo-critical, 3 stretch,
+6 deferred.
+
+Enabled branch protection on `main`: pull request required, 1 approval, no force pushes,
+no deletions. `enforce_admins` is off so Developer 1 can merge their own work, matching the
+documented policy.
+
+### Changed
+`docs/DECISIONS.md` (19 decisions now), `docs/PROJECT_REQUIREMENTS.md` (FR-016 and FR-017
+rewritten, cost NFRs became resource NFRs NFR-030 to NFR-035),
+`docs/AGENT_ARCHITECTURE.md` (new S4a findings stage, S4b narrative),
+`docs/ARCHITECTURE.md`, `docs/AI_BEHAVIOR.md`, `docs/TESTING_AND_EVALUATION.md`,
+`docs/TASKS.md` (3 week plan, ownership rebalance), `README.md`.
+
+### Discovered
+Measured `llama3.2` (3B) on the demo machine (7.7 GB RAM, i7-12650H, no dedicated GPU):
+
+- Ollama JSON schema enforcement works. Schema respected in every test.
+- `temperature: 0` and a fixed `seed` are supported, so evaluation runs are reproducible.
+  This is easier than the hosted API, which no longer accepts temperature.
+- Generation: about 13 tokens/sec warm, about 4 tokens/sec with only 0.5 GB RAM free.
+  **RAM is the binding constraint, not the CPU.**
+- Asking the model to produce claims plus classifications plus evidence IDs took 22.1 s and
+  **missed the blocker entirely**, ignoring a changes-requested review that was in the
+  evidence. It also emitted one claim classified `inference` while citing a single evidence
+  item, which the validator correctly dropped.
+- Asking it only to write the narrative over code-produced findings took 15.3 s, caught the
+  blocker, and used no forbidden language.
+- A tight JSON schema alone made the 3B model under-generate (a 2 word summary). Adding
+  `minLength` on the string fields plus a worked example in the prompt fixed it.
+
+That measurement is the whole basis for DEC-018.
+
+### Problems
+Two transient GitHub API failures while bulk-editing issues (`GraphQL: Something went wrong
+while executing your query`). Retried and verified; all 49 issues are correct.
+
+Issue titles were not updated when 5 task titles changed. Found and fixed. If a task title
+changes, the issue title needs updating separately from the body.
+
+### Decisions Needed
+All 19 decisions are still `Proposed`. Both developers must ratify them in P0-006 before
+feature work starts. DEC-017, DEC-018 and DEC-019 are new and change Developer 2's scope
+significantly, so this is a conversation, not a rubber stamp.
+
+### Next Step
+P0-006 with Isiwara: ratify the decisions. Then P0-005 (Ollama on both machines, record
+tokens/sec for each) and P0-002 (real Jira and GitHub data plus fixtures).
+
+### AI Assistance
+The Ollama migration, the hardware measurements and the 3 week triage were done with an AI
+assistant. The measurements above were run against the real Ollama install on this machine,
+not estimated.
+
+**Needs a human check:** the 19 decisions, and whether Isiwara agrees with the reduced
+scope of the model's job under DEC-018.
+
+---
+
 ## 2026-09-13 | Shared | Documentation foundation
 Status: DONE
 
