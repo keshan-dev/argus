@@ -54,7 +54,7 @@ Read with `ARCHITECTURE.md` (the system) and `AGENT_TOOLS.md` (how the agent rea
   ================                    ====================
                                                                    Triggered by:
    GitHub API  ----------+                                         python -m app.sync
-                         |                                         (manual or cron)
+                         |                                         (sched 5min / on demand)
    Jira API  ------------+
                          |
                          v
@@ -104,8 +104,9 @@ Read with `ARCHITECTURE.md` (the system) and `AGENT_TOOLS.md` (how the agent rea
                     MemberInsight -> UI
 ```
 
-**The 2 paths never cross.** The write path makes network calls and is never triggered by
-a web request. The read path makes no network calls. See DEC-002 and DEC-003.
+**The 2 paths never cross.** The write path makes network calls. A web request may
+*start* one in the background (FR-035) but never waits for it. The read path makes no
+network calls. See DEC-002, DEC-003 and DEC-016.
 
 ---
 
@@ -438,6 +439,7 @@ can tell the difference, and checking it is mandatory on every run (T-8 in
 All thresholds are named constants in `app/config.py`, never literals in logic:
 
 ```text
+SYNC_INTERVAL_MINUTES    = 5     # scheduler cadence (DEC-016)
 FRESHNESS_WINDOW_HOURS   = 24    # fresh -> stale boundary
 RECENT_ACTIVITY_DAYS     = 14    # default question window
 PR_REVIEW_WAIT_DAYS      = 3     # blocker: unreviewed pull request

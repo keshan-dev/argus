@@ -14,8 +14,9 @@ conditions, and both are required.
 
 ### Principles
 
-1. **No automated test makes a live network call.** Not to GitHub, not to Jira, not to
-   Anthropic. External calls are mocked with recorded fixtures.
+1. **No automated test makes a live network call.** Not to GitHub, not to Jira. Ollama is
+   local, and is mocked in unit tests so they run without a model loaded. External calls
+   are mocked with recorded fixtures.
 2. **Test the rules, not the wording.** Confidence, conflicts, blockers, risks and
    validation are pure functions with exact expected outputs.
 3. **Fixtures come from real API responses** captured in task P0-002, so tests exercise
@@ -356,7 +357,8 @@ labelled ground truth and is deferred to Stage 3 (DEC-006).
 |---|---|---|
 | **Latency p95, cached** | `agent_run.latency_ms` | Under 5 seconds (NFR-012) |
 | **Latency p95, uncached** | `agent_run.latency_ms` | Under 15 seconds (NFR-013) |
-| **Cost per insight call** | `agent_run` token counts times current pricing | Under 0.10 USD, expected around 0.04 USD (NFR-033) |
+| **Cost per insight call** | Local inference | **Zero.** No paid API (NFR-033) |
+| **Peak RAM during a run** | Task manager, or `ollama ps` | Model plus PostgreSQL plus app fits in available RAM (NFR-031) |
 | **Cache hit rate** | Cached responses divided by all requests | Tracked. A low rate means the evidence hash is unstable |
 | **Fallback rate** | Runs ending in the deterministic fallback | Under 1 percent in normal operation |
 
@@ -459,9 +461,10 @@ and failed, total cost, and p95 latency. Append the result to `WORKLOG.md`.
 
 ### Why evaluation is not in CI
 
-It costs money, it needs a real API key, and CI must hold no real credentials
-(`ARCHITECTURE.md` 12). Running it on every commit would be expensive and slow with little
-benefit, because the deterministic parts are already covered by unit tests.
+Inference is local and free (DEC-017), so cost is no longer the reason. The reason is
+time and hardware: CI runners have no model pulled, and generation on CPU is slow. Running
+it on every commit would add many minutes for little benefit, because the deterministic
+parts are already covered by unit tests.
 
 ---
 

@@ -54,9 +54,11 @@ ARGUS is not built for HR, and it is not built to compare people against each ot
 - Explicit, stored links between a Jira work item and its branches, pull requests and commits.
 - A deterministic member summary: assigned work, status, open pull requests, recent activity.
 - 3 fixed questions per member: current work, blockers, risks.
-- 1 LLM reasoning call per question, over pre-built structured evidence.
+- 1 local LLM call per question, which writes the summary only. All findings are
+  produced by deterministic rules (DEC-018).
 - Deterministic validation, deterministic confidence (HIGH / MEDIUM / LOW / UNKNOWN).
 - Conflict detection between Jira state and GitHub state.
+- Scheduled sync every 5 minutes, plus an on-demand Refresh button (DEC-016).
 - Visible data freshness, and honest reporting when a source is unavailable.
 - A web UI: team overview, member profile, evidence drawer.
 
@@ -121,7 +123,7 @@ Full detail in `AGENT_ARCHITECTURE.md`.
 | ORM and migrations | SQLAlchemy 2.0, Alembic |
 | Validation | Pydantic v2 |
 | HTTP client | httpx with tenacity |
-| LLM | Anthropic SDK, `claude-opus-5` |
+| LLM | **Ollama**, `llama3.2` (3B), runs locally on the host |
 | Tests | pytest, respx |
 | Lint and format | ruff, black |
 | Container | Docker, docker compose |
@@ -169,7 +171,16 @@ Ownership tags are enforced socially, not technically. See `TASKS.md` -> Develop
 ## 9. Development setup
 
 Requirements: Docker, Docker Compose, Python 3.11, a GitHub read-only token, a Jira API
-token, an Anthropic API key.
+token, and [Ollama](https://ollama.com) installed on the host.
+
+```bash
+ollama pull llama3.2      # about 2 GB
+ollama run llama3.2 "hi"   # pre-warm before demoing
+```
+
+**Memory note:** on a machine with 8 GB RAM or less, run Ollama on the host (not in
+Docker) and close other applications before demoing. Measured difference: about 13
+tokens/sec warm versus about 4 tokens/sec when RAM is starved.
 
 ```bash
 git clone <repo-url>
@@ -205,16 +216,16 @@ on both machines. See DEC-012.
 | File | What it answers |
 |---|---|
 | `README.md` | What is ARGUS, how do I run it |
-| `PROJECT_REQUIREMENTS.md` | What must be built, with numbered requirements (FR / NFR) |
-| `AGENT_ARCHITECTURE.md` | How the AI agent works, stage by stage |
-| `AGENT_TOOLS.md` | Every tool the agent can call, with full contracts |
-| `AI_BEHAVIOR.md` | How the agent must behave, and what it must never do |
-| `DATA_AND_EVIDENCE.md` | Data sources, canonical entities, the evidence model |
-| `ARCHITECTURE.md` | The whole software system, beyond the AI part |
-| `DECISIONS.md` | Why things are the way they are (DEC records) |
-| `TASKS.md` | Every task, owner, dependency and acceptance criteria |
+| [`docs/PROJECT_REQUIREMENTS.md`](docs/PROJECT_REQUIREMENTS.md) | What must be built, with numbered requirements (FR / NFR) |
+| [`docs/AGENT_ARCHITECTURE.md`](docs/AGENT_ARCHITECTURE.md) | How the AI agent works, stage by stage |
+| [`docs/AGENT_TOOLS.md`](docs/AGENT_TOOLS.md) | Every tool the agent can call, with full contracts |
+| [`docs/AI_BEHAVIOR.md`](docs/AI_BEHAVIOR.md) | How the agent must behave, and what it must never do |
+| [`docs/DATA_AND_EVIDENCE.md`](docs/DATA_AND_EVIDENCE.md) | Data sources, canonical entities, the evidence model |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The whole software system, beyond the AI part |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Why things are the way they are (DEC records) |
+| [`docs/TASKS.md`](docs/TASKS.md) | Every task, owner, dependency and acceptance criteria |
 | `WORKLOG.md` | What actually happened, newest first |
-| `TESTING_AND_EVALUATION.md` | How we test the software and evaluate the agent |
+| [`docs/TESTING_AND_EVALUATION.md`](docs/TESTING_AND_EVALUATION.md) | How we test the software and evaluate the agent |
 
 ## 12. Development rules
 
@@ -222,7 +233,8 @@ These are not suggestions. They apply to every commit.
 
 1. **Agent-facing tools MUST NOT make external API calls.** They read PostgreSQL only.
 2. **The LLM MUST NOT be given any write tool.** Not now, not as a convenience.
-3. **The LLM MUST NOT invent evidence.** It cites pre-built evidence by ID. See DEC-004.
+3. **The LLM MUST NOT invent evidence.** It is never given claims or evidence IDs to
+   produce. See DEC-018.
 4. **Confidence MUST be assigned by application code**, never taken from model output.
 5. **Retrieved external text is untrusted data**, never instructions. See `AI_BEHAVIOR.md` 5.6.
 6. **Every network call MUST have a timeout and a retry limit**, and MUST log what was

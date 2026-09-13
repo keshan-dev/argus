@@ -7,33 +7,38 @@ rules see `AI_BEHAVIOR.md`. For tool contracts see `AGENT_TOOLS.md`.
 
 ## 3.1 Agent purpose
 
-The agent turns a set of correlated engineering records into a small number of labelled,
-evidence-cited claims about 1 team member.
+ARGUS turns a set of correlated engineering records into a small number of labelled,
+evidence-cited claims about 1 team member, plus a short readable summary.
 
-That is the whole job. The agent does not decide what data to fetch from the internet, it
-does not compute confidence, it does not detect conflicts, and it does not take actions.
-Those are done by application code around it.
+**Deterministic code produces the claims. The model writes the summary.** See DEC-018.
+
+The model does not decide what data to fetch, does not choose which evidence supports a
+claim, does not classify anything, does not compute confidence, does not detect conflicts,
+and does not take actions. All of that is application code.
 
 ## 3.2 Agent responsibilities
 
-**The agent (the LLM call) is responsible for:**
+**The LLM call (stage S4b) is responsible for exactly 2 things:**
 
-- Reading a pre-built evidence set.
-- Producing claims that summarize what the evidence shows.
-- Labelling each claim as `fact`, `inference` or `unknown`.
-- Citing the evidence IDs that support each claim.
+- Writing `summary`: 2 sentences on what the person is working on.
+- Writing `needs_attention`: 1 sentence naming the blocker or risk, or stating there is none.
 
-**The agent is NOT responsible for:**
+That is the complete list. It receives findings that are already decided.
 
-| Not the agent's job | Who does it |
+**The LLM is NOT responsible for:**
+
+| Not the model's job | Who does it |
 |---|---|
 | Deciding which data to retrieve | S1 Plan, deterministic code |
 | Fetching data | S2 Retrieve, read tools over PostgreSQL |
 | Correlating Jira issues to pull requests | Ingestion (DEC-009), read at S3 |
 | Deduplicating evidence | S3, deterministic code |
-| Assigning confidence | S5, deterministic code (DEC-006) |
-| Detecting conflicts | S5, deterministic code |
-| Detecting blockers and risks | S5, deterministic rules |
+| Deciding likely current work | S4a, deterministic code |
+| Producing claims | S4a, deterministic code (DEC-018) |
+| Classifying fact / inference / unknown | S4a, deterministic code |
+| Selecting supporting evidence IDs | S4a, deterministic code |
+| Assigning confidence | S4a, deterministic code (DEC-006) |
+| Detecting conflicts, blockers and risks | S4a, deterministic rules |
 | Deciding what the user is allowed to see | Authorization, before S1 |
 | Any write or action | Nothing. There are no write tools (DEC-001) |
 
@@ -74,20 +79,31 @@ Those are done by application code around it.
                           |
                  evidence set (frozen)
                           |
+                          v
+       S4a  +----------------------------+
+  FINDINGS  | current work, blockers,    |  CODE
+            | risks, conflicts,          |
+            | classification, confidence |
+            | -> claims with evidence    |
+            +-------------+--------------+
+                          |
+                 findings (frozen)
+                          |
             +-------------+--------------+
             |                            |
             v                            v
-        S4  +----------------+     (kept aside, used in S5)
-   REASON   |  1 LLM CALL    |  LLM
+       S4b  +----------------+     (kept aside, used in S5)
+ NARRATIVE  |  1 LLM CALL    |  LLM  <- Ollama, localhost
             |  no tools      |
-            |  strict schema |
+            |  no evidence   |
+            |  ids emitted   |
             +-------+--------+
-                    | claims with evidence_ids
+                    | summary + needs_attention
                     v
         S5  +----------------------------+
-  VALIDATE  | resolve IDs, drop invalid  |  CODE
-            | confidence, conflicts,     |
-            | blockers, risks            |
+  VALIDATE  | forbidden language?        |  CODE
+            | invented ticket/PR names?  |
+            | -> else use deterministic  |
             +-------------+--------------+
                           v
         S6  +----------------------------+
@@ -98,7 +114,7 @@ Those are done by application code around it.
                     MemberInsight
 ```
 
-Only S4 touches the LLM. Everything else is ordinary Python.
+Only S4b touches the LLM, and it only writes prose. Everything else is ordinary Python.
 
 ## 3.4 Agent stages
 
@@ -149,18 +165,32 @@ If an optional source is unavailable, the answer proceeds with reduced confidenc
 | **Output** | `EvidenceSet`, frozen. This is the only evidence that exists for this run |
 | **Uses LLM** | No |
 | **Deterministic** | Yes |
-| **Failure behavior** | An empty evidence set is a valid outcome and is passed forward. S4 is still called, and is expected to return `unknown` claims. If a required source is `unavailable`, S4 is skipped entirely and the run returns UNKNOWN with the reason |
+| **Failure behavior** | An empty evidence set is a valid outcome and is passed forward. S4a produces an `unknown` claim. If a required source is `unavailable`, S4b is skipped entirely and the run returns UNKNOWN with the reason |
 
 The `summary` field is written by application code, never by the model. See DEC-004.
 
-### S4 Reason
+### S4a Findings
 
 | Field | Value |
 |---|---|
-| **Purpose** | Turn the evidence set into readable, labelled, cited claims |
-| **Input** | `question_type`, `EvidenceSet`, the versioned prompt file |
-| **Processing** | Exactly 1 call to the Anthropic API. Model `claude-opus-5`. Structured output via `output_config.format` with the `ReasoningOutput` schema. **No tools are passed.** Untrusted retrieved text appears only inside clearly delimited evidence blocks |
-| **Output** | `ReasoningOutput(claims: list[Claim])` where `Claim` has `text`, `classification` and `evidence_ids` |
+| **Purpose** | Decide everything that is true, before the model is involved |
+| **Input** | `EvidenceSet`, `source_health`, `failures` |
+| **Processing** | Apply the deterministic rules: likely current work from `work_item_link` plus the Jira assignment; blockers BL-1 to BL-8; risks RK-1 to RK-4; conflicts CF-1 to CF-4; classification per `DATA_AND_EVIDENCE.md` 6.6; confidence per `AI_BEHAVIOR.md` 5.4 |
+| **Output** | `Findings(claims, blockers, risks, conflicts, unknowns)`, each claim already carrying its classification, confidence and evidence IDs |
+| **Uses LLM** | No |
+| **Deterministic** | Yes |
+| **Failure behavior** | Cannot fail. No evidence produces an `unknown` claim with a stated reason |
+
+This stage is the product. See DEC-018.
+
+### S4b Narrative
+
+| Field | Value |
+|---|---|
+| **Purpose** | Turn findings that code has already produced into 2 readable sentences |
+| **Input** | `question_type`, the `Findings` from S4a, the versioned prompt file |
+| **Processing** | Exactly 1 call to Ollama at `http://localhost:11434`. Model from `MODEL_ID`, default `llama3.2`. `temperature: 0`, fixed `seed`, `format` set to the `NarrativeOutput` JSON schema, `num_predict` capped. **No tools are passed.** Untrusted retrieved text appears only inside clearly delimited blocks |
+| **Output** | `NarrativeOutput(summary, needs_attention, attention_needed)`. **No claims, no classifications, no evidence IDs** (DEC-018) |
 | **Uses LLM** | **Yes. This is the only stage that does** |
 | **Deterministic** | No |
 | **Failure behavior** | See the table below |
@@ -171,10 +201,10 @@ Failure handling in S4:
 |---|---|
 | Response fails schema validation | Retry once with the same input |
 | Second attempt also fails | Fall back to the deterministic summary (FR-012, FR-022), labelled as a fallback |
-| API timeout or connection error | 1 retry, then the deterministic fallback |
-| Rate limited (429) | 1 retry after the `retry-after` delay, then the deterministic fallback |
-| `stop_reason` is `refusal` | No retry. Deterministic fallback. Record the reason in `agent_run.error_type` |
-| API returns an authentication error | No retry. Deterministic fallback. Alert in logs |
+| Ollama not running, connection refused | No retry. Deterministic fallback. Clear message in logs naming the service |
+| Timeout (model cold, or machine under memory pressure) | 1 retry, then the deterministic fallback |
+| Model not pulled | No retry. Deterministic fallback. Log the exact `ollama pull` command needed |
+| Narrative names a ticket or pull request not in the findings | Discard the narrative, use the deterministic summary, record it in `agent_run.dropped_claims` |
 
 The fallback never fails the page. A user always gets the deterministic facts.
 
@@ -182,32 +212,31 @@ The fallback never fails the page. A user always gets the deterministic facts.
 
 | Field | Value |
 |---|---|
-| **Purpose** | Reject unsupported claims, then compute everything the model was not trusted to compute |
-| **Input** | `ReasoningOutput`, `EvidenceSet`, `source_health`, `failures` |
+| **Purpose** | Check the narrative is grounded and safe, then assemble the response |
+| **Input** | `NarrativeOutput` from S4b, `Findings` from S4a, `source_health`, `failures` |
 | **Processing** | See the ordered rules below |
 | **Output** | `ValidatedInsight(claims, conflicts, blockers, risks, unknowns, dropped_claims)` |
 | **Uses LLM** | No |
 | **Deterministic** | Yes |
-| **Failure behavior** | Cannot fail. If every claim is dropped, the result is a valid UNKNOWN response with the deterministic facts still attached |
+| **Failure behavior** | Cannot fail. A rejected narrative falls back to the deterministic summary; the findings are unaffected |
 
-Validation rules, applied in order:
+Validation rules, applied in order. Under DEC-018 the claims come from S4a and are already
+correct by construction, so validation now checks **the narrative only**:
 
-1. **Citation resolution.** Every `evidence_id` in a claim must exist in the run's
-   `EvidenceSet`. A claim citing an unknown ID is dropped and recorded in `dropped_claims`
-   with reason `UNKNOWN_EVIDENCE_ID`.
-2. **Fact rule.** A claim classified `fact` must cite at least 1 evidence item from the
-   authoritative source for that fact type (`DATA_AND_EVIDENCE.md` 6.6). Otherwise it is
-   downgraded to `inference`, recorded with reason `FACT_NOT_AUTHORITATIVE`.
-3. **Inference rule.** A claim classified `inference` must cite 2 or more evidence items.
-   Otherwise it is dropped with reason `INSUFFICIENT_EVIDENCE`.
-4. **Evidence resolution.** The evidence attached to the response is looked up from the
-   IDs by code. Model-supplied evidence objects are never used.
-5. **Conflict detection.** Deterministic rules compare Jira state against GitHub state and
-   emit conflict records.
-6. **Blocker detection.** The 8 deterministic signals run against the retrieved records.
-7. **Risk detection.** The 4 deterministic signals run against the retrieved records.
-8. **Confidence assignment.** Per DEC-006 and `AI_BEHAVIOR.md` 5.4, from the resolved
-   evidence, source health and conflicts. Model-supplied confidence is discarded.
+1. **Invented entity check.** Every ticket key (`AUTH-245`) and pull request number
+   mentioned in `summary` or `needs_attention` must appear in the findings passed to S4b.
+   If any does not, the narrative is discarded, the deterministic summary is used instead,
+   and the event is recorded in `dropped_claims` with reason `INVENTED_ENTITY`.
+2. **Forbidden language check.** The narrative must not contain person-judgment language
+   (`AI_BEHAVIOR.md` 5.11). Matching triggers the same fallback, reason
+   `FORBIDDEN_LANGUAGE`.
+3. **Length and shape check.** Both fields must be non-empty and within the schema bounds.
+   Otherwise 1 retry, then the deterministic summary.
+4. **Assembly.** The claims, blockers, risks, conflicts and confidence from S4a are
+   attached unchanged. Evidence is resolved from IDs by code.
+
+The important property: **a failed narrative never produces a wrong fact.** The worst case
+is that the user sees the deterministic summary instead of a generated one.
 
 ### S6 Respond
 
@@ -236,9 +265,9 @@ Validation rules, applied in order:
 8.  Cache lookup: hash(subject_user_id, question_type, evidence_set)
        hit  -> skip S4 and S5, go to step 11 with the cached validated insight
        miss -> continue
-9.  S4 Reason: 1 LLM call, structured output, no tools
-10. S5 Validate: drop unsupported claims, then compute conflicts, blockers,
-       risks and confidence in code
+9.  S4a Findings: claims, blockers, risks, conflicts, confidence, all in code
+10. S4b Narrative: 1 Ollama call, structured output, no tools, prose only
+11. S5 Validate: narrative grounded and safe, else deterministic fallback
 11. S6 Respond: assemble MemberInsight, persist agent_run, write cache
 12. Return to the UI
 ```
@@ -266,7 +295,7 @@ AgentRunContext
   validated               ValidatedInsight from S5
   dropped_claims          what the validator rejected and why
   prompt_version          e.g. "reasoning_v1"
-  model                   e.g. "claude-opus-5"
+  model                   e.g. "llama3.2:latest"
   input_tokens            from the API response
   output_tokens           from the API response
   started_at, finished_at
@@ -348,7 +377,7 @@ require the approval machinery deferred by DEC-001.
 | **Unavailable optional source** | Same | Run continues, confidence reduced | The answer, with a note that a source was missing |
 | **Contradictory data** | Deterministic conflict rules in S5 | Both states reported, conflict record emitted | Both states and an explicit conflict note. No silent winner |
 | **Invalid model output** | Schema validation fails | 1 retry, then deterministic fallback | Either a valid answer, or the deterministic facts with a visible notice |
-| **Model returns a claim citing a fake evidence ID** | S5 rule 1 | Claim dropped, recorded in `dropped_claims` | The claim simply does not appear |
+| **Narrative names a ticket that does not exist** | S5 rule 1 | Narrative discarded, deterministic summary used | A correct but plainer summary |
 | **LLM API failure or timeout** | Exception from the SDK | 1 retry, then deterministic fallback | Deterministic facts plus "AI reasoning is temporarily unavailable" |
 | **LLM refusal** | `stop_reason == "refusal"` | No retry. Deterministic fallback, reason recorded | Deterministic facts plus the unavailable notice |
 | **Database unavailable** | Connection error in S2 | Request fails with 503 | An error page. There is no useful answer without the database |
@@ -380,14 +409,18 @@ Where the LLM is actually used, and where it is not.
 | Enforcing schema validity | X | | |
 | Rejecting unsupported claims | X | | |
 | Recording the run, cost and latency | X | | |
-| **Summarizing evidence into a readable claim** | | **X** | |
-| **Labelling a claim fact / inference / unknown** | | | **X** (model proposes, code verifies and can downgrade) |
-| **Selecting which evidence supports a claim** | | | **X** (model cites, code resolves and drops invalid) |
-| **Phrasing the current-work narrative** | | **X** | |
+| **Writing the summary sentence** | | **X** | |
+| Labelling a claim fact / inference / unknown | X | | |
+| Selecting which evidence supports a claim | X | | |
+| **Phrasing the needs-attention sentence** | | **X** | |
 
-**Read this table honestly.** 17 of 21 responsibilities are deterministic code. The model
-does 2 things on its own: summarizing and phrasing. It shares 2 more with code, and in
-both cases code has the final say.
+**Read this table honestly.** 19 of 21 responsibilities are deterministic code. The model
+does exactly 2 things: it writes the summary sentence and the needs-attention sentence.
+It shares nothing, because under DEC-018 it is never asked to decide anything.
+
+This was not a stylistic choice. It was measured: on the 3B local model this project must
+use, the claim-producing design missed a blocker entirely in testing. Correctness moved
+into rules; language stayed with the model.
 
 That is the correct shape for this product. The value is in the evidence graph, not in the
 model. A model that is unavailable degrades ARGUS to a still-useful deterministic report.

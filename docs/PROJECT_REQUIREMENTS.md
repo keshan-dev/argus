@@ -262,32 +262,37 @@ request and assigns each item a stable ID (`ev_1`, `ev_2`, ...) unique within th
 - [ ] Duplicate representations of the same underlying event appear once.
 - [ ] The set is recorded in `agent_run.evidence_set`.
 
-#### FR-016 Single LLM reasoning call with structured output
-**Description:** Exactly 1 LLM call is made per agent run. It receives the question type
-and the evidence set, and returns a structured object conforming to a fixed schema.
+#### FR-016 Single local LLM call for the narrative
+**Description:** Exactly 1 LLM call is made per agent run, to Ollama on the local machine.
+It receives findings that code has already produced and returns `summary`,
+`needs_attention` and `attention_needed`. See DEC-017 and DEC-018.
 **Priority:** P0
-**Rationale:** Cost, latency and failure surface. See DEC-005.
+**Rationale:** Latency and failure surface. On a 3B local model the reasoning task was
+measured as unreliable; the narrative task was not.
 **Acceptance criteria:**
-- [ ] The call uses the Anthropic SDK with structured output (`output_config.format`).
-- [ ] The call passes no tools of any kind.
+- [ ] The call goes to Ollama at `http://localhost:11434`, model from `MODEL_ID`.
+- [ ] `temperature: 0` and a fixed `seed` are sent, so runs are reproducible.
+- [ ] `format` is set to the `NarrativeOutput` JSON schema and `num_predict` is capped.
+- [ ] **The model is never given claims, classifications or evidence IDs to produce.**
 - [ ] A schema-invalid response triggers exactly 1 retry, then the deterministic fallback.
 - [ ] Token counts and latency are recorded in `agent_run`.
 
-#### FR-017 Evidence citation enforcement
-**Description:** The model returns claims that cite evidence by ID. Application code
-resolves those IDs against the run's evidence set. A claim citing an unknown ID is
-dropped and recorded in `agent_run.dropped_claims` with a reason.
+#### FR-017 Claims and citations are produced by code
+**Description:** Claims, their classification and their supporting evidence IDs are
+produced by application code from the evidence set, never by the model. The model receives
+the finished findings. See DEC-018.
 **Priority:** P0
-**Rationale:** This is the hallucination defence. Without it, the model can fabricate
-evidence and nothing can detect it.
+**Rationale:** This is the hallucination defence. The model cannot fabricate a citation
+because it is never asked to produce one.
 **Acceptance criteria:**
-- [ ] A claim citing a non-existent evidence ID never reaches the user.
-- [ ] Every dropped claim is recorded with a reason.
+- [ ] **No code path allows the model to emit an evidence ID.** Asserted by test.
+- [ ] Every claim shown to a user carries evidence IDs assigned by code.
 - [ ] A claim classified `fact` cites at least 1 evidence item from the authoritative
       source for that fact type, per `DATA_AND_EVIDENCE.md` 6.6.
 - [ ] A claim classified `inference` cites 2 or more evidence items.
-- [ ] The evidence returned to the user is resolved from IDs by code, not copied from the
-      model output.
+- [ ] The narrative is checked for ticket keys and pull request numbers that do not appear
+      in the supplied findings. Any that appear are recorded in `agent_run.dropped_claims`
+      and the narrative falls back to the deterministic summary.
 
 #### FR-018 Deterministic confidence
 **Description:** Confidence is HIGH, MEDIUM, LOW or UNKNOWN, computed by application code
@@ -471,6 +476,40 @@ the ingester is exercised every time the demo is loaded. See DEC-012.
 - [ ] A failure is never converted into an empty successful result.
 - [ ] The failure type reaches the response and the UI.
 
+### Freshness
+
+#### FR-034 Scheduled synchronization
+**Description:** A scheduler runs ingestion for every configured source and team at a fixed
+interval, with no human action.
+**Priority:** P1
+**Rationale:** Data that is only as fresh as the last manual command is quietly out of date
+whenever nobody ran it. See DEC-016.
+**Acceptance criteria:**
+- [ ] Sync runs automatically every `SYNC_INTERVAL_MINUTES`, default 5.
+- [ ] The interval is a named constant in `app/config.py`.
+- [ ] The scheduler can be disabled by configuration, so tests and evaluation runs are
+      unaffected.
+- [ ] A sync already running for the same (source, scope) is not started again.
+- [ ] A failed scheduled run records `sync_run` normally and does not stop later runs.
+- [ ] Measured API usage stays within the rate limit budget at the configured interval.
+
+#### FR-035 On-demand refresh
+**Description:** A user can trigger a sync for their team from the UI. The request starts
+the sync in the background and returns immediately. The UI shows progress and reloads when
+it completes.
+**Priority:** P1
+**Rationale:** A lead who knows something changed 30 seconds ago should not wait up to 5
+minutes for the scheduler.
+**Acceptance criteria:**
+- [ ] `POST /api/teams/{id}/sync` returns 202 within 500 ms and never waits for the sync.
+- [ ] The endpoint requires authorization for that team.
+- [ ] A sync already running for the same scope returns the in-flight `sync_run` rather
+      than starting a second one.
+- [ ] The UI polls `sync_run.status` and shows progress.
+- [ ] A failed refresh surfaces the typed error, and the page still shows previously
+      cached data.
+- [ ] The read path still makes no network call. The refresh writes to PostgreSQL only.
+
 ---
 
 ## 2.6 Non-functional requirements
@@ -498,10 +537,13 @@ the ingester is exercised every time the demo is loaded. See DEC-012.
 
 ### Performance
 - **NFR-012** p95 under 5 seconds for a cached insight. P1.
-- **NFR-013** p95 under 15 seconds for an uncached insight, including the LLM call. P1.
+- **NFR-013** p95 under 20 seconds for an uncached insight, including the local model
+  call. Measured on the target machine: 15.3 s warm with the narrowed design, 22.1 s
+  with the original design. P1.
 - **NFR-014** Read tools MUST complete in under 500 ms for a team of 10 on seeded data.
   Indexes on the foreign keys and on `(source, external_id)`. P1.
-- **NFR-015** The request path MUST NOT trigger ingestion. P0.
+- **NFR-015** The request path MUST NOT **block on** ingestion. A request MAY start a
+  background sync (FR-035) but MUST NOT wait for it to complete. P0.
 
 ### Explainability
 - **NFR-016** Every fact and inference MUST cite at least 1 resolvable evidence ID. P0.
@@ -526,13 +568,19 @@ the ingester is exercised every time the demo is loaded. See DEC-012.
 - **NFR-028** Prompts MUST be versioned files under `app/agent/prompts/`. P0.
 - **NFR-029** The Alembic migration history MUST have exactly 1 head. Enforced in CI. P1.
 
-### Cost control
+### Resource control
+
+Inference is local and free (DEC-017). These replace the original cost requirements.
+
 - **NFR-030** Exactly 1 LLM call per agent run. P0.
-- **NFR-031** A hard spend cap MUST be configured on the Anthropic API key before the first
-  call. P0.
-- **NFR-032** Token counts MUST be recorded per run so cost is measurable. P0.
-- **NFR-033** Target cost per insight call under 0.10 USD. Expected around 0.04 USD at
-  current pricing. P1.
+- **NFR-031** The model MUST fit in available RAM alongside PostgreSQL and the application.
+  On the 7.7 GB target machine this means a 3B model, roughly 2 GB. P0.
+- **NFR-032** Token counts and wall-clock latency MUST be recorded per run in `agent_run`. P0.
+- **NFR-033** Monetary cost MUST remain zero. No hosted inference API, no paid service. P0.
+- **NFR-034** Ollama MUST run on the host, not inside Docker, on machines with 8 GB RAM or
+  less. P1.
+- **NFR-035** The model MUST be pre-warmed before a demo. A cold first call loads roughly
+  2 GB from disk. P1.
 
 ---
 
@@ -598,9 +646,10 @@ GitHub and Jira read-only ingestion, identity graph with manual bootstrap, unmat
 queue, canonical model, work item correlation, sync state and source health, 3 fixed
 question types, evidence with stable IDs, 1 LLM reasoning call, deterministic validation
 and confidence, conflict detection, blocker detection, risk detection, team overview,
-member profile, evidence drawer, login stub, Docker Compose deployment, evaluation suite.
+member profile, evidence drawer, login stub, Docker Compose deployment, evaluation
+suite, scheduled sync every 5 minutes and an on-demand refresh button.
 
-FR-001 to FR-033. All P0 and P1 requirements above.
+FR-001 to FR-035. All P0 and P1 requirements above.
 
 ### Future (later stages, not now)
 | Item | Earliest stage | Prerequisite |
@@ -609,7 +658,6 @@ FR-001 to FR-033. All P0 and P1 requirements above.
 | Calendar integration | Stage 3 | Stage 2 complete |
 | GitHub App instead of a token | Stage 2 | Multi-tenant need |
 | Webhook ingestion plus reconciliation | Stage 2 | Sync path stable |
-| Background scheduler for sync | Stage 2 | FR-008, FR-009 |
 | Free-text questions | Stage 2 | Evaluation suite mature |
 | Numeric calibrated confidence | Stage 3 | Labelled ground truth data |
 | SSO, RBAC, multi-tenancy | Stage 2 | First real customer |

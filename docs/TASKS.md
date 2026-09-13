@@ -38,57 +38,59 @@ Phases 2 and 3 run in parallel. That is the point of the lane split.
 
 # Task to issue index
 
-All 47 tasks are tracked as GitHub issues in [`keshan-dev/argus`](https://github.com/keshan-dev/argus/issues). Issue numbers match task order.
+All 49 tasks are tracked as GitHub issues in [`keshan-dev/argus`](https://github.com/keshan-dev/argus/issues). Issue numbers match task order.
 
-| Issue | Task | Title | Owner | Pri | Milestone |
-|---|---|---|---|---|---|
-| [#1](https://github.com/keshan-dev/argus/issues/1) | `P0-001` | Create the repository and configure collaboration settings | Both | P0 | Sprint 0 |
-| [#2](https://github.com/keshan-dev/argus/issues/2) | `P0-002` | Provision real Jira and GitHub test data and capture fixtures | Both | P0 | Sprint 0 |
-| [#3](https://github.com/keshan-dev/argus/issues/3) | `P0-003` | Python project skeleton and Docker Compose | Both | P0 | Sprint 0 |
-| [#4](https://github.com/keshan-dev/argus/issues/4) | `P0-004` | CI pipeline with lint, tests, secret scan and migration checks | Both | P0 | Sprint 0 |
-| [#5](https://github.com/keshan-dev/argus/issues/5) | `P0-005` | Set the Anthropic API key spend cap | Both | P0 | Sprint 0 |
-| [#6](https://github.com/keshan-dev/argus/issues/6) | `P0-006` | Ratify the architecture decisions | Both | P0 | Sprint 0 |
-| [#7](https://github.com/keshan-dev/argus/issues/7) | `P1-001` | Canonical SQLAlchemy models and the first Alembic migration | Both | P0 | Sprint 0 |
-| [#8](https://github.com/keshan-dev/argus/issues/8) | `P1-002` | Freeze the Pydantic contracts | Both | P0 | Sprint 0 |
-| [#9](https://github.com/keshan-dev/argus/issues/9) | `P1-003` | Configuration module with all named constants | Both | P0 | Sprint 0 |
-| [#10](https://github.com/keshan-dev/argus/issues/10) | `P1-004` | Database session management and statement timeouts | Both | P1 | Sprint 0 |
-| [#11](https://github.com/keshan-dev/argus/issues/11) | `P1-005` | Identity map file format and loader | Both | P0 | Sprint 0 |
-| [#12](https://github.com/keshan-dev/argus/issues/12) | `P2-001` | Shared HTTP client with timeout, retry and typed failures | Keshan | P0 | Sprint 1 |
-| [#13](https://github.com/keshan-dev/argus/issues/13) | `P2-002` | GitHub read-only client | Keshan | P0 | Sprint 1 |
-| [#14](https://github.com/keshan-dev/argus/issues/14) | `P2-003` | GitHub normalization into canonical tables | Keshan | P0 | Sprint 1 |
-| [#15](https://github.com/keshan-dev/argus/issues/15) | `P2-004` | Jira read-only client | Keshan | P0 | Sprint 1 |
-| [#16](https://github.com/keshan-dev/argus/issues/16) | `P2-005` | Jira normalization into canonical tables | Keshan | P0 | Sprint 1 |
-| [#17](https://github.com/keshan-dev/argus/issues/17) | `P2-006` | Identity resolution and the unmatched queue | Keshan | P0 | Sprint 2 |
-| [#18](https://github.com/keshan-dev/argus/issues/18) | `P2-007` | Work item link builder | Keshan | P0 | Sprint 2 |
-| [#19](https://github.com/keshan-dev/argus/issues/19) | `P2-008` | Sync CLI with run state and cursors | Keshan | P0 | Sprint 2 |
-| [#20](https://github.com/keshan-dev/argus/issues/20) | `P2-009` | Demo seeding through the real ingestion path | Keshan | P1 | Sprint 2 |
-| [#21](https://github.com/keshan-dev/argus/issues/21) | `P3-001` | FastAPI application, login stub and authorization seam | Isiwara | P0 | Sprint 1 |
-| [#22](https://github.com/keshan-dev/argus/issues/22) | `P3-002` | Read tools T-001 to T-006 | Isiwara | P0 | Sprint 1 |
-| [#23](https://github.com/keshan-dev/argus/issues/23) | `P3-003` | Source health tool T-007 | Isiwara | P0 | Sprint 1 |
-| [#24](https://github.com/keshan-dev/argus/issues/24) | `P3-004` | Planner and orchestrator skeleton | Isiwara | P0 | Sprint 1 |
-| [#25](https://github.com/keshan-dev/argus/issues/25) | `P4-001` | Evidence builder with stable IDs | Isiwara | P0 | Sprint 1 |
-| [#26](https://github.com/keshan-dev/argus/issues/26) | `P4-002` | Conflict detection rules | Isiwara | P0 | Sprint 2 |
-| [#27](https://github.com/keshan-dev/argus/issues/27) | `P4-003` | Blocker and risk detection rules | Isiwara | P0 | Sprint 2 |
-| [#28](https://github.com/keshan-dev/argus/issues/28) | `P4-004` | Confidence rules | Isiwara | P0 | Sprint 2 |
-| [#29](https://github.com/keshan-dev/argus/issues/29) | `P4-005` | Reasoning stage, the single LLM call | Isiwara | P0 | Sprint 2 |
-| [#30](https://github.com/keshan-dev/argus/issues/30) | `P4-006` | Validator, the hallucination defence | Isiwara | P0 | Sprint 2 |
-| [#31](https://github.com/keshan-dev/argus/issues/31) | `P4-007` | Agent run persistence and the insight cache | Isiwara | P1 | Sprint 2 |
-| [#32](https://github.com/keshan-dev/argus/issues/32) | `P4-008` | Deterministic member summary and fallback | Isiwara | P0 | Sprint 1 |
-| [#33](https://github.com/keshan-dev/argus/issues/33) | `P5-001` | Member insight and team overview endpoints | Isiwara | P0 | Sprint 3 |
-| [#34](https://github.com/keshan-dev/argus/issues/34) | `P5-002` | Member profile page | Isiwara | P0 | Sprint 3 |
-| [#35](https://github.com/keshan-dev/argus/issues/35) | `P5-003` | Evidence drawer | Isiwara | P0 | Sprint 3 |
-| [#36](https://github.com/keshan-dev/argus/issues/36) | `P5-004` | Team overview page | Isiwara | P1 | Sprint 3 |
-| [#37](https://github.com/keshan-dev/argus/issues/37) | `P5-005` | Unmatched identity view | Isiwara | P1 | Sprint 3 |
-| [#38](https://github.com/keshan-dev/argus/issues/38) | `P5-006` | Freshness and degraded-state display | Isiwara | P1 | Sprint 3 |
-| [#39](https://github.com/keshan-dev/argus/issues/39) | `P6-001` | Write-path test suite | Keshan | P0 | Sprint 3 |
-| [#40](https://github.com/keshan-dev/argus/issues/40) | `P6-002` | Read-path and rules test suite | Isiwara | P0 | Sprint 3 |
-| [#41](https://github.com/keshan-dev/argus/issues/41) | `P6-003` | Evaluation harness | Both | P0 | Sprint 3 |
-| [#42](https://github.com/keshan-dev/argus/issues/42) | `P6-004` | The 12 evaluation scenarios | Both | P0 | Sprint 3 |
-| [#43](https://github.com/keshan-dev/argus/issues/43) | `P6-005` | End-to-end integration test | Both | P1 | Sprint 3 |
-| [#44](https://github.com/keshan-dev/argus/issues/44) | `P7-001` | Security pass | Both | P0 | Sprint 3 |
-| [#45](https://github.com/keshan-dev/argus/issues/45) | `P7-002` | Cost and performance verification | Isiwara | P1 | Sprint 3 |
-| [#46](https://github.com/keshan-dev/argus/issues/46) | `P7-003` | README verification and the 10 minute setup test | Both | P1 | Sprint 3 |
-| [#47](https://github.com/keshan-dev/argus/issues/47) | `P7-004` | Demo run and v0.1.0 tag | Both | P0 | Sprint 3 |
+| Issue | Task | Title | Owner | Pri | Milestone | 3-week tier |
+|---|---|---|---|---|---|---|
+| [#1](https://github.com/keshan-dev/argus/issues/1) | `P0-001` | Create the repository and configure collaboration settings | Keshan | P0 | Sprint 0 | **must** |
+| [#2](https://github.com/keshan-dev/argus/issues/2) | `P0-002` | Provision real Jira and GitHub test data and capture fixtures | Both | P0 | Sprint 0 | **must** |
+| [#3](https://github.com/keshan-dev/argus/issues/3) | `P0-003` | Python project skeleton and Docker Compose | Keshan | P0 | Sprint 0 | **must** |
+| [#4](https://github.com/keshan-dev/argus/issues/4) | `P0-004` | CI pipeline with lint, tests, secret scan and migration checks | Keshan | P0 | Sprint 0 | **must** |
+| [#5](https://github.com/keshan-dev/argus/issues/5) | `P0-005` | Install Ollama and pull the model | Both | P0 | Sprint 0 | **must** |
+| [#6](https://github.com/keshan-dev/argus/issues/6) | `P0-006` | Ratify the architecture decisions | Both | P0 | Sprint 0 | **must** |
+| [#7](https://github.com/keshan-dev/argus/issues/7) | `P1-001` | Canonical SQLAlchemy models and the first Alembic migration | Keshan | P0 | Sprint 0 | **must** |
+| [#8](https://github.com/keshan-dev/argus/issues/8) | `P1-002` | Freeze the Pydantic contracts | Both | P0 | Sprint 0 | **must** |
+| [#9](https://github.com/keshan-dev/argus/issues/9) | `P1-003` | Configuration module with all named constants | Keshan | P0 | Sprint 0 | **must** |
+| [#10](https://github.com/keshan-dev/argus/issues/10) | `P1-004` | Database session management and statement timeouts | Keshan | P1 | Sprint 0 | stretch |
+| [#11](https://github.com/keshan-dev/argus/issues/11) | `P1-005` | Identity map file format and loader | Keshan | P0 | Sprint 0 | **must** |
+| [#12](https://github.com/keshan-dev/argus/issues/12) | `P2-001` | Shared HTTP client with timeout, retry and typed failures | Keshan | P0 | Sprint 1 | **must** |
+| [#13](https://github.com/keshan-dev/argus/issues/13) | `P2-002` | GitHub read-only client | Keshan | P0 | Sprint 1 | **must** |
+| [#14](https://github.com/keshan-dev/argus/issues/14) | `P2-003` | GitHub normalization into canonical tables | Keshan | P0 | Sprint 1 | **must** |
+| [#15](https://github.com/keshan-dev/argus/issues/15) | `P2-004` | Jira read-only client | Keshan | P0 | Sprint 1 | **must** |
+| [#16](https://github.com/keshan-dev/argus/issues/16) | `P2-005` | Jira normalization into canonical tables | Keshan | P0 | Sprint 1 | **must** |
+| [#17](https://github.com/keshan-dev/argus/issues/17) | `P2-006` | Identity resolution and the unmatched queue | Keshan | P0 | Sprint 2 | **must** |
+| [#18](https://github.com/keshan-dev/argus/issues/18) | `P2-007` | Work item link builder | Keshan | P0 | Sprint 2 | **must** |
+| [#19](https://github.com/keshan-dev/argus/issues/19) | `P2-008` | Sync CLI with run state and cursors | Keshan | P0 | Sprint 2 | **must** |
+| [#20](https://github.com/keshan-dev/argus/issues/20) | `P2-009` | Demo seeding through the real ingestion path | Keshan | P1 | Sprint 2 | **must** |
+| [#48](https://github.com/keshan-dev/argus/issues/48) | `P2-010` | Scheduled synchronization | Keshan | P1 | Sprint 2 | defer |
+| [#21](https://github.com/keshan-dev/argus/issues/21) | `P3-001` | FastAPI application, login stub and authorization seam | Isiwara | P0 | Sprint 1 | **must** |
+| [#22](https://github.com/keshan-dev/argus/issues/22) | `P3-002` | Read tools T-001 to T-006 | Keshan | P0 | Sprint 1 | **must** |
+| [#23](https://github.com/keshan-dev/argus/issues/23) | `P3-003` | Source health tool T-007 | Keshan | P0 | Sprint 1 | **must** |
+| [#24](https://github.com/keshan-dev/argus/issues/24) | `P3-004` | Planner and orchestrator skeleton | Isiwara | P0 | Sprint 1 | **must** |
+| [#25](https://github.com/keshan-dev/argus/issues/25) | `P4-001` | Evidence builder with stable IDs | Isiwara | P0 | Sprint 1 | **must** |
+| [#26](https://github.com/keshan-dev/argus/issues/26) | `P4-002` | Conflict detection rules | Keshan | P0 | Sprint 2 | **must** |
+| [#27](https://github.com/keshan-dev/argus/issues/27) | `P4-003` | Blocker and risk detection rules | Keshan | P0 | Sprint 2 | **must** |
+| [#28](https://github.com/keshan-dev/argus/issues/28) | `P4-004` | Confidence rules | Keshan | P0 | Sprint 2 | **must** |
+| [#29](https://github.com/keshan-dev/argus/issues/29) | `P4-005` | Narrative stage, the single Ollama call | Isiwara | P0 | Sprint 2 | **must** |
+| [#30](https://github.com/keshan-dev/argus/issues/30) | `P4-006` | Narrative validator | Isiwara | P0 | Sprint 2 | **must** |
+| [#31](https://github.com/keshan-dev/argus/issues/31) | `P4-007` | Agent run persistence and the insight cache | Isiwara | P1 | Sprint 2 | **must** |
+| [#32](https://github.com/keshan-dev/argus/issues/32) | `P4-008` | Deterministic member summary (primary path) | Keshan | P0 | Sprint 1 | **must** |
+| [#33](https://github.com/keshan-dev/argus/issues/33) | `P5-001` | Member insight and team overview endpoints | Isiwara | P0 | Sprint 3 | **must** |
+| [#34](https://github.com/keshan-dev/argus/issues/34) | `P5-002` | Member profile page | Isiwara | P0 | Sprint 3 | **must** |
+| [#35](https://github.com/keshan-dev/argus/issues/35) | `P5-003` | Evidence drawer | Isiwara | P0 | Sprint 3 | **must** |
+| [#36](https://github.com/keshan-dev/argus/issues/36) | `P5-004` | Team overview page | Isiwara | P1 | Sprint 3 | stretch |
+| [#37](https://github.com/keshan-dev/argus/issues/37) | `P5-005` | Unmatched identity view | Isiwara | P1 | Sprint 3 | defer |
+| [#38](https://github.com/keshan-dev/argus/issues/38) | `P5-006` | Freshness and degraded-state display | Isiwara | P1 | Sprint 3 | **must** |
+| [#49](https://github.com/keshan-dev/argus/issues/49) | `P5-007` | On-demand refresh endpoint and button | Isiwara | P1 | Sprint 3 | defer |
+| [#39](https://github.com/keshan-dev/argus/issues/39) | `P6-001` | Write-path test suite | Keshan | P0 | Sprint 3 | defer |
+| [#40](https://github.com/keshan-dev/argus/issues/40) | `P6-002` | Read-path and rules test suite | Isiwara | P0 | Sprint 3 | defer |
+| [#41](https://github.com/keshan-dev/argus/issues/41) | `P6-003` | Evaluation harness | Both | P0 | Sprint 3 | **must** |
+| [#42](https://github.com/keshan-dev/argus/issues/42) | `P6-004` | The 12 evaluation scenarios | Both | P0 | Sprint 3 | **must** |
+| [#43](https://github.com/keshan-dev/argus/issues/43) | `P6-005` | End-to-end integration test | Both | P1 | Sprint 3 | defer |
+| [#44](https://github.com/keshan-dev/argus/issues/44) | `P7-001` | Security pass | Both | P0 | Sprint 3 | **must** |
+| [#45](https://github.com/keshan-dev/argus/issues/45) | `P7-002` | Resource and performance verification | Isiwara | P1 | Sprint 3 | stretch |
+| [#46](https://github.com/keshan-dev/argus/issues/46) | `P7-003` | README verification and the 10 minute setup test | Both | P1 | Sprint 3 | **must** |
+| [#47](https://github.com/keshan-dev/argus/issues/47) | `P7-004` | Demo run and v0.1.0 tag | Both | P0 | Sprint 3 | **must** |
 
 ---
 
@@ -105,7 +107,7 @@ to add after work has started.
 **Scope:** Repository creation, collaborator access, branch protection on `main`, labels,
 4 milestones, project board, issue template, pull request template.
 **Out of scope:** Any application code. CI (that is P0-004).
-**Owner:** Shared (Developer 1 drives, as repository admin)
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** READY
 **Dependencies:** None
@@ -212,7 +214,7 @@ machines.
 **Scope:** `pyproject.toml` with dependencies and ruff/black config, `Dockerfile`,
 `docker-compose.yml`, `.env.example`, a minimal `app/main.py` with `/health`.
 **Out of scope:** Models, routes, agent code.
-**Owner:** Shared
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P0-001
@@ -255,7 +257,7 @@ merge.
 **Scope:** A GitHub Actions workflow running ruff, black, pytest, a secret scanner,
 `alembic upgrade head` against an empty database, and an `alembic heads` single-head check.
 **Out of scope:** Deployment. Evaluation tests (they need an API key and run locally).
-**Owner:** Shared
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P0-003
@@ -267,7 +269,7 @@ merge.
 - The migration job needs a PostgreSQL service container.
 - The `alembic heads` check must fail when more than 1 head exists. With 2 developers and
   1 migration directory this is the most common and most silent conflict.
-- CI MUST NOT hold a real GitHub, Jira or Anthropic credential.
+- CI MUST NOT hold a real GitHub or Jira credential. Inference is local (DEC-017).
 - Evaluation tests are excluded from CI by marker.
 
 **Acceptance criteria:**
@@ -291,42 +293,49 @@ then a second head).
 ## P0-005
 
 **Issue:** [#5](https://github.com/keshan-dev/argus/issues/5)
-**Title:** Set the Anthropic API key spend cap
-**Objective:** A hard spend limit is configured before the first model call.
-**Why:** The only paid dependency. A loop or an accidental re-run must not produce a
-surprise bill.
-**Scope:** Create the API key, set a monthly spend cap in the Anthropic console, record
-the agreed budget.
-**Out of scope:** Any model call.
+**Title:** Install Ollama and pull the model
+**Objective:** Both machines can run `llama3.2` locally and reach it over HTTP.
+**Why:** Inference is local and free (DEC-017). There is no API key and no spend cap. The
+setup step is the model, not an account.
+**Scope:** Install Ollama, pull `llama3.2`, confirm the HTTP API responds, record measured
+speed on each machine, agree the fallback model.
+**Out of scope:** Writing the reasoning client. That is P4-005.
 **Owner:** Shared
 **Priority:** P0
 **Status:** READY
 **Dependencies:** None
 **Parallelizable:** YES.
-**Components:** External account
-**Files:** None. The key goes in each developer's local `.env`.
-**Inputs:** An Anthropic account.
+**Components:** Local runtime
+**Files:** None. Setup only.
+**Inputs:** A machine with at least 4 GB free RAM.
 **Implementation notes:**
-- Expected cost is approximately 0.04 USD per insight call: roughly 4000 input tokens at
-  5 USD per million, 800 output tokens at 25 USD per million, on `claude-opus-5`.
-- The whole build plus demo should be 10 to 20 USD. Set the cap with headroom, for example
-  50 USD per month, and agree it between both developers first.
-- The key MUST NOT be committed. It is read from `ANTHROPIC_API_KEY`.
+- `ollama pull llama3.2` is about 2 GB.
+- **Run Ollama on the host, not in Docker** (NFR-034). On 8 GB machines the container
+  overhead is not affordable.
+- Confirm the API: `curl http://localhost:11434/api/tags`.
+- From a container, Ollama is reachable at `http://host.docker.internal:11434`.
+- Record tokens/sec on each machine. Measured on the reference machine (7.7 GB, i7-12650H,
+  no dedicated GPU): about 13 tok/s warm, about 4 tok/s when RAM is starved.
+- If a machine cannot hold 3B, fall back to `llama3.2:1b` and record that it is being used.
+- **Pre-warm before any demo.** The first call loads about 2 GB from disk.
 
 **Acceptance criteria:**
-- [ ] An API key exists.
-- [ ] A monthly spend cap is configured in the console.
-- [ ] Both developers know the agreed budget.
-- [ ] The key is in each local `.env` only, never in the repository.
+- [ ] Ollama installed on both machines.
+- [ ] `llama3.2` pulled on both machines.
+- [ ] `curl http://localhost:11434/api/tags` returns the model on both.
+- [ ] A structured-output call returns schema-valid JSON on both.
+- [ ] Measured tokens/sec recorded in `WORKLOG.md` for each machine.
+- [ ] Reachability from a container confirmed.
+- [ ] Monetary cost is zero. No account, no key, no card.
 
-**Testing required:** None.
-**Handoff notes:** Developer 2 needs the key for P4-006.
-**Risks:** None.
-**Related decisions:** None.
-**Related requirements:** NFR-031, NFR-033
-**Completion evidence:** A `WORKLOG.md` entry recording the agreed cap.
-
----
+**Testing required:** Manual verification, recorded in `WORKLOG.md`.
+**Handoff notes:** P4-005 depends on this. The recorded speed sets the realistic latency
+target for NFR-013.
+**Risks:** A machine with under 4 GB free will swap and be unusably slow. Find out now, not
+in week 3.
+**Related decisions:** DEC-017
+**Related requirements:** NFR-031, NFR-033, NFR-034, NFR-035
+**Completion evidence:** `WORKLOG.md` entries from both developers with measured tok/s.
 
 ## P0-006
 
@@ -384,7 +393,7 @@ Phase 1 is the handoff point between the 2 developers (DEC-015). Do it together.
 **Scope:** The 17 tables in `DATA_AND_EVIDENCE.md` 6.3, their columns, foreign keys,
 unique constraints and indexes. The first Alembic migration.
 **Out of scope:** Any query logic. Any ingestion. Seed data.
-**Owner:** Shared (1 person drives, the other reviews live)
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P0-003, P0-004
@@ -489,7 +498,7 @@ checks. Scattered literals cannot be tuned or tested.
 **Scope:** `app/config.py` with pydantic-settings, environment variables, and the 10
 thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 **Out of scope:** Using them. That happens in Phases 2 and 4.
-**Owner:** Shared
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P0-003
@@ -499,13 +508,14 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 **Inputs:** `DATA_AND_EVIDENCE.md` 6.8.
 **Implementation notes:**
 - Secrets from environment only: `DATABASE_URL`, `GITHUB_TOKEN`, `JIRA_BASE_URL`,
-  `JIRA_EMAIL`, `JIRA_API_TOKEN`, `ANTHROPIC_API_KEY`.
+  `JIRA_EMAIL`, `JIRA_API_TOKEN`. **No LLM credential**, inference is local (DEC-017).
 - The 10 thresholds: `FRESHNESS_WINDOW_HOURS` 24, `RECENT_ACTIVITY_DAYS` 14,
   `PR_REVIEW_WAIT_DAYS` 3, `DRAFT_PR_STALE_DAYS` 5, `ISSUE_NO_CODE_DAYS` 3,
   `DUE_SOON_DAYS` 3, `STATUS_STUCK_DAYS` 5, `NO_ACTIVITY_DAYS` 7,
-  `EXCERPT_MAX_CHARS` 500, `MAX_EVIDENCE_ITEMS` 40.
-- Also: `HTTP_TIMEOUT_SECONDS` 10, `HTTP_MAX_ATTEMPTS` 3, `MODEL_ID` `claude-opus-5`,
-  `PROMPT_VERSION` `reasoning_v1`.
+  `EXCERPT_MAX_CHARS` 500, `MAX_EVIDENCE_ITEMS` 40, `SYNC_INTERVAL_MINUTES` 5.
+- Also: `HTTP_TIMEOUT_SECONDS` 10, `HTTP_MAX_ATTEMPTS` 3, `MODEL_ID` `llama3.2`,
+  `OLLAMA_URL` `http://localhost:11434`, `OLLAMA_SEED` 42, `OLLAMA_NUM_PREDICT` 300,
+  `PROMPT_VERSION` `narrative_v1`.
 - Settings MUST fail fast at startup if a required secret is missing.
 
 **Acceptance criteria:**
@@ -533,7 +543,7 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 **Scope:** Engine, session factory, a FastAPI dependency, a 2 second statement timeout for
 read sessions and a longer one for the sync path.
 **Out of scope:** Queries.
-**Owner:** Shared
+**Owner:** Developer 1
 **Priority:** P1
 **Status:** NOT_STARTED
 **Dependencies:** P1-001
@@ -568,7 +578,7 @@ writes them as `identity_link` rows with `match_method = manual`.
 verified identity (DEC-008). Every attribution depends on it.
 **Scope:** The file format, a documented example, the loader, validation.
 **Out of scope:** Inferred matching (that is P2-006). The unmatched queue (also P2-006).
-**Owner:** Shared (format), Developer 1 (loader)
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P1-001
@@ -951,7 +961,7 @@ records what happened.
 (DEC-003, DEC-010).
 **Scope:** The CLI entry point, orchestration of client to normalize to identity to links,
 `sync_run` recording, `sync_cursor` read and write, a `--reset-cursor` flag.
-**Out of scope:** A scheduler. Webhooks.
+**Out of scope:** Webhooks. The scheduler is P2-010. The refresh endpoint is P5-007.
 **Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
@@ -1038,6 +1048,66 @@ row counts and the presence of the 3 special cases.
 
 ---
 
+## P2-010
+
+**Issue:** [#48](https://github.com/keshan-dev/argus/issues/48)
+**Title:** Scheduled synchronization
+**Objective:** Sync runs automatically for every configured source and team, without anyone
+remembering to run it.
+**Why:** DEC-002 keeps the read path offline, which means freshness is entirely a function
+of how often the write path runs. Manual sync makes the product quietly out of date.
+See DEC-016.
+**Scope:** A scheduler that invokes the existing sync entry point on an interval, a config
+switch to disable it, and concurrency control so the same scope is never synced twice at
+once.
+**Out of scope:** Webhooks (Stage 2). A job queue (DEC-013 still holds). The refresh
+endpoint, which is P5-007.
+**Owner:** Developer 1
+**Priority:** P1
+**Status:** NOT_STARTED
+**Dependencies:** P2-008
+**Parallelizable:** YES, alongside P2-009.
+**Components:** Ingestion, scheduling
+**Files:** `app/scheduler.py`, wiring in `app/main.py`
+**Inputs:** `SYNC_INTERVAL_MINUTES` from config, the sync entry point from P2-008.
+**Implementation notes:**
+- An asyncio background task started on FastAPI startup is enough. **Do not add a job
+  queue or a broker** (DEC-013).
+- It MUST call the same code path as `python -m app.sync`. No second ingestion
+  implementation.
+- `SCHEDULER_ENABLED` config flag, default true, set false in tests and evaluation runs.
+- **Concurrency:** before starting, check for a `sync_run` with status `running` for the
+  same (source, scope). If one exists, skip this tick and log it. A stuck `running` row
+  older than a timeout is treated as failed so the scheduler is not blocked forever.
+- A failed run records `sync_run` normally and MUST NOT stop later ticks.
+- Rate budget at the default interval: roughly 300 to 900 GitHub calls per hour for 1
+  repository plus 1 Jira project, against a limit of about 5000. Recheck before adding
+  repositories.
+
+**Acceptance criteria:**
+- [ ] Sync runs automatically every `SYNC_INTERVAL_MINUTES`, default 5.
+- [ ] The interval and the enable flag are named constants in `app/config.py`.
+- [ ] Setting `SCHEDULER_ENABLED=false` fully disables it.
+- [ ] A sync already running for the same (source, scope) is not started again.
+- [ ] A stuck `running` row does not block the scheduler permanently.
+- [ ] A failed tick records `sync_run` and later ticks still run.
+- [ ] It calls the same code path as the CLI, verified by test.
+- [ ] Measured API usage at the default interval is recorded and within budget.
+
+**Testing required:** Unit tests for the interval trigger, the disable flag, the
+skip-if-running guard, the stuck-run recovery, and that a failed tick does not stop the
+scheduler. No live network call.
+**Handoff notes:** Developer 2 can now assume `fresh` is the normal source state. P5-007
+reuses the same concurrency guard.
+**Risks:** A scheduler that silently dies leaves data stale while the UI still reports the
+last successful sync honestly. Log every tick, and treat a long gap as a signal.
+**Related decisions:** DEC-013, DEC-016
+**Related requirements:** FR-034, NFR-015
+**Completion evidence:** Merged pull request, tests passing, a recorded hour of ticks with
+measured API usage.
+
+---
+
 # Phase 3: Agent Foundation (Developer 2)
 
 Runs in parallel with Phase 2. Developer 2 builds against fixtures from P0-002 and, once
@@ -1092,7 +1162,7 @@ every route.
 **Scope:** `get_team_members`, `get_assigned_work_items`, `get_pull_requests`,
 `get_commits`, `get_reviews`, `get_work_item_links`, per the contracts in `AGENT_TOOLS.md`.
 **Out of scope:** T-007, which is P3-003. Evidence building.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P1-001, P1-002, P1-004
@@ -1133,7 +1203,7 @@ every route.
 The most important 20 lines in the system (DEC-010).
 **Scope:** `get_source_health` reading `sync_run`, with the 3-state logic.
 **Out of scope:** Triggering a sync. It reports only.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P1-001, P1-003
@@ -1273,7 +1343,7 @@ it.
 trusted to find them.
 **Scope:** The 4 rules from `DATA_AND_EVIDENCE.md` 6.7.
 **Out of scope:** Resolving conflicts. ARGUS never picks a winner.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P4-001
@@ -1313,7 +1383,7 @@ trusted to find them.
 **Why:** Slack is out of scope, so blockers come from Jira and GitHub structure (DEC-014).
 **Scope:** The 8 blocker signals and 4 risk signals from `DATA_AND_EVIDENCE.md` 6.9.
 **Out of scope:** Any inference over free text.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P4-001
@@ -1355,7 +1425,7 @@ against the review time. Get the comparison direction right and test it.
 **Why:** Confidence must be explainable and must not come from the model (DEC-006).
 **Scope:** The base levels and modifiers from `AI_BEHAVIOR.md` 5.4.
 **Out of scope:** Numeric confidence. Not in the MVP.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P4-001, P4-002
@@ -1394,112 +1464,110 @@ worked examples.
 ## P4-005
 
 **Issue:** [#29](https://github.com/keshan-dev/argus/issues/29)
-**Title:** Reasoning stage, the single LLM call
-**Objective:** 1 Anthropic call turns the evidence set into labelled, cited claims.
-**Why:** The only place a language model is used (DEC-005).
-**Scope:** The prompt file, evidence rendering, the API call with structured output, retry
-on schema failure, the deterministic fallback.
-**Out of scope:** Validation. That is P4-006.
+**Title:** Narrative stage, the single Ollama call
+**Objective:** 1 local model call turns the findings from P4-004 into 2 readable sentences.
+**Why:** The only place a language model is used (DEC-018). It writes; it does not decide.
+**Scope:** The prompt file, rendering findings into the prompt, the Ollama HTTP call with a
+JSON schema, retry on schema failure, the deterministic fallback.
+**Out of scope:** Producing claims, classifications, confidence or evidence IDs. Those come
+from P4-002 to P4-004. Narrative validation is P4-006.
 **Owner:** Developer 2
 **Priority:** P0
 **Status:** NOT_STARTED
-**Dependencies:** P4-001, P0-005
+**Dependencies:** P4-004, P0-005
 **Parallelizable:** NO.
-**Components:** Agent, LLM
-**Files:** `app/agent/reasoning.py`, `app/agent/prompts/reasoning_v1.txt`
-**Inputs:** The evidence set, `ANTHROPIC_API_KEY`, `MODEL_ID`.
+**Components:** Agent, local LLM
+**Files:** `app/agent/narrative.py`, `app/agent/prompts/narrative_v1.txt`
+**Inputs:** `Findings` from S4a, `MODEL_ID`, Ollama on localhost.
 **Implementation notes:**
-- Model `claude-opus-5`. Structured output via `output_config.format` with the
-  `ReasoningOutput` schema.
+- `POST http://localhost:11434/api/chat`, `stream: false`.
+- Options: `temperature: 0`, fixed `seed`, `num_predict` capped at about 300.
+- `format` is the `NarrativeOutput` JSON schema. **Use `minLength` on the string fields.**
+  Measured: without it the 3B model returned a 2 word summary; with it, 2 usable sentences.
+- **Include a worked example in the prompt.** Measured: without an example the model
+  returned zero content. Small models need the shape demonstrated, not described.
 - **Pass no tools** (AC-3).
-- **Do not send a `temperature` parameter.** It is removed on current models and returns a
-  400 (DEC-011). Do not use assistant prefill either; also removed.
-- Untrusted evidence text goes in a clearly delimited block, labelled untrusted, separate
-  from instructions (P-1, P-3).
-- The prompt MUST instruct the model to cite evidence by ID and MUST state that it cannot
-  invent IDs.
-- Retry once on schema failure, then fall back to the deterministic summary (FR-022).
-- Handle `stop_reason == "refusal"` with no retry, straight to the fallback.
-- Record input and output tokens and latency into the context.
+- **The model MUST NOT be given claims, classifications or evidence IDs to produce**
+  (DEC-018). It receives finished findings as plain text.
+- Untrusted text (ticket titles, PR bodies) goes in a clearly delimited block labelled as
+  data, never in the instruction section.
+- Retry once on schema failure, then fall back to the deterministic summary (P4-008).
+- Connection refused means Ollama is not running. Do not retry. Log the exact command to
+  start it, and fall back.
+- Record `eval_count`, `prompt_eval_count` and wall-clock latency into `agent_run`.
 - The prompt is a versioned file. Changing it means a new version, by pull request.
 
 **Acceptance criteria:**
-- [ ] Exactly 1 API call per run.
-- [ ] No tools are passed, asserted by a test.
-- [ ] No `temperature` parameter is sent.
-- [ ] Structured output is enforced by schema.
+- [ ] Exactly 1 model call per run.
+- [ ] No tools are passed, asserted by test.
+- [ ] `temperature: 0` and a fixed `seed` are sent.
+- [ ] The same findings produce byte-identical output across 2 runs.
+- [ ] Output validates against `NarrativeOutput`.
 - [ ] A schema failure retries once, then falls back.
-- [ ] An API timeout or error falls back without failing the page.
-- [ ] A refusal falls back and is recorded.
+- [ ] Ollama not running falls back without failing the page, and logs how to start it.
 - [ ] Token counts and latency are captured.
-- [ ] Untrusted text is delimited and labelled in the prompt.
+- [ ] **No code path lets the model emit an evidence ID**, asserted by test.
 
-**Testing required:** Unit tests with a mocked client for success, schema failure then
-success, 2 schema failures then fallback, timeout, and refusal. 1 live smoke test run
-locally, not in CI.
-**Handoff notes:** The validator consumes `ReasoningOutput`.
-**Risks:** This is the only task that spends money. Use the mocked client for all
-automated tests.
-**Related decisions:** DEC-001, DEC-005, DEC-011
+**Testing required:** Unit tests with a mocked HTTP client for success, schema failure then
+success, 2 failures then fallback, connection refused. 1 live smoke test run locally.
+**Handoff notes:** P4-006 validates what this returns.
+**Risks:** A 3B model under-generates against a tight schema. `minLength` plus a worked
+example is the mitigation, and both were verified to work.
+**Related decisions:** DEC-001, DEC-017, DEC-018
 **Related requirements:** FR-016, FR-022, FR-029, NFR-030, NFR-032
 **Completion evidence:** Merged pull request, tests passing, 1 recorded live run with
-token counts.
-
----
+measured latency and tokens.
 
 ## P4-006
 
 **Issue:** [#30](https://github.com/keshan-dev/argus/issues/30)
-**Title:** Validator, the hallucination defence
-**Objective:** Reject unsupported claims and assemble the validated insight.
-**Why:** This is what makes DEC-004 real. Without it the evidence IDs are decoration.
-**Scope:** The 8 ordered validation rules from `AGENT_ARCHITECTURE.md` 3.4 S5.
-**Out of scope:** The rules themselves, which come from P4-002, P4-003 and P4-004.
+**Title:** Narrative validator
+**Objective:** Reject a narrative that invents entities or judges the person, and assemble
+the final response.
+**Why:** Under DEC-018 the claims are correct by construction, so the remaining risk is the
+model writing prose that names something that does not exist, or editorialising about a
+person.
+**Scope:** The 4 checks in `AGENT_ARCHITECTURE.md` 3.4 S5, plus assembly.
+**Out of scope:** The findings themselves, which come from P4-002 to P4-004.
 **Owner:** Developer 2
 **Priority:** P0
 **Status:** NOT_STARTED
-**Dependencies:** P4-002, P4-003, P4-004, P4-005
+**Dependencies:** P4-005
 **Parallelizable:** NO.
 **Components:** Agent
 **Files:** `app/agent/validation.py`
-**Inputs:** `ReasoningOutput`, the evidence set, source health.
+**Inputs:** `NarrativeOutput` from S4b, `Findings` from S4a.
 **Implementation notes:**
-Rules in order:
-1. Every cited ID exists in the set. Otherwise drop, reason `UNKNOWN_EVIDENCE_ID`.
-2. A `fact` must cite at least 1 authoritative item. Otherwise downgrade to `inference`,
-   reason `FACT_NOT_AUTHORITATIVE`.
-3. An `inference` must cite 2 or more items. Otherwise drop, reason
-   `INSUFFICIENT_EVIDENCE`.
-4. Resolve evidence from IDs **by code**. Never use model-supplied evidence objects.
-5. Attach conflicts from P4-002.
-6. Attach blockers from P4-003.
-7. Attach risks from P4-003.
-8. Assign confidence from P4-004, discarding any model-supplied value.
+Checks in order:
+1. **Invented entity.** Extract every ticket key and pull request number from `summary` and
+   `needs_attention`. Each MUST appear in the findings passed to the model. Any that does
+   not means discard the narrative, use the deterministic summary, record `INVENTED_ENTITY`.
+2. **Forbidden language.** Scan for person-judgment terms (`AI_BEHAVIOR.md` 5.11). A match
+   means the same fallback, recorded as `FORBIDDEN_LANGUAGE`.
+3. **Shape.** Both fields non-empty and within schema bounds. Otherwise fall back.
+4. **Assembly.** Attach the claims, blockers, risks, conflicts and confidence from S4a
+   unchanged. Resolve evidence from IDs by code.
 
-Every drop and downgrade is recorded in `dropped_claims` with the claim text and the
-reason.
-**The validator cannot fail.** If every claim is dropped, return a valid UNKNOWN response
-with the deterministic facts still attached.
+**The validator cannot fail.** A rejected narrative degrades to the deterministic summary;
+the findings are never affected.
 
 **Acceptance criteria:**
-- [ ] A claim citing a fake ID is dropped and recorded.
-- [ ] A `fact` citing only non-authoritative evidence is downgraded and recorded.
-- [ ] An `inference` citing 1 item is dropped and recorded.
-- [ ] Evidence in the response is resolved by code, never copied from model output.
-- [ ] Model-supplied confidence is discarded.
-- [ ] All claims dropped still produces a valid UNKNOWN response.
-- [ ] Every drop records a reason.
+- [ ] A narrative naming a ticket not in the findings is rejected and recorded.
+- [ ] A narrative containing forbidden language is rejected and recorded.
+- [ ] An empty or malformed field falls back.
+- [ ] A rejected narrative still produces a complete, correct response.
+- [ ] Findings are never modified by this stage.
+- [ ] Every rejection records a reason in `agent_run.dropped_claims`.
 
-**Testing required:** A unit test per rule, plus the all-dropped case, plus a test feeding
-a deliberately fabricated model output and asserting nothing fabricated reaches the output.
+**Testing required:** A unit test per check, plus a test feeding a deliberately fabricated
+narrative and asserting nothing invented reaches the output.
 **Handoff notes:** This is the test a reviewer will look at first. Make it clear.
-**Risks:** None if the rules are followed in order.
-**Related decisions:** DEC-004, DEC-005, DEC-006
-**Related requirements:** FR-017, FR-018, FR-019, FR-020, FR-021
-**Completion evidence:** Merged pull request, all rule tests passing, the fabrication test
+**Risks:** The ticket-key regex must match the configured project keys, not a hardcoded
+pattern. Reuse the one from P2-007.
+**Related decisions:** DEC-004, DEC-018
+**Related requirements:** FR-017, FR-022
+**Completion evidence:** Merged pull request, all check tests passing, the fabrication test
 output.
-
----
 
 ## P4-007
 
@@ -1551,14 +1619,15 @@ counts.
 ## P4-008
 
 **Issue:** [#32](https://github.com/keshan-dev/argus/issues/32)
-**Title:** Deterministic member summary and fallback
+**Title:** Deterministic member summary (primary path)
 **Objective:** A complete member summary produced with no model call.
-**Why:** It answers most of the question with zero inference risk, and it is the fallback
-when the model is unavailable (FR-012, FR-022).
+**Why:** **Under DEC-018 this is the primary path, not just a fallback.** It is what the
+model receives as input, and what the user sees whenever the narrative is rejected or
+Ollama is unavailable (FR-012, FR-022).
 **Scope:** Assigned work, status, open pull requests, recent commits and reviews, assembled
 from tool output.
 **Out of scope:** Inference. That is what the model is for.
-**Owner:** Developer 2
+**Owner:** Developer 1
 **Priority:** P0
 **Status:** NOT_STARTED
 **Dependencies:** P3-002
@@ -1846,6 +1915,63 @@ account.
 
 ---
 
+## P5-007
+
+**Issue:** [#49](https://github.com/keshan-dev/argus/issues/49)
+**Title:** On-demand refresh endpoint and button
+**Objective:** A user can force a sync for their team and watch it complete, without the
+request ever blocking on the external APIs.
+**Why:** The scheduler gives 5 minute freshness. A lead who knows something changed 30
+seconds ago should not have to wait for the next tick. See DEC-016.
+**Scope:** `POST /api/teams/{id}/sync` returning 202 immediately, a Refresh button, status
+polling against `sync_run`, and the degraded-state handling when a refresh fails.
+**Out of scope:** The scheduler itself, which is P2-010. Any change to the read tools.
+**Owner:** Developer 2
+**Priority:** P1
+**Status:** NOT_STARTED
+**Dependencies:** P2-008, P3-001, P5-004, P5-006
+**Parallelizable:** YES, alongside P5-005.
+**Components:** API, UI, ingestion trigger
+**Files:** `app/web/routes.py`, `app/web/templates/team.html`, `app/web/static/app.js`
+**Inputs:** The sync entry point from P2-008, `sync_run` rows.
+**Implementation notes:**
+- **The endpoint MUST return 202 within 500 ms and MUST NOT wait for the sync.** This is
+  the amended `AC-2`: starting a background sync is allowed, waiting for one is not.
+- It MUST check authorization for the team before starting anything.
+- Reuse the concurrency guard from P2-010. If a sync is already running for that scope,
+  return the in-flight `sync_run` rather than starting a second one.
+- The UI polls `GET /api/teams/{id}/sync/status` (or the overview endpoint) until
+  `sync_run.status` leaves `running`, then reloads. Poll every 2 seconds, and stop after a
+  sensible timeout rather than polling forever.
+- **On failure, the page keeps showing the previously cached data** with the typed error
+  surfaced. A failed refresh MUST NOT blank the page.
+- The read path is unchanged. Refresh writes to PostgreSQL; tools still only read it.
+
+**Acceptance criteria:**
+- [ ] `POST /api/teams/{id}/sync` returns 202 within 500 ms.
+- [ ] The endpoint never waits for sync completion, asserted by a timing test.
+- [ ] An unauthorized team returns 403 and starts nothing.
+- [ ] A sync already running returns the in-flight run, and no second run starts.
+- [ ] The UI shows progress and reloads when the sync finishes.
+- [ ] A failed refresh shows the typed error and keeps the cached data visible.
+- [ ] Polling stops after a timeout rather than continuing forever.
+- [ ] No module under `app/tools/` gained a network call, asserted by the existing import
+      guard.
+
+**Testing required:** API tests for the 202 timing, the 403 case, and the already-running
+case. A rendering test for the failure state. The import guard from P3-002 must still pass.
+**Handoff notes:** Completes the freshness story. `fresh` is now the normal state and
+`stale` becomes a real signal that something is wrong.
+**Risks:** The obvious wrong implementation is awaiting the sync inside the request, which
+would reintroduce a 5 to 60 second request blocked on external APIs and defeat DEC-002.
+The timing test exists to catch exactly that.
+**Related decisions:** DEC-002, DEC-016
+**Related requirements:** FR-035, FR-028, NFR-015
+**Completion evidence:** Merged pull request, tests passing, a screenshot of the refresh
+in progress and after completion.
+
+---
+
 # Phase 6: Testing and Evaluation
 
 ## P6-001
@@ -2079,9 +2205,10 @@ path is covered by P6-004.
 ## P7-002
 
 **Issue:** [#45](https://github.com/keshan-dev/argus/issues/45)
-**Title:** Cost and performance verification
-**Objective:** Confirm measured cost and latency meet the targets.
-**Why:** Both are stated goals (G-6, G-8) and both are now measurable from `agent_run`.
+**Title:** Resource and performance verification
+**Objective:** Confirm measured latency and memory use meet the targets. Cost is zero by
+construction (DEC-017).
+**Why:** Latency is a stated goal (G-6) and is the real risk on an 8 GB machine.
 **Scope:** Query `agent_run` for token counts and latency, compute cost per call, compare
 against p95 targets.
 **Out of scope:** Optimization, unless a target is missed.
@@ -2093,22 +2220,24 @@ against p95 targets.
 **Components:** Observability
 **Files:** A small reporting script, location to be decided.
 **Inputs:** `agent_run` rows.
-**Implementation notes:** Cost at current pricing: input tokens times 5 USD per million,
-output tokens times 25 USD per million, for `claude-opus-5`.
+**Implementation notes:** Record wall-clock latency from `agent_run`, tokens/sec from the
+Ollama response, and peak RAM during a run. Compare warm versus cold, and with other
+applications open versus closed.
 **Acceptance criteria:**
-- [ ] Measured cost per insight call is recorded.
-- [ ] Cost is under 0.10 USD per call.
 - [ ] p95 cached latency under 5 seconds.
-- [ ] p95 uncached latency under 15 seconds.
-- [ ] The cache is confirmed to prevent a repeat call.
-- [ ] Results are recorded in `WORKLOG.md`.
+- [ ] p95 uncached latency under 20 seconds (NFR-013).
+- [ ] Measured tokens/sec recorded, warm and cold.
+- [ ] Peak RAM recorded with PostgreSQL, the app and Ollama all running.
+- [ ] The cache is confirmed to prevent a repeat model call.
+- [ ] Monetary cost confirmed zero.
+- [ ] Results recorded in `WORKLOG.md`.
 
 **Testing required:** Measurement, not a test.
-**Handoff notes:** If cost exceeds the target, reduce `MAX_EVIDENCE_ITEMS` before anything
-else.
+**Handoff notes:** If latency exceeds the target, in order: close other applications,
+reduce `num_predict`, reduce `MAX_EVIDENCE_ITEMS`, then fall back to `llama3.2:1b`.
 **Risks:** None.
 **Related decisions:** DEC-005
-**Related requirements:** G-6, G-8, NFR-012, NFR-013, NFR-033
+**Related requirements:** G-6, NFR-012, NFR-013, NFR-031, NFR-033, NFR-035
 **Completion evidence:** Measured numbers in `WORKLOG.md`.
 
 ---
@@ -2202,7 +2331,7 @@ PHASE 0
      |
      +--> P0-002 (real data + fixtures) ------------------+
      +--> P0-003 (skeleton) --> P0-004 (CI)               |
-  P0-005 (spend cap)   [independent]                      |
+  P0-005 (ollama setup) [independent]                     |
   P0-006 (ratify decisions)  [independent]                |
                                                           |
 PHASE 1   (needs P0-003, P0-004)                          |
@@ -2279,8 +2408,8 @@ Once Phase 1 is merged, the 2 developers never block each other.
 | **Sprint 1 week 1** | P2-001, P2-002, P2-003 | P3-001, P3-002, P3-003 |
 | **Sprint 1 week 2** | P2-004, P2-005 | P3-004, P4-001, P4-008 |
 | **Sprint 2 week 1** | P2-006, P2-007 | P4-002, P4-003, P4-004 |
-| **Sprint 2 week 2** | P2-008, P2-009 | P4-005, P4-006, P4-007 |
-| **Sprint 3 week 1** | P6-001 | P5-001 to P5-006 |
+| **Sprint 2 week 2** | P2-008, P2-009, P2-010 | P4-005, P4-006, P4-007 |
+| **Sprint 3 week 1** | P6-001 | P5-001 to P5-007 |
 | **Sprint 3 week 2** | P6-003, P6-004 (shared), P7-001 to P7-004 (shared) | P6-002, P6-003, P6-004 (shared), P7 (shared) |
 
 **Why Developer 2 is never blocked:** the read path is built against a fixture-seeded test
@@ -2304,20 +2433,26 @@ because the schema is the same.
 
 | Area | Owner | Backup | Notes |
 |---|---|---|---|
-| `app/integrations/` | Developer 1 | Developer 2 | Write path. Only place with network calls |
+| `app/integrations/` | Developer 1 | Developer 2 | Write path. Only place with external network calls |
 | `app/sync.py` | Developer 1 | Developer 2 | Ingestion CLI |
 | Identity resolution | Developer 1 | Developer 2 | Highest correctness risk in the project |
 | `work_item_link` creation | Developer 1 | Developer 2 | The core correlation |
 | `seed/`, fixtures | Developer 1 | Developer 2 | Serves demo, tests and evaluation |
-| `app/tools/` | Developer 2 | Developer 1 | Read path. No network calls, ever |
-| `app/agent/` | Developer 2 | Developer 1 | Includes the only LLM call |
-| Prompts | Developer 2 | Developer 1 | Versioned files, changed by pull request |
-| `app/web/` | Developer 2 | Developer 1 | Routes, templates, auth stub |
-| `app/models/` | Shared | n/a | Coordinate. 1 migration at a time |
-| `app/schemas/` | Shared | n/a | Frozen after P1-002 |
-| `app/config.py`, `app/db.py` | Shared | n/a | Coordinate |
-| CI, Docker | Shared | n/a | Coordinate |
+| `app/tools/` T-001 to T-007 | **Developer 1** | Developer 2 | Moved by DEC-019. SQL over tables Dev 1 owns |
+| **Findings engine** (blockers, risks, conflicts, confidence, current work) | **Developer 1** | Developer 2 | Moved by DEC-019. This is the product's core under DEC-018 |
+| `app/models/`, `app/db.py`, `app/config.py` | Developer 1 | Developer 2 | Coordinate. 1 migration at a time |
+| CI, Docker | Developer 1 | Developer 2 | |
+| `app/agent/` orchestrator, planner, evidence builder | Developer 2 | Developer 1 | |
+| `app/agent/narrative.py` and the prompt | Developer 2 | Developer 1 | The only LLM call |
+| `app/agent/validation.py` | Developer 2 | Developer 1 | Narrative validation |
+| `app/web/` routes, templates, drawer | Developer 2 | Developer 1 | |
+| `app/schemas/` | Shared | n/a | **Frozen after P1-002.** The handoff under DEC-019 |
 | `docs/` | Shared | n/a | Anyone may improve, note it in `WORKLOG.md` |
+
+**Split in 1 sentence:** Developer 1 decides what is true, Developer 2 decides how it is
+presented.
+
+**Totals:** 24 tasks Developer 1, 15 Developer 2, 10 shared.
 
 **Review policy:** Developer 2's pull requests require Developer 1's approval. Developer 1
 may review and merge their own work. Both update `WORKLOG.md` in the same pull request as
@@ -2327,41 +2462,99 @@ the code.
 
 # Current Sprint
 
-**Sprint 0: Foundations**
-**Active phase:** Phase 0
-**Started:** Not yet started
-**Exit condition:** Phases 0 and 1 complete. Schema and contracts merged. CI green. Both
-developers can run the application and have ratified the decisions.
+**3 weeks to the presentation.** 15 working days, 2 developers.
 
-### Active tasks
+## Reality check
 
-| Issue | Task | Title | Owner | Status |
-|---|---|---|---|---|
-| [#1](https://github.com/keshan-dev/argus/issues/1) | P0-001 | Create repository and collaboration settings | Shared | READY |
-| [#2](https://github.com/keshan-dev/argus/issues/2) | P0-002 | Provision real Jira and GitHub data, capture fixtures | Shared | READY |
-| [#5](https://github.com/keshan-dev/argus/issues/5) | P0-005 | Set the Anthropic spend cap | Shared | READY |
-| [#6](https://github.com/keshan-dev/argus/issues/6) | P0-006 | Ratify the architecture decisions | Shared | READY |
+49 tasks in 15 days is not achievable. The work below is triaged into 3 tiers. **40 tasks
+are in scope**, 3 are stretch, 6 are deferred to after the demo. Even 40 is roughly 1.3
+finished tasks per person per day, so the plan assumes small pull requests and no rework.
 
-### Next up, once P0-001 is done
+If week 2 slips, cut in this order: `P6-004` down to 5 scenarios, then `P5-006`, then
+`P4-007`. Do not cut `P0-002`, `P1-001`, `P1-002` or anything in Phase 2.
 
-| Issue | Task | Title | Owner |
-|---|---|---|---|
-| [#3](https://github.com/keshan-dev/argus/issues/3) | P0-003 | Python skeleton and Docker Compose | Shared |
-| [#4](https://github.com/keshan-dev/argus/issues/4) | P0-004 | CI pipeline | Shared |
+## Week 1, days 1 to 5. Foundations, mostly together
 
-### Blocked
+| Day | Tasks | Who |
+|---|---|---|
+| 1 | [#6](https://github.com/keshan-dev/argus/issues/6) `P0-006` ratify decisions (1 hour, do it first), [#1](https://github.com/keshan-dev/argus/issues/1) `P0-001` repo, [#5](https://github.com/keshan-dev/argus/issues/5) `P0-005` Ollama | Both |
+| 1 to 2 | [#2](https://github.com/keshan-dev/argus/issues/2) `P0-002` **real Jira and GitHub data plus fixtures** | Both |
+| 2 to 3 | [#3](https://github.com/keshan-dev/argus/issues/3) `P0-003` skeleton and Docker, [#4](https://github.com/keshan-dev/argus/issues/4) `P0-004` CI | Dev 1 |
+| 3 to 5 | [#7](https://github.com/keshan-dev/argus/issues/7) `P1-001` schema, [#8](https://github.com/keshan-dev/argus/issues/8) `P1-002` contracts, [#9](https://github.com/keshan-dev/argus/issues/9) `P1-003` config, [#11](https://github.com/keshan-dev/argus/issues/11) `P1-005` identity map | Both on 001 and 002, Dev 1 on the rest |
+| 5 | [#22](https://github.com/keshan-dev/argus/issues/22) `P3-002` read tools, [#23](https://github.com/keshan-dev/argus/issues/23) `P3-003` source health | Dev 1 |
+
+**Exit:** schema and contracts merged, `docker compose up` works on both machines, Ollama
+answers on both, fixtures captured, read tools exist so Dev 2 is unblocked.
+
+`P0-002` is the one to protect. Everything downstream depends on those fixtures.
+
+## Week 2, days 6 to 10. Parallel lanes
+
+| Developer 1 (Keshan) | Developer 2 (Isiwara) |
+|---|---|
+| [#12](https://github.com/keshan-dev/argus/issues/12) `P2-001` http client | [#21](https://github.com/keshan-dev/argus/issues/21) `P3-001` app, auth seam |
+| [#13](https://github.com/keshan-dev/argus/issues/13) `P2-002` GitHub client | [#24](https://github.com/keshan-dev/argus/issues/24) `P3-004` planner, orchestrator |
+| [#14](https://github.com/keshan-dev/argus/issues/14) `P2-003` GitHub ingest | [#25](https://github.com/keshan-dev/argus/issues/25) `P4-001` evidence builder |
+| [#15](https://github.com/keshan-dev/argus/issues/15) `P2-004` Jira client | [#31](https://github.com/keshan-dev/argus/issues/31) `P4-007` agent_run, insight cache |
+| [#16](https://github.com/keshan-dev/argus/issues/16) `P2-005` Jira ingest | [#33](https://github.com/keshan-dev/argus/issues/33) `P5-001` endpoints |
+| [#17](https://github.com/keshan-dev/argus/issues/17) `P2-006` identity resolution | |
+| [#18](https://github.com/keshan-dev/argus/issues/18) `P2-007` work item links | |
+
+**Exit:** real data lands in PostgreSQL, the agent pipeline runs end to end on fixture data
+with a stubbed narrative.
+
+## Week 3, days 11 to 15. Findings, narrative, UI, demo
+
+Order matters this week. Dev 1 builds the findings engine **first**, because Dev 2's
+narrative call depends on it.
+
+| Days | Developer 1 (Keshan) | Developer 2 (Isiwara) |
+|---|---|---|
+| 11 to 12 | [#26](https://github.com/keshan-dev/argus/issues/26) `P4-002` conflicts, [#27](https://github.com/keshan-dev/argus/issues/27) `P4-003` blockers and risks, [#28](https://github.com/keshan-dev/argus/issues/28) `P4-004` confidence, [#32](https://github.com/keshan-dev/argus/issues/32) `P4-008` deterministic summary | [#34](https://github.com/keshan-dev/argus/issues/34) `P5-002` member page, [#35](https://github.com/keshan-dev/argus/issues/35) `P5-003` evidence drawer |
+| 12 to 13 | [#19](https://github.com/keshan-dev/argus/issues/19) `P2-008` sync CLI, [#20](https://github.com/keshan-dev/argus/issues/20) `P2-009` seed via ingester | [#29](https://github.com/keshan-dev/argus/issues/29) `P4-005` Ollama narrative, [#30](https://github.com/keshan-dev/argus/issues/30) `P4-006` validator |
+| 13 to 14 | [#41](https://github.com/keshan-dev/argus/issues/41) `P6-003` eval harness | [#38](https://github.com/keshan-dev/argus/issues/38) `P5-006` freshness display |
+| 14 | [#42](https://github.com/keshan-dev/argus/issues/42) `P6-004` evaluation scenarios (both) | |
+| 15 | [#44](https://github.com/keshan-dev/argus/issues/44) `P7-001` security pass, [#46](https://github.com/keshan-dev/argus/issues/46) `P7-003` setup check, [#47](https://github.com/keshan-dev/argus/issues/47) `P7-004` demo and tag (both) | |
+
+**Hard dependency:** Dev 2 cannot start `P4-005` until `P4-008` is merged. If Dev 1 is
+behind on day 12, Dev 2 works on UI polish rather than waiting.
+
+## In scope: 40 tasks
+
+Phase 0 all 6. Phase 1: `P1-001`, `P1-002`, `P1-003`, `P1-005`. Phase 2: `P2-001` to
+`P2-009`. Phase 3 all 4. Phase 4 all 8. Phase 5: `P5-001`, `P5-002`, `P5-003`, `P5-006`.
+Phase 6: `P6-003`, `P6-004`. Phase 7: `P7-001`, `P7-003`, `P7-004`.
+
+## Stretch: 3 tasks, only if ahead
+
+| Task | Why it is stretch |
+|---|---|
+| [#36](https://github.com/keshan-dev/argus/issues/36) `P5-004` team overview page | Good demo opening, but the member page carries the demo alone |
+| [#45](https://github.com/keshan-dev/argus/issues/45) `P7-002` resource verification | Useful numbers for the writeup, not needed to run |
+| [#10](https://github.com/keshan-dev/argus/issues/10) `P1-004` statement timeouts | Correctness hardening, invisible in a demo |
+
+## Deferred to after the demo: 6 tasks
+
+| Task | Why deferred |
+|---|---|
+| [#48](https://github.com/keshan-dev/argus/issues/48) `P2-010` scheduled sync | Run `app.sync` manually for the demo |
+| [#49](https://github.com/keshan-dev/argus/issues/49) `P5-007` refresh button | Same |
+| [#37](https://github.com/keshan-dev/argus/issues/37) `P5-005` unmatched identity view | Show the count on the member page instead |
+| [#39](https://github.com/keshan-dev/argus/issues/39) `P6-001` write-path test suite | Per-task tests still required by the DoD |
+| [#40](https://github.com/keshan-dev/argus/issues/40) `P6-002` read-path test suite | Same |
+| [#43](https://github.com/keshan-dev/argus/issues/43) `P6-005` end-to-end test | `P6-004` covers the same ground |
+
+## Blocked
 
 None.
 
-### Start here, in this order
+## Start here
 
-1. **P0-006** ([#6](https://github.com/keshan-dev/argus/issues/6)) ratify the decisions. 1 hour. Do it before any code, because DEC-002 and
-   DEC-004 shape everything.
-2. **P0-001** ([#1](https://github.com/keshan-dev/argus/issues/1)) create the repository.
-3. **P0-002** ([#2](https://github.com/keshan-dev/argus/issues/2)) create real Jira and GitHub data. This removes the largest correctness risk
-   and unblocks both lanes.
-4. **P0-005** ([#5](https://github.com/keshan-dev/argus/issues/5)) set the spend cap. 10 minutes.
-5. **P0-003** ([#3](https://github.com/keshan-dev/argus/issues/3)) then **P0-004** ([#4](https://github.com/keshan-dev/argus/issues/4)).
+1. **[#6](https://github.com/keshan-dev/argus/issues/6) `P0-006`** ratify the decisions. 1 hour. Do it before any code, because
+   DEC-017 and DEC-018 changed what you are building.
+2. **[#1](https://github.com/keshan-dev/argus/issues/1) `P0-001`** repository settings, and **protect `main`**. Still not done.
+3. **[#5](https://github.com/keshan-dev/argus/issues/5) `P0-005`** Ollama on both machines, record tokens/sec.
+4. **[#2](https://github.com/keshan-dev/argus/issues/2) `P0-002`** real Jira and GitHub data, capture fixtures. Protect this.
 
 ---
 

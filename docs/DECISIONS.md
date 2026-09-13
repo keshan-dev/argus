@@ -27,6 +27,10 @@ All decisions below are `Proposed` until both developers ratify them in task P0-
 | DEC-013 | PostgreSQL only, no Redis, queue or vector database | Proposed |
 | DEC-014 | Slack and calendar are deferred | Proposed |
 | DEC-015 | The developer boundary is the database schema | Proposed |
+| DEC-016 | Scheduled sync and on-demand refresh | Proposed |
+| DEC-017 | Local inference with Ollama, no hosted LLM API | Proposed |
+| DEC-018 | The model writes the narrative, code produces the findings | Proposed |
+| DEC-019 | Lane rebalance: data and findings vs agent and interface | Proposed |
 
 ---
 
@@ -110,7 +114,8 @@ Option 3. **Agent-facing tools MUST NOT make external API calls.** Every module 
 
 The system has 2 separate paths:
 - **Write path:** `app/integrations/` and `app/sync.py`. Makes network calls. Triggered
-  explicitly, never by a web request.
+  by the scheduler, the CLI, or a background refresh request (DEC-016). A web request
+  may start one; it never waits for one.
 - **Read path:** `app/tools/`. Reads PostgreSQL. Never makes a network call.
 
 ### Reason
@@ -138,8 +143,12 @@ FR-013, NFR-015, DEC-003, DEC-010, `ARCHITECTURE.md` section 4, `AGENT_TOOLS.md`
 ## DEC-003: Ingestion is an explicitly triggered write path with recorded state
 
 Date: 2026-09-13
-Status: Proposed
+Status: Proposed, **amended by DEC-016**
 Owner: Developer 1
+
+> **Amendment (DEC-016):** the MVP now includes a scheduler and an on-demand refresh.
+> The CLI entry point, idempotency, `sync_run` and `sync_cursor` design below are
+> unchanged. Only the trigger changed.
 
 ### Context
 
@@ -161,7 +170,8 @@ Option 3. `python -m app.sync --source <github|jira> --team <id>` is the single 
 entry point. It is idempotent and safe to re-run. Every attempt writes a `sync_run` row.
 Progress is recorded in `sync_cursor` so a re-run resumes rather than refetching.
 
-A scheduler is deferred to Stage 2. For the MVP, sync is run manually or from cron.
+~~A scheduler is deferred to Stage 2. For the MVP, sync is run manually or from cron.~~
+Superseded by DEC-016: a scheduler and an on-demand refresh are in the MVP.
 
 ### Reason
 
@@ -171,8 +181,8 @@ real work that buys nothing while the team is 2 people running a local demo.
 
 ### Consequences
 
-- The MVP has no automatic refresh. Data is as fresh as the last manual or cron-driven run.
-  This is acceptable only because freshness is visible to the user.
+- ~~The MVP has no automatic refresh.~~ Superseded by DEC-016. Freshness is still
+  visible to the user, which remains the reason staleness is acceptable at all.
 - `sync_run` and `sync_cursor` are required tables in the first migration.
 - Adding a scheduler later changes the trigger, not the ingestion code.
 
@@ -250,8 +260,12 @@ FR-015, FR-017, FR-024, NFR-016, DEC-005, `AI_BEHAVIOR.md` 5.3, `AI_BEHAVIOR.md`
 ## DEC-005: Validation is deterministic code, 1 LLM call per run
 
 Date: 2026-09-13
-Status: Proposed
+Status: Proposed, **amended by DEC-018**
 Owner: Developer 2
+
+> **Amendment (DEC-018):** still exactly 1 LLM call, but its job narrowed. The model
+> no longer produces claims, classifications or evidence IDs. It writes the narrative
+> over findings that code has already produced.
 
 ### Context
 
@@ -582,8 +596,13 @@ FR-010, FR-023, NFR-005, NFR-020, DEC-003, DEC-006, scenarios S-4 and S-7,
 ## DEC-011: Determinism comes from fixtures and schemas, not temperature
 
 Date: 2026-09-13
-Status: Proposed
+Status: Proposed, **amended by DEC-017**
 Owner: Developer 2
+
+> **Amendment (DEC-017):** moving to Ollama makes this easier, not harder. Ollama
+> accepts `temperature: 0` and a fixed `seed`, which the Anthropic API no longer does.
+> Keep fixtures and structured assertions as the primary mechanism, and set
+> temperature 0 plus a seed as well. Runs become byte-reproducible.
 
 ### Context
 
@@ -780,8 +799,12 @@ FR-020, DR-1, `DATA_AND_EVIDENCE.md` 6.1, `PROJECT_REQUIREMENTS.md` 2.8.
 ## DEC-015: The developer boundary is the database schema
 
 Date: 2026-09-13
-Status: Proposed
+Status: Proposed, **amended by DEC-019**
 Owner: Both
+
+> **Amendment (DEC-019):** the boundary moved. Developer 1 now owns the read tools and
+> the deterministic findings engine as well as the write path. The handoff is now the
+> frozen Pydantic contracts from P1-002 rather than the schema alone.
 
 ### Context
 
@@ -834,3 +857,317 @@ seeded data from the start, so integration work never blocks agent work.
 ### Related documents
 
 DEC-002, DEC-009, `TASKS.md` -> Developer Ownership, `ARCHITECTURE.md` section 12.
+
+---
+
+## DEC-016: Scheduled sync and on-demand refresh
+
+Date: 2026-09-13
+Status: Proposed
+Owner: Both
+
+### Context
+
+DEC-002 keeps the read path offline. DEC-003 then made ingestion a manually triggered CLI
+command, which leaves data only as fresh as the last time somebody remembered to run it.
+That is not good enough: a lead opening ARGUS before standup needs current data without
+thinking about it.
+
+The question is how to get freshness without putting network calls back into the request
+path.
+
+### Options considered
+
+1. Leave sync manual. Cheapest, but the tool is quietly out of date whenever nobody ran it.
+2. Scheduled sync only.
+3. Scheduled sync plus an on-demand refresh that runs in the background.
+4. Webhook push ingestion.
+5. Live API calls from the read path at request time.
+
+### Decision
+
+Option 3.
+
+- A scheduler runs sync for every configured source and team every
+  `SYNC_INTERVAL_MINUTES`, default 5.
+- `POST /api/teams/{id}/sync` starts a sync in the background and returns 202 immediately.
+  **It never waits for completion.**
+- The UI polls `sync_run.status` until it leaves `running`, then reloads.
+- A sync already running for the same (source, scope) is not started again. The endpoint
+  returns the in-flight run instead.
+
+Rate budget: 1 repository plus 1 Jira project is roughly 25 to 75 API calls per sync. At a
+5 minute interval that is 300 to 900 GitHub calls per hour, against a budget of about 5000.
+
+### Reason
+
+This delivers data that is under 5 minutes old at all times, and under 30 seconds old on
+demand, without a single network call in the read path.
+
+DEC-002, the evidence model and the evaluation suite are all untouched, because tools still
+read PostgreSQL and evaluation still runs against fixed database state.
+
+Webhooks (option 4) give seconds rather than minutes, but need signature verification,
+replay protection, reconciliation for missed events, and a publicly reachable URL, which
+costs money and approval. They remain the correct Stage 2 upgrade.
+
+Option 5 would reverse DEC-002 and break reproducible evaluation, in exchange for a
+freshness gain this product does not need. Rejected.
+
+### Consequences
+
+- **`AC-2` and `NFR-015` are reworded.** The rule becomes: the request path MUST NOT
+  **block on** ingestion. Starting a background sync is allowed; waiting for one is not.
+- A scheduler moves from the Future list into the MVP. It is an asyncio background task in
+  the API container, or a cron entry, **not** a job queue, so DEC-013 still holds.
+- `SYNC_INTERVAL_MINUTES` joins the named constants in `app/config.py`.
+- Concurrency control is now required: 2 syncs for the same scope MUST NOT run at once.
+- `fresh` becomes the normal state rather than the exception, which makes the freshness
+  display more useful and the `stale` state a genuine signal that something is wrong.
+- Rate limit headroom MUST be rechecked before adding repositories. 10 repositories at a
+  5 minute interval would not fit in the budget.
+- The scheduler MUST be disableable by configuration, so tests and evaluation runs are
+  unaffected.
+
+### Related documents
+
+FR-034, FR-035, NFR-015, DEC-002, DEC-003, DEC-010, DEC-013,
+`ARCHITECTURE.md` 15 (AC-2), tasks P2-010 and P5-007.
+
+---
+
+## DEC-017: Local inference with Ollama, no hosted LLM API
+
+Date: 2026-09-13
+Status: Proposed
+Owner: Both
+
+### Context
+
+The project must use Ollama. This is an external requirement, not a preference. It replaces
+the Anthropic API specified in the original tech stack.
+
+Before deciding how to adapt, the reasoning stage was measured on the actual demo machine:
+7.7 GB RAM, Intel i7-12650H, integrated graphics only, no dedicated GPU, `llama3.2` (3B).
+
+### Options considered
+
+1. Keep the hosted API. Not available, the requirement is Ollama.
+2. Ollama with a 7B or 8B model. Does not fit: 7.7 GB total RAM with Docker and PostgreSQL
+   also running leaves roughly 2 to 3 GB, and a quantized 7B needs about 5 GB.
+3. Ollama with a 3B model (`llama3.2`), with the architecture adapted to its capability.
+
+### Decision
+
+Option 3. `llama3.2` (3B) served by Ollama on the host, with `llama3.2:1b` as the fallback
+if the demo machine is under memory pressure.
+
+Ollama runs **on the host, not in Docker.** Only PostgreSQL is containerized. Running the
+model inside Docker on a 7.7 GB machine adds overhead this machine does not have.
+
+Request settings: `temperature: 0`, fixed `seed`, `format` set to a JSON schema,
+`num_predict` capped.
+
+### Reason
+
+Measured on the target machine, not assumed:
+
+| Metric | Measured |
+|---|---|
+| JSON schema enforcement | Works. Schema respected in every test |
+| `temperature: 0` and `seed` | Supported |
+| Prefill | about 56 tokens/sec |
+| Generation, model warm | about 13 tokens/sec |
+| Generation, RAM starved (0.5 GB free) | about 4 tokens/sec |
+| Fabricated evidence IDs | 0 across tests |
+
+Cost becomes exactly zero, which removes the only paid dependency in the project.
+
+### Consequences
+
+- **Cost requirements become resource requirements.** NFR-030 to NFR-033 change from
+  dollars to RAM, latency and model size. There is no spend cap to set.
+- **RAM is the binding constraint, not the CPU.** The measured difference between 0.5 GB
+  free and a warm model was 4 tokens/sec versus 13. Other applications MUST be closed
+  before a demo, and this belongs in the runbook, not in folklore.
+- The model MUST be pre-warmed before a demo. The first call loads roughly 2 GB from disk.
+- Latency targets need revisiting. NFR-013's 15 seconds is achievable only with the
+  narrowed design in DEC-018.
+- The evaluation suite can now run locally for free, so it is excluded from CI for time
+  reasons rather than cost reasons.
+- Prompt caching, spend caps and token pricing all become irrelevant.
+- `agent_run.model` records the Ollama model tag, for example `llama3.2:latest`.
+- The reasoning stage calls `http://localhost:11434`. This is a local service call, not an
+  external API call, so AC-1 and DEC-002 are unaffected: `app/tools/` still makes no calls
+  of any kind.
+
+### Related documents
+
+DEC-005, DEC-011, DEC-018, NFR-030 to NFR-033, `ARCHITECTURE.md` 10, tasks P0-005, P4-005,
+P7-002.
+
+---
+
+## DEC-018: The model writes the narrative, code produces the findings
+
+Date: 2026-09-13
+Status: Proposed
+Owner: Both
+
+### Context
+
+The original design had the model read an evidence set and return claims, each with a
+classification and the evidence IDs supporting it. Code then validated those claims.
+
+That design was written for a frontier model. It was measured on `llama3.2` (3B), the model
+this project must actually use, with 5 evidence items covering a Jira assignment, an open
+pull request, a commit, a changes-requested review and a second ticket.
+
+The result:
+
+- 3 claims returned, 2 of them near-duplicates.
+- 1 claim classified `inference` while citing a single evidence item, which the validator
+  correctly dropped.
+- Evidence IDs leaked into the prose as literal text, for example "(ev_1)".
+- **The model never mentioned the open pull request, the commits, or the changes-requested
+  review. It missed the blocker entirely.**
+
+Missing a blocker is a product failure. "Is anything blocking this person" is 1 of the 3
+questions the MVP exists to answer.
+
+### Options considered
+
+1. Keep the model producing claims and rely on the validator. Measured at 22.1 seconds, and
+   the validator cannot recover information the model never mentioned.
+2. Use a larger model. Does not fit in 7.7 GB (DEC-017).
+3. Narrow the model's job: code produces the findings, the model writes the narrative.
+
+### Decision
+
+Option 3.
+
+**Code produces**, using rules that were already specified: likely current work, blockers
+(BL-1 to BL-8), risks (RK-1 to RK-4), conflicts (CF-1 to CF-4), classification and
+confidence. All of it deterministic, all of it already testable.
+
+**The model receives** those finished findings and returns exactly 3 fields:
+
+```python
+class NarrativeOutput(BaseModel):
+    summary: str            # 2 sentences, what this person is working on
+    needs_attention: str    # 1 sentence naming the blocker or risk, or "Nothing needs attention."
+    attention_needed: bool
+```
+
+**The model never emits** a claim, a classification, a confidence value or an evidence ID.
+
+### Reason
+
+Measured, same machine, same model, same evidence:
+
+| | Model produces claims | Model writes narrative |
+|---|---|---|
+| Wall time | 22.1 s | 15.3 s |
+| Blocker detected | **No** | Yes, by rule BL-4 |
+| Misclassification | Yes, 1 claim dropped | Impossible, code classifies |
+| Fabricated evidence IDs | Possible, validator drops them | **Impossible, model emits no IDs** |
+
+The third row is the important one. Under the original design, hallucinated citations are
+something the system defends against. Under this design they cannot occur, because the
+model is never given the opportunity to name an evidence ID.
+
+It is also less total work. The deterministic summary was already being built as the
+fallback for when the model is unavailable (task P4-008). This makes it the primary path
+and feeds it to the model, so 1 thing is built instead of 2.
+
+### Consequences
+
+- Stage S4's contract changes from `ReasoningOutput` to `NarrativeOutput`.
+- Stage S5 validation changes shape. It no longer resolves evidence IDs, because there are
+  none. It now checks that the narrative contains no forbidden person-judgment language,
+  and no ticket key or pull request number that was not in the supplied findings. Both are
+  straightforward to test.
+- FR-017's citation enforcement moves from the model's output to the code that builds the
+  findings. Evidence is still attached to every claim, still resolvable, still displayed in
+  the evidence drawer. Nothing the user sees is lost.
+- Task P4-008 is promoted from fallback to primary path.
+- The honest framing for the README: correctness is deterministic, language is generated.
+  A weak model cannot produce a wrong fact, only a poorly worded true one.
+- The ceiling is now the rules. If a situation is not covered by BL-1 to BL-8 or RK-1 to
+  RK-4, nothing detects it. The measurement above shows the 3B model was not detecting
+  those situations either, so little is lost in practice.
+- If a substantially more capable local model becomes viable later, revisit this. It is a
+  capability-driven decision, not a permanent principle.
+
+### Related documents
+
+DEC-004, DEC-005, DEC-006, DEC-017, FR-016, FR-017, `AGENT_ARCHITECTURE.md` 3.4 S4 and S5,
+tasks P4-005, P4-006, P4-008.
+
+---
+
+## DEC-019: Lane rebalance, data and findings versus agent and interface
+
+Date: 2026-09-13
+Status: Proposed
+Owner: Both
+
+### Context
+
+DEC-015 split the work so that Developer 1 owned the write path and Developer 2 owned the
+read path, the agent and the interface. That produced 10 tasks for Developer 1, 20 for
+Developer 2 and 17 shared.
+
+Two things changed. Developer 1 is taking the larger share of the build by agreement. And
+DEC-018 moved the product's correctness into the deterministic findings engine, which makes
+that engine the core of the system rather than a supporting layer.
+
+### Options considered
+
+1. Keep DEC-015 and simply assign extra tasks to Developer 1 wherever convenient. Produces
+   an incoherent split and more merge conflicts.
+2. Move the interface work to Developer 1. Leaves Developer 2 with an agent that has
+   nothing to display.
+3. Redraw the boundary along the new centre of gravity: everything that determines *what is
+   true* goes to Developer 1, everything that *presents and phrases it* goes to Developer 2.
+
+### Decision
+
+Option 3.
+
+| Developer 1 (Keshan) | Developer 2 (Isiwara) |
+|---|---|
+| Integrations, ingestion, identity, links, sync | Agent orchestration and planner |
+| **Read tools T-001 to T-007** | Evidence builder |
+| **Findings engine:** blockers, risks, conflicts, confidence, current work, deterministic summary | **The Ollama call and the prompt** |
+| Schema, config, database session, CI, Docker | Narrative validation |
+| Seed and fixtures | API endpoints, templates, evidence drawer, freshness display |
+
+Shared, agreed together: contract freeze, decision ratification, evaluation scenarios,
+security pass, demo.
+
+### Reason
+
+The seam is now a clean sentence: **Developer 1 decides what is true, Developer 2 decides
+how it is presented.** Both halves are coherent enough to be owned and tested
+independently.
+
+Moving the read tools to Developer 1 also matches reality: they are SQL queries over tables
+Developer 1 designed and populates. Under DEC-015 they sat with the developer least
+familiar with the schema.
+
+The handoff becomes the frozen Pydantic contracts from P1-002 rather than the schema alone.
+Those are frozen in Phase 1 before either lane starts feature work, so neither developer
+waits on the other.
+
+### Consequences
+
+- Task ownership changes for 13 tasks. Final split: 24 tasks Developer 1, 15 Developer 2,
+  10 shared.
+- Developer 2 still builds against fixture-seeded data and is never blocked.
+- P1-002, the contract freeze, becomes more load-bearing and MUST be done together.
+- Developer 2's pull requests still require Developer 1's approval. Unchanged.
+
+### Related documents
+
+DEC-015, DEC-018, `TASKS.md` -> Developer Ownership.

@@ -12,14 +12,15 @@ ARGUS is a single Python application with 2 entry points and 1 database.
 | Entry point | Trigger | Makes network calls | Owner |
 |---|---|---|---|
 | **Web application** (`app/main.py`) | HTTP request | No | Developer 2 |
-| **Sync CLI** (`app/sync.py`) | Manual or cron | Yes, to GitHub and Jira | Developer 1 |
+| **Sync / write path** (`app/sync.py`) | Scheduler every 5 min, on-demand refresh, or manual CLI | Yes, to GitHub and Jira | Developer 1 |
 
 Both run in the same container image and share the same models and configuration. They are
 separated by function, not by deployment.
 
-The defining constraint: **the web request path never calls an external API.** Everything
-the web path serves was fetched earlier by the sync path and written to PostgreSQL with a
-timestamp. See DEC-002.
+The defining constraint: **the web request path never calls an external API, and never
+waits for one.** Everything the web path serves was fetched earlier by the sync path and
+written to PostgreSQL with a timestamp. A request may *start* a background sync
+(FR-035); it never blocks on it. See DEC-002 and DEC-016.
 
 ---
 
@@ -55,9 +56,9 @@ timestamp. See DEC-002.
   |                    |                |                         |
   |                    v                v                         |
   |         +----------------+   +---------------------+          |
-  |         | Read tools     |   | Anthropic API       |          |
-  |         | app/tools/     |   | 1 call, stage S4    |----------+---> api.anthropic.com
-  |         | T-001..T-007   |   | no tools passed     |          |
+  |         | Read tools     |   | Ollama (LOCAL)      |          |
+  |         | app/tools/     |   | 1 call, stage S4    |----------+---> localhost:11434
+  |         | T-001..T-007   |   | narrative only      |          |
   |         +-------+--------+   +---------------------+          |
   |                 |                                             |
   +-----------------|---------------------------------------------+
@@ -70,8 +71,9 @@ timestamp. See DEC-002.
                     ^
                     | SQL (write)
   +-----------------|---------------------------------------------+
-  |  Sync CLI  (python -m app.sync)                               |
-  |                                                               |
+  |  WRITE PATH  (python -m app.sync)                              |
+  |  triggers: scheduler 5min | POST /teams/{id}/sync | CLI        |
+  |                                                                |
   |  +----------------+   +-----------------+   +--------------+  |
   |  | github_client  |   | jira_client     |   | ingest       |  |
   |  | httpx+tenacity |   | httpx+tenacity  |   | identity     |  |
@@ -84,8 +86,9 @@ timestamp. See DEC-002.
         api.github.com    your-domain.atlassian.net
 ```
 
-The only outbound network connections in the whole system are the 3 arrows on the right:
-GitHub and Jira from the sync CLI, and the Anthropic API from stage S4.
+The only **external** network connections are GitHub and Jira from the sync path. Stage
+S4 calls Ollama on `localhost`, which never leaves the machine. Nothing in `app/tools/`
+calls anything at all (AC-1).
 
 ---
 
@@ -101,8 +104,13 @@ no framework, no bundler.
 | Evidence drawer | Client-side panel | Expanded evidence with source links | FR-027 |
 | Unmatched identities | `GET /admin/unmatched` | The unmatched queue | FR-003 |
 
-JavaScript is used only to expand the evidence drawer and to switch question type without
-a full page reload. No client-side state management, no API tokens in the browser.
+There is also 1 action, not a page: **Refresh**, which calls `POST /api/teams/{id}/sync`,
+gets a 202 back immediately, then polls `sync_run.status` until it leaves `running` and
+reloads (FR-035, DEC-016).
+
+JavaScript is used only to expand the evidence drawer, switch question type without a
+full page reload, and poll a running sync. No client-side state management, no API
+tokens in the browser.
 
 **Rendering rules (FR-030):**
 - Jinja2 autoescaping stays on. No template applies `|safe` to any field originating from
@@ -239,8 +247,17 @@ python -m app.sync --source jira   --team 1
 python -m app.sync --source jira   --team 1 --reset-cursor   # full refetch
 ```
 
-Every run writes a `sync_run` row and updates `sync_cursor` on success. There is no
-scheduler in the MVP; sync runs manually or from cron (DEC-003).
+Every run writes a `sync_run` row and updates `sync_cursor` on success.
+
+Sync is triggered 3 ways, all through this same entry point (DEC-016):
+
+| Trigger | Cadence | Notes |
+|---|---|---|
+| Scheduler | Every `SYNC_INTERVAL_MINUTES`, default 5 | Background task in the API container, or cron. Disableable by config |
+| On-demand refresh | User action | `POST /api/teams/{id}/sync` starts it in the background and returns 202 immediately |
+| Manual CLI | Any time | For backfill, debugging and `--reset-cursor` |
+
+A sync already running for the same (source, scope) is never started twice.
 
 ---
 
@@ -286,14 +303,15 @@ function now costs 10 minutes and makes the later change a 1-file edit.
 |---|---|---|---|---|
 | GitHub REST API | Outbound | Sync CLI only | `GITHUB_TOKEN`, fine-grained read-only | Sync fails, `sync_run` records it, source becomes `unavailable`, answers degrade |
 | Jira Cloud REST API | Outbound | Sync CLI only | `JIRA_EMAIL` + `JIRA_API_TOKEN` | Same |
-| Anthropic API | Outbound | Stage S4 only | `ANTHROPIC_API_KEY` | 1 retry, then the deterministic fallback. The page still works |
+| Ollama | **Local**, `http://localhost:11434` | Stage S4 only | None | 1 retry, then the deterministic fallback. The page still works |
 
 No inbound webhooks in the MVP. Webhook ingestion is a Stage 2 change.
 
-**Cost:** the Anthropic API is the only paid dependency. Approximately 0.04 USD per insight
-call at current pricing for `claude-opus-5` (5 USD per million input tokens, 25 USD per
-million output tokens) with an evidence set around 4000 tokens and an 800 token response.
-A hard spend cap MUST be set on the key before the first call (NFR-031).
+**Cost: zero.** Inference is local (DEC-017). The constraint is RAM, not money. On the
+7.7 GB target machine, Ollama runs on the host with `llama3.2` (3B, about 2 GB) while
+PostgreSQL runs in Docker. Measured generation speed is about 13 tokens/sec warm and about
+4 tokens/sec when RAM is starved, so other applications MUST be closed before a demo
+(NFR-031, NFR-034, NFR-035).
 
 ---
 
@@ -343,7 +361,8 @@ money, and requires approval before it is set up.
 
 Rules:
 - `.env` is git-ignored. `.env.example` is committed with empty values.
-- CI MUST NOT hold a real GitHub, Jira or Anthropic credential.
+- CI MUST NOT hold a real GitHub or Jira credential. Inference is local, so there is no
+  LLM credential to hold (DEC-017).
 - Evaluation tests that need model output run locally, not in CI, so CI stays free and
   deterministic (`TESTING_AND_EVALUATION.md` 11.5).
 
@@ -361,9 +380,9 @@ Rules:
 7.  Gate          -> required source unavailable? -> UNKNOWN, skip to 11
 8.  S3 Evidence   -> correlate, dedupe, ev_1..ev_n
 9.  Cache lookup  -> hash(subject, question, evidence). Hit -> skip to 11
-10. S4 Reason     -> 1 Anthropic call, no tools, structured output
-11. S5 Validate   -> drop unsupported claims, compute confidence,
-                     conflicts, blockers, risks
+10. S4a Findings  -> claims, blockers, risks, conflicts, confidence (code)
+11. S4b Narrative -> 1 Ollama call on localhost, no tools, prose only
+12. S5 Validate   -> narrative grounded and safe, else deterministic fallback
 12. S6 Respond    -> MemberInsight, persist agent_run, write cache
 13. Render member.html with the evidence drawer
 ```
@@ -400,7 +419,7 @@ These are enforced constraints, not guidelines. Each traces to a decision record
 | ID | Constraint | Source |
 |---|---|---|
 | **AC-1** | Agent-facing tools MUST NOT make external network calls. No HTTP client may be imported under `app/tools/` | DEC-002 |
-| **AC-2** | The web request path MUST NOT trigger ingestion | DEC-003, NFR-015 |
+| **AC-2** | The web request path MUST NOT **block on** ingestion. Starting a background sync is allowed; waiting for one is not | DEC-003, DEC-016, NFR-015 |
 | **AC-3** | The LLM MUST be given no tools, in any call | DEC-001 |
 | **AC-4** | Exactly 1 LLM call per agent run | DEC-005 |
 | **AC-5** | The LLM MUST cite evidence by ID. Code resolves; unknown IDs are dropped | DEC-004 |
