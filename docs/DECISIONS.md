@@ -8,25 +8,27 @@ choices do not belong here.
 **Rule:** if a task appears to require breaking an Accepted decision, do not work around
 it. Raise it as a Decision Required entry in `WORKLOG.md` and add a new DEC record.
 
-All decisions below are `Proposed` until both developers ratify them in task P0-006.
+**All 19 decisions below were ratified by both developers on 2026-09-13** (task
+P0-006, issue #6). Breaking an Accepted decision requires a new decision record that
+supersedes or amends it, not a workaround.
 
 | ID | Title | Status |
 |---|---|---|
 | DEC-001 | Read-only MVP, no write tools | Accepted |
 | DEC-002 | Agent tools read the database, never external APIs | Accepted |
-| DEC-003 | Ingestion is an explicitly triggered write path with recorded state |  |
+| DEC-003 | Ingestion is an explicitly triggered write path with recorded state | Accepted, amended by DEC-016 |
 | DEC-004 | Evidence has stable IDs and the model cites by ID | Accepted |
-| DEC-005 | Validation is deterministic code, 1 LLM call per run |  |
+| DEC-005 | Validation is deterministic code, 1 LLM call per run | Accepted, amended by DEC-018 |
 | DEC-006 | Confidence is rule-based HIGH / MEDIUM / LOW / UNKNOWN | Accepted |
 | DEC-007 | Fixed question types, no free-text input in the MVP | Accepted |
 | DEC-008 | Identity mapping is bootstrapped manually | Accepted |
 | DEC-009 | Jira to GitHub correlation is a stored table | Accepted |
 | DEC-010 | Source health is derived from sync history | Accepted |
-| DEC-011 | Determinism comes from fixtures and schemas, not temperature | Accepted |
+| DEC-011 | Determinism comes from fixtures and schemas, not temperature | Accepted, amended by DEC-017 |
 | DEC-012 | Demo data is seeded through the real ingestion path | Accepted |
 | DEC-013 | PostgreSQL only, no Redis, queue or vector database | Accepted |
 | DEC-014 | Slack and calendar are deferred | Accepted |
-| DEC-015 | The developer boundary is the database schema |  |
+| DEC-015 | The developer boundary is the database schema | Accepted, amended by DEC-019 |
 | DEC-016 | Scheduled sync and on-demand refresh | Accepted |
 | DEC-017 | Local inference with Ollama, no hosted LLM API | Accepted |
 | DEC-018 | The model writes the narrative, code produces the findings | Accepted |
@@ -37,7 +39,7 @@ All decisions below are `Proposed` until both developers ratify them in task P0-
 ## DEC-001: Read-only MVP, no write tools
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -87,7 +89,7 @@ FR-029, NFR-007, NFR-008, `AI_BEHAVIOR.md` 5.6, `AI_BEHAVIOR.md` 5.11, `AGENT_TO
 ## DEC-002: Agent tools read the database, never external APIs
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -143,7 +145,7 @@ FR-013, NFR-015, DEC-003, DEC-010, `ARCHITECTURE.md` section 4, `AGENT_TOOLS.md`
 ## DEC-003: Ingestion is an explicitly triggered write path with recorded state
 
 Date: 2026-09-13
-Status: Proposed, **amended by DEC-016**
+Status: Accepted, **amended by DEC-016**
 Owner: Developer 1
 
 > **Amendment (DEC-016):** the MVP now includes a scheduler and an on-demand refresh.
@@ -195,7 +197,7 @@ FR-008, FR-009, NFR-003, NFR-015, DEC-002, DEC-010, `DATA_AND_EVIDENCE.md` 6.2.
 ## DEC-004: Evidence has stable IDs and the model cites by ID
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 2
 
 ### Context
@@ -260,7 +262,7 @@ FR-015, FR-017, FR-024, NFR-016, DEC-005, `AI_BEHAVIOR.md` 5.3, `AI_BEHAVIOR.md`
 ## DEC-005: Validation is deterministic code, 1 LLM call per run
 
 Date: 2026-09-13
-Status: Proposed, **amended by DEC-018**
+Status: Accepted, **amended by DEC-018**
 Owner: Developer 2
 
 > **Amendment (DEC-018):** still exactly 1 LLM call, but its job narrowed. The model
@@ -320,7 +322,7 @@ FR-016, FR-017, FR-018, FR-019, FR-020, NFR-030, DEC-004, DEC-006,
 ## DEC-006: Confidence is rule-based HIGH / MEDIUM / LOW / UNKNOWN
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 2
 
 ### Context
@@ -371,7 +373,7 @@ FR-018, NFR-018, DEC-005, `AI_BEHAVIOR.md` 5.4, `TESTING_AND_EVALUATION.md` 11.3
 ## DEC-007: Fixed question types, no free-text input in the MVP
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -423,7 +425,7 @@ FR-014, FR-029, `AGENT_ARCHITECTURE.md` 3.4 stage S1, `AI_BEHAVIOR.md` 5.6.
 ## DEC-008: Identity mapping is bootstrapped manually
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 1
 
 ### Context
@@ -482,7 +484,7 @@ FR-002, FR-003, `DATA_AND_EVIDENCE.md` 6.9, `PROJECT_REQUIREMENTS.md` A-3, scena
 ## DEC-009: Jira to GitHub correlation is a stored table
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 1
 
 ### Context
@@ -540,7 +542,7 @@ FR-011, DEC-006, `DATA_AND_EVIDENCE.md` 6.4, scenario S-8.
 ## DEC-010: Source health is derived from sync history
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 1
 
 ### Context
@@ -596,7 +598,7 @@ FR-010, FR-023, NFR-005, NFR-020, DEC-003, DEC-006, scenarios S-4 and S-7,
 ## DEC-011: Determinism comes from fixtures and schemas, not temperature
 
 Date: 2026-09-13
-Status: Proposed, **amended by DEC-017**
+Status: Accepted, **amended by DEC-017**
 Owner: Developer 2
 
 > **Amendment (DEC-017):** moving to Ollama makes this easier, not harder. Ollama
@@ -655,7 +657,7 @@ FR-016, `TESTING_AND_EVALUATION.md` 11.4, `TESTING_AND_EVALUATION.md` 11.6, DEC-
 ## DEC-012: Demo data is seeded through the real ingestion path
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Developer 1
 
 ### Context
@@ -701,7 +703,7 @@ FR-032, DEC-011, `TESTING_AND_EVALUATION.md` 11.4, task P0-002, task P2-009.
 ## DEC-013: PostgreSQL only, no Redis, queue or vector database
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -749,7 +751,7 @@ FR-031, `ARCHITECTURE.md` section 11, `README.md` section 7.
 ## DEC-014: Slack and calendar are deferred
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -799,7 +801,7 @@ FR-020, DR-1, `DATA_AND_EVIDENCE.md` 6.1, `PROJECT_REQUIREMENTS.md` 2.8.
 ## DEC-015: The developer boundary is the database schema
 
 Date: 2026-09-13
-Status: Proposed, **amended by DEC-019**
+Status: Accepted, **amended by DEC-019**
 Owner: Both
 
 > **Amendment (DEC-019):** the boundary moved. Developer 1 now owns the read tools and
@@ -863,7 +865,7 @@ DEC-002, DEC-009, `TASKS.md` -> Developer Ownership, `ARCHITECTURE.md` section 1
 ## DEC-016: Scheduled sync and on-demand refresh
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -939,7 +941,7 @@ FR-034, FR-035, NFR-015, DEC-002, DEC-003, DEC-010, DEC-013,
 ## DEC-017: Local inference with Ollama, no hosted LLM API
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -1011,7 +1013,7 @@ P7-002.
 ## DEC-018: The model writes the narrative, code produces the findings
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context
@@ -1109,7 +1111,7 @@ tasks P4-005, P4-006, P4-008.
 ## DEC-019: Lane rebalance, data and findings versus agent and interface
 
 Date: 2026-09-13
-Status: Proposed
+Status: Accepted
 Owner: Both
 
 ### Context

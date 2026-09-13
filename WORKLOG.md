@@ -60,6 +60,51 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-13 | Shared | P0-006
+Status: DONE
+
+### Completed
+Ratified all 19 architecture decisions. Both developers read `docs/DECISIONS.md` and agreed.
+Every decision moved from `Proposed` to `Accepted`. Four are marked as amended: DEC-003 by
+DEC-016, DEC-005 by DEC-018, DEC-011 by DEC-017, DEC-015 by DEC-019.
+
+Context for the record, since these were added after the first documentation pass:
+
+- **DEC-017** the project must use Ollama, so inference is local (`llama3.2`, 3B) and costs
+  nothing. There is no LLM API key anywhere in the system.
+- **DEC-018** the model no longer produces claims, classifications or evidence IDs. Code
+  produces the findings and the model writes 2 sentences over them.
+- **DEC-019** lane rebalance. 13 tasks moved to Developer 1. Split is now 24 / 15 / 10.
+
+Also completed earlier: all 49 tasks created as GitHub issues with labels, milestones,
+assignees and dependency links, triaged for the 3 week deadline into 40 demo-critical,
+3 stretch and 6 deferred. Branch protection enabled on `main`.
+
+### Changed
+`docs/DECISIONS.md` statuses. No code exists yet.
+
+### Discovered
+Measured `llama3.2` (3B) on the demo machine (7.7 GB RAM, i7-12650H, no dedicated GPU):
+
+- Ollama JSON schema enforcement works, and `temperature: 0` plus a fixed `seed` are
+  supported, so evaluation runs are reproducible.
+- About 13 tokens/sec warm, about 4 tokens/sec with only 0.5 GB RAM free. **RAM is the
+  binding constraint, not the CPU.** Close other applications before demoing.
+- Asking the model to produce claims plus classifications plus evidence IDs took 22.1 s and
+  **missed the blocker entirely**, ignoring a changes-requested review that was in the
+  evidence set.
+- Asking it only to write the narrative over code-produced findings took 15.3 s and caught
+  the blocker, because rule BL-4 caught it in code.
+
+That measurement is the basis for DEC-018.
+
+### Next Step
+P0-005: Ollama installed on both machines, tokens/sec recorded for each.
+Then P0-002: real Jira and GitHub data plus captured fixtures. P0-002 unblocks Developer 2
+for the next two weeks, so it is the one to protect.
+
+---
+
 ## 2026-09-13 | Shared | Documentation foundation
 Status: DONE
 
