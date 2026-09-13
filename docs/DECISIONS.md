@@ -12,25 +12,25 @@ All decisions below are `Proposed` until both developers ratify them in task P0-
 
 | ID | Title | Status |
 |---|---|---|
-| DEC-001 | Read-only MVP, no write tools | Proposed |
-| DEC-002 | Agent tools read the database, never external APIs | Proposed |
-| DEC-003 | Ingestion is an explicitly triggered write path with recorded state | Proposed |
-| DEC-004 | Evidence has stable IDs and the model cites by ID | Proposed |
-| DEC-005 | Validation is deterministic code, 1 LLM call per run | Proposed |
-| DEC-006 | Confidence is rule-based HIGH / MEDIUM / LOW / UNKNOWN | Proposed |
-| DEC-007 | Fixed question types, no free-text input in the MVP | Proposed |
-| DEC-008 | Identity mapping is bootstrapped manually | Proposed |
-| DEC-009 | Jira to GitHub correlation is a stored table | Proposed |
-| DEC-010 | Source health is derived from sync history | Proposed |
-| DEC-011 | Determinism comes from fixtures and schemas, not temperature | Proposed |
-| DEC-012 | Demo data is seeded through the real ingestion path | Proposed |
-| DEC-013 | PostgreSQL only, no Redis, queue or vector database | Proposed |
-| DEC-014 | Slack and calendar are deferred | Proposed |
-| DEC-015 | The developer boundary is the database schema | Proposed |
-| DEC-016 | Scheduled sync and on-demand refresh | Proposed |
-| DEC-017 | Local inference with Ollama, no hosted LLM API | Proposed |
-| DEC-018 | The model writes the narrative, code produces the findings | Proposed |
-| DEC-019 | Lane rebalance: data and findings vs agent and interface | Proposed |
+| DEC-001 | Read-only MVP, no write tools | Accepted |
+| DEC-002 | Agent tools read the database, never external APIs | Accepted |
+| DEC-003 | Ingestion is an explicitly triggered write path with recorded state |  |
+| DEC-004 | Evidence has stable IDs and the model cites by ID | Accepted |
+| DEC-005 | Validation is deterministic code, 1 LLM call per run |  |
+| DEC-006 | Confidence is rule-based HIGH / MEDIUM / LOW / UNKNOWN | Accepted |
+| DEC-007 | Fixed question types, no free-text input in the MVP | Accepted |
+| DEC-008 | Identity mapping is bootstrapped manually | Accepted |
+| DEC-009 | Jira to GitHub correlation is a stored table | Accepted |
+| DEC-010 | Source health is derived from sync history | Accepted |
+| DEC-011 | Determinism comes from fixtures and schemas, not temperature | Accepted |
+| DEC-012 | Demo data is seeded through the real ingestion path | Accepted |
+| DEC-013 | PostgreSQL only, no Redis, queue or vector database | Accepted |
+| DEC-014 | Slack and calendar are deferred | Accepted |
+| DEC-015 | The developer boundary is the database schema |  |
+| DEC-016 | Scheduled sync and on-demand refresh | Accepted |
+| DEC-017 | Local inference with Ollama, no hosted LLM API | Accepted |
+| DEC-018 | The model writes the narrative, code produces the findings | Accepted |
+| DEC-019 | Lane rebalance: data and findings vs agent and interface | Accepted |
 
 ---
 
