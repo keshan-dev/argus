@@ -60,6 +60,48 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-13 | Keshan | P0-005
+Status: IN_PROGRESS
+
+### Completed
+Added `scripts/check_ollama.py`, a standard-library-only script that verifies every
+acceptance criterion on issue #5 and prints a WORKLOG block. It runs the real ARGUS
+narrative task (stage S4b), not a toy prompt, so the numbers reflect actual use.
+
+Verified on my machine. 11 checks passed, 0 failed.
+
+| Measurement | Value |
+|---|---|
+| Machine | Windows, 7.7 GB RAM, i7-12650H, no dedicated GPU |
+| Ollama | 0.33.3 |
+| Model | `llama3.2` (3B) |
+| Prompt processing | 98.7 tok/s |
+| Generation | 14.2 tok/s |
+| Narrative call latency | 12.9 s |
+| Cold warm-up | 8.2 s |
+| Schema enforcement | works |
+| Cost | zero |
+
+### Discovered
+**Output is byte-identical across two runs** with `temperature: 0` and a fixed seed. That
+confirms the reproducibility claim in DEC-011 and DEC-017 rather than assuming it, and it
+means the evaluation suite can assert on exact output.
+
+Latency is 12.9 s against the 20 s target in NFR-013, with room to spare. Earlier probes
+measured 4 tok/s with only 0.5 GB RAM free versus 14.2 tok/s here, so the guidance to close
+other applications before demoing is worth keeping.
+
+### Blocked By
+Nothing. 1 acceptance criterion is outstanding: reachability from a container
+(`host.docker.internal:11434`). Docker was not running during this check. It is best
+verified during P0-003 when `docker-compose.yml` exists.
+
+### Next Step
+Isiwara runs `python scripts/check_ollama.py` on her machine and appends her numbers.
+Then P0-002: real Jira and GitHub data plus captured fixtures.
+
+---
+
 ## 2026-09-13 | Shared | P0-006
 Status: DONE
 
