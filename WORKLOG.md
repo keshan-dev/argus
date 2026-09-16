@@ -87,6 +87,39 @@ trusting a cached view instead of the system. B10 exists because of it.
 
 ### Next Step
 P0-003 skeleton.
+## 2026-09-17 | Keshan | P0-001
+Status: IN_REVIEW
+
+### Completed
+Finished the repository configuration that was outstanding on #1.
+
+Branch protection on `main` tightened (applied through the GitHub API, not in this diff):
+1 required approval, stale reviews dismissed on a new push, conversation resolution
+required, linear history required, force push and deletion blocked.
+
+Added `.gitignore`, `.github/pull_request_template.md` and
+`.github/ISSUE_TEMPLATE/task.md`.
+
+### Changed
+`.gitignore` (new), `.github/` (new).
+
+### Discovered
+**`.gitignore` did not exist at all.** P0-001 says it must ignore `.env` before any other
+commit, and `.env` becomes real in P0-003, so this was the last safe moment. Nothing has
+leaked: no `.env` has existed in this repository yet.
+
+**`enforce_admins` was deliberately left off.** Turning it on would subject Developer 1 to
+the 1 approval rule and make self-merging impossible, which contradicts the review policy
+in `README.md` 13. With Keshan as admin and Isiwara on write access, the current settings
+produce exactly the documented behaviour: Isiwara's pull requests need an approval,
+Developer 1 can merge their own.
+
+**Required status checks are still empty.** A check cannot be required before it has ever
+run, so this stays open until P0-004 creates the CI workflow. It is the 1 criterion of
+this task that P0-004 has to close.
+
+### Next Step
+Reconcile the stale status tables in `README.md` and `TASKS.md`, then P0-003.
 
 ---
 
