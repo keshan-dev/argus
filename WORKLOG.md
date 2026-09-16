@@ -60,6 +60,36 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-17 | Keshan | #57
+Status: IN_REVIEW
+
+### Completed
+Reconciled the status tables against the repository, and added the 4 procedures used today
+to `docs/HOW_TO.md`: A10 merge a pull request and confirm it landed, B9 configure branch
+protection, B10 reconcile a status file with reality, B11 add or change a project rule.
+21 recipes total.
+
+`README.md` 14 and `TASKS.md` "Start here" now say what is actually next, and both carry
+the date they were reconciled. Phase 0 statuses corrected: P0-001 IN_REVIEW, P0-005
+IN_PROGRESS, P0-006 DONE.
+
+### Changed
+`README.md` 14, `docs/TASKS.md` (statuses, Start here, P0-003 notes), `docs/HOW_TO.md`.
+
+### Discovered
+**`TASKS.md` P0-003 listed `anthropic` as a dependency.** DEC-017 moved inference to local
+Ollama and states there is no LLM API key anywhere in the system, so the SDK has nothing to
+call. Removed, with the reason recorded inline so it is not re-added. Ollama is reached
+over plain HTTP with `httpx`.
+
+This is the second stale-document failure today, after the duplicate PR #53. Both came from
+trusting a cached view instead of the system. B10 exists because of it.
+
+### Next Step
+P0-003 skeleton.
+
+---
+
 ## 2026-09-17 | Keshan | #54
 Status: IN_REVIEW
 

@@ -326,6 +326,35 @@ locally is actually unrecoverable, so check there before panicking.
 
 ---
 
+## A10. Merge a pull request, and confirm it landed
+
+**When.** A pull request is approved and CI is green.
+
+**Why this way.** The merge is not the end of the job. A squash merge rewrites your commits
+into 1 new commit on `main`, so your local branch and your local `main` are both instantly
+wrong. Confirming by content rather than by the word "merged" is what stops the next
+mistake, which is usually reopening work that already landed.
+
+**Steps**
+
+```bash
+gh pr merge <n> --squash
+git checkout main && git fetch && git pull --ff-only
+git log --oneline -3
+git diff --stat origin/main <your-branch>     # expect empty
+```
+
+Branches are kept after merge in this project, not deleted, so there is no cleanup step.
+
+**Check.** The empty diff above is the proof. `gh pr view <n> --json state,mergedAt` is the
+record. If `gh pr merge` reports "already merged", someone merged it in the browser; that
+is not an error, verify by content and move on.
+
+**Worked example, 2026-09-17.** PR #55 reported "already merged" when the merge command
+ran. `git log origin/main` showed it as `f250caa`, so it had landed and nothing was lost.
+
+---
+
 # Part B. Project-specific procedures
 
 ---
@@ -528,6 +557,111 @@ docker compose exec api alembic heads          # if the branch touches models
 ```
 
 **Check.** All 4 clean, then push.
+
+---
+
+## B9. Configure branch protection
+
+**When.** Setting up the repository, or when the review rules change.
+
+**Why this way.** Protection is not 1 switch, and the defaults are weaker than they look.
+`main` can be "protected" while still allowing a merge with 0 approvals, which is what this
+repository had until 2026-09-17. Each setting below earns its place.
+
+| Setting | Value here | Why |
+|---|---|---|
+| Required approvals | 1 | `README.md` 13: Developer 2's pull requests need Developer 1's approval |
+| Dismiss stale reviews | on | An approval of the old diff is not an approval of the new one |
+| Conversation resolution | on | An unanswered review comment cannot be merged past silently |
+| Linear history | on | The project squash merges, so history is linear anyway. This makes it enforced |
+| Force push, deletion | blocked | `main` is the shared baseline |
+| Required status checks | empty for now | A check cannot be required before it has run once. Added by P0-004 |
+| `enforce_admins` | **off, deliberately** | See below |
+
+**The `enforce_admins` trap.** Turning it on subjects admins to the approval rule too. In a
+2 person team where the policy says Developer 1 may merge their own work, that makes
+Developer 1's own pull requests unmergeable without the other person present. Leave it off
+here. On a larger team, turn it on.
+
+**Steps**
+
+```bash
+gh api repos/<owner>/<repo>/branches/main/protection --jq '{
+  approvals: .required_pull_request_reviews.required_approving_review_count,
+  checks: .required_status_checks.contexts,
+  enforce_admins: .enforce_admins.enabled }'          # read the real state first
+
+gh api -X PUT repos/<owner>/<repo>/branches/main/protection --input protection.json
+```
+
+`PUT` replaces the whole protection object, so send every field you want kept, not just the
+1 you are changing.
+
+**Check.** Read it back with the same `--jq` and compare against the table above.
+
+---
+
+## B10. Reconcile a status file with reality
+
+**When.** Before trusting `TASKS.md` or `README.md` section 14 to decide what to work on,
+and any time you notice a row that is wrong.
+
+**Why this way.** A status table is a cache of reality, and caches go stale silently. The
+cost is not tidiness: it is picking up work that is already done, or skipping work you
+believe is finished. A stale local `main` produced a duplicate pull request in this
+repository on 2026-09-17, and a stale status table is the same failure with a longer fuse.
+
+**The rule: the system is the truth, the document is the cache.** Verify, then fix the
+document, in that order.
+
+**Steps**
+
+```bash
+gh issue list --state all --limit 60 --json number,title,state
+gh pr list --state all --limit 20 --json number,title,state,mergedAt
+gh api repos/<owner>/<repo>/branches/main/protection --jq '.'
+gh label list --limit 30 | wc -l
+gh api repos/<owner>/<repo>/milestones --jq 'length'
+git log --oneline origin/main -10
+```
+
+Then update the table, and stamp it with the date it was reconciled so the next reader
+knows how much to trust it.
+
+**Check.** Every row of the table maps to something you just observed, not to something you
+remember.
+
+---
+
+## B11. Add or change a project rule
+
+**When.** A rule needs to exist, or an existing one is wrong.
+
+**Why this way.** A rule written in only 1 place, and enforced in none, decays. This project
+keeps rules in 3 layers, and the goal is always to push a rule down to the lowest layer it
+can live in.
+
+| Layer | Holds | Binds |
+|---|---|---|
+| `CLAUDE.md` | The rule in words, with its reason | Both developers, every AI session |
+| `.claude/settings.json` | Harness configuration, committed | Both machines, before anyone decides anything |
+| CI | The mechanical check | Every pull request, on a bad day |
+
+Personal memory and "I will remember" are not layers. They bind 1 person on 1 machine.
+
+**Steps**
+
+1. Raise it in `WORKLOG.md` under `Decisions Needed`. Both developers agree.
+2. Write it in `CLAUDE.md` with the reason it exists. 2 sentences maximum.
+3. Ask whether configuration can enforce it. Attribution, for example, is set to empty in
+   `.claude/settings.json` rather than left to anyone remembering it.
+4. Ask whether CI can check it. If yes, add the row to the `CLAUDE.md` enforcement table
+   and name the task that owes the check.
+5. If it is architectural, add a DEC record per B6 and reference it from the rule.
+
+**Check.** The enforcement table in `CLAUDE.md` has a row for the new rule, and that row is
+honest about whether the check exists yet. A table that claims enforcement that does not
+exist is worse than no table.
 
 ---
 
