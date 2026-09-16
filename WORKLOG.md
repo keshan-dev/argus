@@ -60,6 +60,53 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-17 | Keshan | #54
+Status: IN_REVIEW
+
+### Completed
+Added 2 developer guides, neither of which adds scope.
+
+`docs/BUILD_ORDER.md`, the layer view of the application: 17 code sections in dependency
+order, each with its files, the concepts to learn before writing it, a runnable "done
+when" check and the traps. Every section maps to task IDs that already exist in
+`TASKS.md`, which stays authoritative for ordering and ownership.
+
+`docs/HOW_TO.md`, the recurring procedures: splitting changes onto a branch, migrations,
+fixtures, config values, contract changes after the freeze, a committed secret, and the
+undo table. Each recipe leads with why that method rather than another, because that is
+the part that is not recoverable from a command list.
+
+`CLAUDE.md` at the repository root, the rule set itself: 15 hard rules with the reason
+for each, what to do when a rule blocks a task, and an honest table of where each rule is
+actually enforced rather than merely written down. 6 of those enforcement checks do not
+exist yet and are marked as belonging to P0-004, P3-001 and P3-002.
+
+`.claude/settings.json` sets the Claude Code attribution strings to empty, so no
+`Co-Authored-By` or "Generated with" line can reach a commit or a pull request from
+either machine. It is committed, so it binds both of us rather than 1 laptop.
+
+All 3 linked from the README documentation map.
+
+### Changed
+`CLAUDE.md` (new), `.claude/settings.json` (new), `docs/BUILD_ORDER.md` (new),
+`docs/HOW_TO.md` (new), `README.md` section 11.
+
+### Decisions Needed
+None, but P0-004 now has 4 extra CI checks to implement: an attribution grep, a
+WORKLOG-changed check, the secret scanner, and the single-migration-head check. They are
+listed in the enforcement table in `CLAUDE.md`.
+
+### Problems
+PR #53 was opened for `chore/5-ollama-check` against a stale local `main`. That work was
+already squash-merged as #52, and `git diff origin/main origin/chore/5-ollama-check` is
+empty. #53 closed as a duplicate. Recipe A1 in `HOW_TO.md` exists because of it: fetch
+before judging branch state, and compare content against `origin/main`, not `main`.
+
+### Next Step
+P0-002, real Jira and GitHub data plus captured fixtures. Then P0-003, the skeleton.
+
+---
+
 ## 2026-09-13 | Keshan | P0-005
 Status: IN_PROGRESS
 

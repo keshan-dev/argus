@@ -216,6 +216,7 @@ on both machines. See DEC-012.
 | File | What it answers |
 |---|---|
 | `README.md` | What is ARGUS, how do I run it |
+| `CLAUDE.md` | The project rule set, for both developers and any AI assistant |
 | [`docs/PROJECT_REQUIREMENTS.md`](docs/PROJECT_REQUIREMENTS.md) | What must be built, with numbered requirements (FR / NFR) |
 | [`docs/AGENT_ARCHITECTURE.md`](docs/AGENT_ARCHITECTURE.md) | How the AI agent works, stage by stage |
 | [`docs/AGENT_TOOLS.md`](docs/AGENT_TOOLS.md) | Every tool the agent can call, with full contracts |
@@ -224,6 +225,8 @@ on both machines. See DEC-012.
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The whole software system, beyond the AI part |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Why things are the way they are (DEC records) |
 | [`docs/TASKS.md`](docs/TASKS.md) | Every task, owner, dependency and acceptance criteria |
+| [`docs/BUILD_ORDER.md`](docs/BUILD_ORDER.md) | The 17 code sections, what each one is, and the order to write them in |
+| [`docs/HOW_TO.md`](docs/HOW_TO.md) | How to do the recurring procedures, and why they are done that way |
 | `WORKLOG.md` | What actually happened, newest first |
 | [`docs/TESTING_AND_EVALUATION.md`](docs/TESTING_AND_EVALUATION.md) | How we test the software and evaluate the agent |
 
