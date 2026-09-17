@@ -268,12 +268,18 @@ These are not suggestions. They apply to every commit.
 
 | Item | State |
 |---|---|
-| Documentation foundation | Complete (this set) |
-| Repository created | Not started |
-| Decisions ratified by both developers | Pending, task P0-006 |
-| Real Jira and GitHub test data | Not started, task P0-002 |
+| Documentation foundation | Complete |
+| Repository created | Done. `keshan-dev/argus`, 49 issues, 12 labels, 4 milestones |
+| `main` protected | Done. Pull request required, 1 approval, linear history |
+| CI required to pass before merge | Not yet. Needs P0-004, then the check is added to protection |
+| Decisions ratified by both developers | Done, P0-006, all 19 accepted |
+| Ollama verified | Keshan's machine only. Isiwara's numbers and the in-container check outstanding |
+| Real Jira and GitHub test data | Not started, task P0-002. **The thing to protect** |
 | Application code | None |
 | Current sprint | Sprint 0, Phase 0 |
+
+**Last reconciled:** 2026-09-17. If this table looks old, trust the repository and
+`WORKLOG.md`, then fix the table. See `docs/HOW_TO.md` B10.
 
 `TASKS.md` -> Current Sprint is the authoritative view of what is active.
 `WORKLOG.md` is the authoritative view of what has actually happened.

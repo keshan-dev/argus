@@ -109,7 +109,7 @@ to add after work has started.
 **Out of scope:** Any application code. CI (that is P0-004).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** READY
+**Status:** IN_REVIEW
 **Dependencies:** None
 **Parallelizable:** NO. Everything depends on it.
 **Components:** Repository configuration, `.github/`
@@ -224,8 +224,10 @@ machines.
 **Inputs:** The technology list in `README.md` section 7.
 **Implementation notes:**
 - Python 3.11. Dependencies: fastapi, uvicorn, sqlalchemy, alembic, psycopg, pydantic,
-  pydantic-settings, httpx, tenacity, anthropic, jinja2, pyyaml. Dev: pytest, respx, ruff,
-  black.
+  pydantic-settings, httpx, tenacity, jinja2, pyyaml. Dev: pytest, respx, ruff, black.
+- **Do not install `anthropic`.** An earlier version of this list included it. DEC-017
+  moved inference to local Ollama and states there is no LLM API key anywhere in the
+  system, so the SDK has nothing to call. Ollama is reached over plain HTTP with `httpx`.
 - `.env.example` is committed with empty values. Never a real value.
 - 2 containers only (DEC-013).
 
@@ -302,7 +304,7 @@ speed on each machine, agree the fallback model.
 **Out of scope:** Writing the reasoning client. That is P4-005.
 **Owner:** Shared
 **Priority:** P0
-**Status:** READY
+**Status:** IN_PROGRESS
 **Dependencies:** None
 **Parallelizable:** YES.
 **Components:** Local runtime
@@ -350,7 +352,7 @@ record a disagreement and resolve it.
 **Out of scope:** Writing new decisions. Any code.
 **Owner:** Shared
 **Priority:** P0
-**Status:** READY
+**Status:** DONE
 **Dependencies:** None
 **Parallelizable:** YES.
 **Components:** Documentation
@@ -2550,11 +2552,27 @@ None.
 
 ## Start here
 
-1. **[#6](https://github.com/keshan-dev/argus/issues/6) `P0-006`** ratify the decisions. 1 hour. Do it before any code, because
-   DEC-017 and DEC-018 changed what you are building.
-2. **[#1](https://github.com/keshan-dev/argus/issues/1) `P0-001`** repository settings, and **protect `main`**. Still not done.
-3. **[#5](https://github.com/keshan-dev/argus/issues/5) `P0-005`** Ollama on both machines, record tokens/sec.
-4. **[#2](https://github.com/keshan-dev/argus/issues/2) `P0-002`** real Jira and GitHub data, capture fixtures. Protect this.
+Reconciled against the repository on 2026-09-17. Verify before trusting it, per
+`docs/HOW_TO.md` B10.
+
+**Done:** [#6](https://github.com/keshan-dev/argus/issues/6) `P0-006` all 19 decisions
+ratified. [#1](https://github.com/keshan-dev/argus/issues/1) `P0-001` repository, labels,
+milestones, branch protection, templates and `.gitignore`, with 1 criterion left.
+
+1. **[#2](https://github.com/keshan-dev/argus/issues/2) `P0-002`** real Jira and GitHub
+   data, capture fixtures. **This is the true start point and the one to protect.** Both
+   developers, 1 to 2 days. Sections 4 to 11 of `BUILD_ORDER.md` all consume these
+   fixtures, and the offline demo depends on them.
+2. **[#3](https://github.com/keshan-dev/argus/issues/3) `P0-003`** skeleton and Docker
+   Compose. Do this while waiting on Jira access, never instead of `P0-002`. It also
+   closes the outstanding `P0-005` criterion, the in-container reach to
+   `host.docker.internal:11434`.
+3. **[#4](https://github.com/keshan-dev/argus/issues/4) `P0-004`** CI. It closes the last
+   `P0-001` criterion, because a status check cannot be required until it has run once,
+   and it adds the 4 rule checks listed in the `CLAUDE.md` enforcement table.
+4. **[#5](https://github.com/keshan-dev/argus/issues/5) `P0-005`** Isiwara records her
+   tokens/sec.
+5. Then `P1-003` config, `P1-001` schema, `P1-002` contracts, in that order.
 
 ---
 
