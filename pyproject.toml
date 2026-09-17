@@ -1,0 +1,61 @@
+[project]
+name = "argus"
+version = "0.1.0"
+description = "Evidence-based engineering team intelligence agent"
+requires-python = ">=3.11,<3.12"
+
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0",
+    "alembic>=1.14",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "httpx>=0.27",
+    "tenacity>=9.0",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+]
+
+# No LLM SDK. DEC-017: inference is local via Ollama, reached over plain HTTP
+# with httpx. There is no LLM API key anywhere in this system.
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "respx>=0.21",
+    "ruff>=0.7",
+    "black>=24.10",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S"]
+ignore = ["S101"]  # pytest uses assert
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+# scripts/check_ollama.py is a local setup checker, not shipped code.
+# E501: it embeds the real S4b prompt. Reflowing the text would change the prompt
+#       and invalidate the measurements recorded in WORKLOG.md.
+# S310: it calls the local Ollama HTTP API with urllib, by design.
+# S607: it invokes ollama and docker from PATH, by design.
+"scripts/*" = ["E501", "S310", "S607"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
