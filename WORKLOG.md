@@ -60,6 +60,38 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P0-001
+Status: DONE
+
+### Completed
+CI merged in #61 and went green on its first run, all 5 jobs. The 5 checks are now required
+on `main` with `strict: true`, so a branch must also be up to date before it can merge:
+
+```text
+Lint and format, Tests, Secret scan, Migrations, Project rules
+```
+
+That was the last outstanding acceptance criterion on P0-001, which had been waiting
+because a status check cannot be required before it has run once. Issue #1 closed with the
+criteria verified one by one against the repository.
+
+Phase 0 statuses corrected in `TASKS.md`: P0-001 DONE, P0-003 IN_PROGRESS, P0-004
+IN_PROGRESS.
+
+### Changed
+`docs/TASKS.md` statuses, `README.md` 14.
+
+### Problems
+**1 P0-001 criterion could not be verified:** the project board columns. `gh project list`
+needs the `read:project` scope, which this token does not have. Everything else was
+confirmed directly. Noted on the issue so it can be reopened in seconds if the board is
+missing.
+
+### Next Step
+P0-002, real Jira and GitHub data plus fixtures. Nothing else unblocks Isiwara.
+
+---
+
 ## 2026-09-19 | Keshan | P0-004
 Status: IN_REVIEW
 
