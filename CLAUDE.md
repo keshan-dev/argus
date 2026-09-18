@@ -132,14 +132,20 @@ honest picture of what is actually enforced.
 | Rule | Mechanism | Status |
 |---|---|---|
 | No AI attribution | `.claude/settings.json` attribution strings set to empty | Active |
-| No AI attribution | CI grep as a backstop | To add in P0-004 |
-| WORKLOG updated | CI check that `WORKLOG.md` changed in the pull request | To add in P0-004 |
-| No secrets committed | CI secret scanner | To add in P0-004 |
-| Single migration head | CI `alembic heads` check | To add in P0-004 |
-| Tools make no network call | Test asserting no client import under `app/tools/` | To add in P3-002 |
+| No AI attribution | CI greps commit messages in the pull request range | Active |
+| WORKLOG updated | CI fails if `WORKLOG.md` is not in the diff | Active |
+| No secrets committed | CI runs gitleaks over the tree and the history | Active |
+| Style, lint, format | `ruff` and `black` in CI | Active |
+| Tests pass | `pytest` in CI | Active |
+| Tools make no network call | CI greps `app/tools/` for an HTTP client import | Active, skips until `app/tools/` exists |
+| Single migration head | CI `alembic heads` check | Written, skips until P1-001 creates `migrations/` |
+| Migrations apply cleanly | CI `alembic upgrade head` against an empty database | Written, skips until P1-001 |
 | Authorization on every member route | Test enumerating routes, FR-028 | To add in P3-001 |
-| Style, lint, format | `ruff` and `black` in CI | To add in P0-004 |
 | Everything else | Human review, and this file | Ongoing |
+
+CI runs on every pull request into `main`. The attribution check reads commit messages
+only: `CLAUDE.md`, `HOW_TO.md` and `WORKLOG.md` all discuss those strings in prose, and
+documenting a rule is not breaking it.
 
 ---
 
