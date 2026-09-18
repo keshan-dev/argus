@@ -86,9 +86,15 @@ def total_ram_gb() -> float | None:
     try:
         if platform.system() == "Windows":
             out = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory"],
-                capture_output=True, text=True, timeout=30,
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    "(Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
             return round(int(out.stdout.strip()) / 1024**3, 1)
         with open("/proc/meminfo") as fh:
@@ -106,12 +112,14 @@ def main() -> int:
     args = ap.parse_args()
     model = args.model
 
-    print(f"\nARGUS Ollama check  (task P0-005, issue #5)")
+    print("\nARGUS Ollama check  (task P0-005, issue #5)")
     print(f"model: {model}   host: {BASE}\n")
 
     ram = total_ram_gb()
-    print(f"machine: {platform.system()} {platform.machine()}, "
-          f"{ram if ram else '?'} GB RAM, {platform.processor()[:60] or 'cpu unknown'}\n")
+    print(
+        f"machine: {platform.system()} {platform.machine()}, "
+        f"{ram if ram else '?'} GB RAM, {platform.processor()[:60] or 'cpu unknown'}\n"
+    )
 
     # 1. binary present
     try:
@@ -143,9 +151,15 @@ def main() -> int:
     print("\n  warming the model (first load reads it from disk)...")
     t0 = time.time()
     try:
-        post("/api/chat", {"model": model, "stream": False,
-                           "messages": [{"role": "user", "content": "hi"}],
-                           "options": {"num_predict": 1}})
+        post(
+            "/api/chat",
+            {
+                "model": model,
+                "stream": False,
+                "messages": [{"role": "user", "content": "hi"}],
+                "options": {"num_predict": 1},
+            },
+        )
         record("warm-up", PASS, f"{time.time()-t0:.1f}s")
     except Exception as e:
         record("warm-up", FAIL, f"{type(e).__name__}: {e}")
@@ -154,10 +168,16 @@ def main() -> int:
     # 5. the real thing: structured narrative, as stage S4b does it
     print("\n  running the ARGUS narrative task...")
     payload = {
-        "model": model, "stream": False, "format": SCHEMA,
-        "messages": [{"role": "system", "content": SYSTEM},
-                     {"role": "user", "content": "Facts:\n" + FACTS +
-                      "\n\nWrite the answer for Keshan now."}],
+        "model": model,
+        "stream": False,
+        "format": SCHEMA,
+        "messages": [
+            {"role": "system", "content": SYSTEM},
+            {
+                "role": "user",
+                "content": "Facts:\n" + FACTS + "\n\nWrite the answer for Keshan now.",
+            },
+        ],
         "options": {"temperature": 0, "seed": 42, "num_predict": 300},
     }
     t0 = time.time()
@@ -181,26 +201,30 @@ def main() -> int:
     pre_s = resp.get("prompt_eval_duration", 1) / 1e9
     tps = gen / gen_s if gen_s else 0
 
-    record("latency", PASS if elapsed < 20 else WARN,
-           f"{elapsed:.1f}s (NFR-013 target: under 20s)")
-    record("generation speed", PASS if tps >= 8 else WARN,
-           f"{tps:.1f} tok/s ({gen} tokens)")
+    record("latency", PASS if elapsed < 20 else WARN, f"{elapsed:.1f}s (NFR-013 target: under 20s)")
+    record("generation speed", PASS if tps >= 8 else WARN, f"{tps:.1f} tok/s ({gen} tokens)")
 
     text = (out["summary"] + " " + out["needs_attention"]).lower()
     hits = [w for w in FORBIDDEN if w in text]
     record("no forbidden language", PASS if not hits else FAIL, ", ".join(hits) or "clean")
 
     grounded = "182" in text or "auth-245" in text
-    record("grounded in the facts", PASS if grounded else WARN,
-           "names the real ticket or PR" if grounded else "did not name any given entity")
+    record(
+        "grounded in the facts",
+        PASS if grounded else WARN,
+        "names the real ticket or PR" if grounded else "did not name any given entity",
+    )
 
     # 6. determinism
     print("\n  checking reproducibility (same seed, same input)...")
     try:
         again = post("/api/chat", payload)
         same = again["message"]["content"] == resp["message"]["content"]
-        record("reproducible", PASS if same else WARN,
-               "byte-identical across runs" if same else "output differed between runs")
+        record(
+            "reproducible",
+            PASS if same else WARN,
+            "byte-identical across runs" if same else "output differed between runs",
+        )
     except Exception as e:
         record("reproducible", WARN, f"second call failed: {type(e).__name__}")
 
@@ -209,13 +233,30 @@ def main() -> int:
         d = subprocess.run(["docker", "info"], capture_output=True, text=True, timeout=30)
         if d.returncode == 0:
             c = subprocess.run(
-                ["docker", "run", "--rm", "curlimages/curl:latest", "-s", "-m", "10",
-                 "http://host.docker.internal:11434/api/tags"],
-                capture_output=True, text=True, timeout=180)
+                [
+                    "docker",
+                    "run",
+                    "--rm",
+                    "curlimages/curl:latest",
+                    "-s",
+                    "-m",
+                    "10",
+                    "http://host.docker.internal:11434/api/tags",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
             ok = c.returncode == 0 and "models" in c.stdout
-            record("reachable from container", PASS if ok else WARN,
-                   "host.docker.internal:11434" if ok
-                   else "could not reach. Check Docker host networking")
+            record(
+                "reachable from container",
+                PASS if ok else WARN,
+                (
+                    "host.docker.internal:11434"
+                    if ok
+                    else "could not reach. Check Docker host networking"
+                ),
+            )
         else:
             record("reachable from container", WARN, "Docker not running, skipped")
     except Exception:
@@ -230,16 +271,19 @@ def main() -> int:
     print("  " + out["needs_attention"])
     print(f"\nattention_needed: {out['attention_needed']}")
 
-    return report(model, ram, tps=tps, elapsed=elapsed, gen=gen, pre=pre,
-                  pre_tps=pre / pre_s if pre_s else 0)
+    return report(
+        model, ram, tps=tps, elapsed=elapsed, gen=gen, pre=pre, pre_tps=pre / pre_s if pre_s else 0
+    )
 
 
 def report(model, ram, tps=None, elapsed=None, gen=None, pre=None, pre_tps=None) -> int:
     failed = [r for r in results if r[1] == FAIL]
     warned = [r for r in results if r[1] == WARN]
     print("\n" + "=" * 68)
-    print(f"{len(results) - len(failed) - len(warned)} passed, "
-          f"{len(warned)} warnings, {len(failed)} failed")
+    print(
+        f"{len(results) - len(failed) - len(warned)} passed, "
+        f"{len(warned)} warnings, {len(failed)} failed"
+    )
 
     if failed:
         print("\nFix these before closing issue #5:")

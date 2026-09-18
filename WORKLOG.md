@@ -60,6 +60,59 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-17 | Keshan | P0-003
+Status: IN_PROGRESS
+
+### Completed
+Project skeleton: `pyproject.toml`, `Dockerfile`, `docker-compose.yml`, `.env.example`,
+`app/main.py` with `/health`, and `tests/test_health.py`.
+
+Verified locally in a throwaway virtual environment:
+
+| Check | Result |
+|---|---|
+| `pytest` | 1 passed |
+| `ruff check .` | All checks passed |
+| `black --check .` | 5 files unchanged |
+
+### Changed
+`pyproject.toml`, `Dockerfile`, `docker-compose.yml`, `.env.example`, `app/main.py`,
+`app/__init__.py`, `tests/test_health.py`, `tests/__init__.py`,
+`scripts/check_ollama.py` (formatting only).
+
+### Discovered
+**Lint failed repo-wide on `scripts/check_ollama.py`**, which merged before any lint
+configuration existed. 10 findings. Resolved by running black over it and adding 3 scoped
+per-file ignores in `pyproject.toml`, each with the reason inline:
+
+- `E501`: the file embeds the real S4b prompt. Reflowing that text would change the prompt
+  and invalidate the measurements recorded in the P0-005 entry below. Verified by diff that
+  the prompt text is byte-identical after formatting.
+- `S310` and `S607`: it calls the local Ollama HTTP API and invokes `ollama` and `docker`
+  from PATH, both by design for a local setup checker.
+
+Without this, the first CI run in P0-004 would have failed on a file nobody had touched.
+
+**`anthropic` is not installed**, per DEC-017. Ollama is reached over plain HTTP with
+`httpx`. The `TASKS.md` dependency list has been corrected in #57.
+
+### Problems
+**Docker Desktop was not running on this machine, so the 2 container criteria are
+unverified.** `docker compose up --build` has not been run, `/health` has not been hit over
+HTTP, and the outstanding P0-005 criterion (reaching Ollama at
+`host.docker.internal:11434` from inside the api container) is still open. The FastAPI app
+itself is verified by the unit test, which exercises the same endpoint in-process.
+
+This is why the task stays `IN_PROGRESS` and the pull request says `Refs #3`, not
+`Closes #3`.
+
+### Next Step
+Start Docker Desktop, run `docker compose up --build`, hit `/health`, and check the
+in-container Ollama reach. Then Isiwara confirms the same on her machine. Both go in this
+log before #3 closes.
+
+---
+
 ## 2026-09-17 | Keshan | #57
 Status: IN_REVIEW
 
