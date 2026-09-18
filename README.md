@@ -271,14 +271,14 @@ These are not suggestions. They apply to every commit.
 | Documentation foundation | Complete |
 | Repository created | Done. `keshan-dev/argus`, 49 issues, 12 labels, 4 milestones |
 | `main` protected | Done. Pull request required, 1 approval, linear history |
-| CI required to pass before merge | Not yet. Needs P0-004, then the check is added to protection |
+| CI required to pass before merge | Done. 5 checks required: lint, tests, secret scan, migrations, project rules |
 | Decisions ratified by both developers | Done, P0-006, all 19 accepted |
 | Ollama verified | Keshan's machine only. Isiwara's numbers and the in-container check outstanding |
 | Real Jira and GitHub test data | Not started, task P0-002. **The thing to protect** |
 | Application code | None |
 | Current sprint | Sprint 0, Phase 0 |
 
-**Last reconciled:** 2026-09-17. If this table looks old, trust the repository and
+**Last reconciled:** 2026-09-19. If this table looks old, trust the repository and
 `WORKLOG.md`, then fix the table. See `docs/HOW_TO.md` B10.
 
 `TASKS.md` -> Current Sprint is the authoritative view of what is active.

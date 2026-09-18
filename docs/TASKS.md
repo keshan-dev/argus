@@ -109,7 +109,7 @@ to add after work has started.
 **Out of scope:** Any application code. CI (that is P0-004).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** IN_REVIEW
+**Status:** DONE
 **Dependencies:** None
 **Parallelizable:** NO. Everything depends on it.
 **Components:** Repository configuration, `.github/`
@@ -216,7 +216,7 @@ machines.
 **Out of scope:** Models, routes, agent code.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P0-001
 **Parallelizable:** YES, alongside P0-002 and P0-004.
 **Components:** Build and runtime
@@ -261,7 +261,7 @@ merge.
 **Out of scope:** Deployment. Evaluation tests (they need an API key and run locally).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P0-003
 **Parallelizable:** YES, alongside P0-002.
 **Components:** CI
