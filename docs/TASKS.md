@@ -216,7 +216,7 @@ machines.
 **Out of scope:** Models, routes, agent code.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** IN_PROGRESS
+**Status:** DONE
 **Dependencies:** P0-001
 **Parallelizable:** YES, alongside P0-002 and P0-004.
 **Components:** Build and runtime

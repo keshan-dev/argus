@@ -4,7 +4,7 @@ An evidence-based engineering team intelligence agent. It tells a team lead what
 member is working on, what is blocking them, and what is at risk, and it shows the
 evidence behind every statement.
 
-**Status:** Pre-development. Documentation foundation complete. No application code written yet.
+**Status:** Phase 0 nearly complete. Skeleton runs, CI is green and required on `main`. Phase 1 blocked on P0-002.
 **Stage:** MVP (Stage 1).
 **Team:** 2 developers.
 
@@ -275,10 +275,10 @@ These are not suggestions. They apply to every commit.
 | Decisions ratified by both developers | Done, P0-006, all 19 accepted |
 | Ollama verified | Keshan's machine only. Isiwara's numbers and the in-container check outstanding |
 | Real Jira and GitHub test data | Not started, task P0-002. **The thing to protect** |
-| Application code | None |
+| Application code | Skeleton only. FastAPI app, `/health`, 1 test. No models, tools or agent yet |
 | Current sprint | Sprint 0, Phase 0 |
 
-**Last reconciled:** 2026-09-19. If this table looks old, trust the repository and
+**Last reconciled:** 2026-09-19 (2). If this table looks old, trust the repository and
 `WORKLOG.md`, then fix the table. See `docs/HOW_TO.md` B10.
 
 `TASKS.md` -> Current Sprint is the authoritative view of what is active.
