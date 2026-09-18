@@ -60,6 +60,48 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P0-004
+Status: IN_REVIEW
+
+### Completed
+CI pipeline, `.github/workflows/ci.yml`, 5 jobs on every pull request into `main`:
+`lint` (ruff, black), `test` (pytest), `secret-scan` (gitleaks over both the tree and the
+history), `migrations` (PostgreSQL 15 service container), and `project-rules`.
+
+`project-rules` mechanically enforces 3 rules that were previously only written down:
+no AI attribution in commit messages, `WORKLOG.md` updated in the pull request, and no
+HTTP client imported under `app/tools/`. The `CLAUDE.md` enforcement table is updated to
+match, and 7 rows moved from "to add" to Active.
+
+### Changed
+`.github/workflows/ci.yml` (new), `CLAUDE.md` enforcement table.
+
+### Discovered
+**The gitleaks marketplace action asks organizations for a licence key.** Used the gitleaks
+binary from the GitHub release instead, which is free and adds no paid dependency
+(CLAUDE.md rule 13).
+
+**The attribution check reads commit messages only, not file contents.** `CLAUDE.md`,
+`HOW_TO.md` and `WORKLOG.md` all quote those strings in prose. A content grep would fail on
+the files that define the rule.
+
+**The 2 Alembic criteria on this task cannot be met yet.** `alembic.ini` and
+`migrations/versions` arrive in P1-001. The job detects their absence and skips rather than
+faking a pass, so it switches itself on when the directory appears. Same pattern for the
+`app/tools/` check, which waits for P3-002.
+
+### Problems
+**Docker could not be verified on this machine.** Docker Desktop and its WSL distro are
+running, but the Linux engine returns 500 on every API route, at every API version from
+1.41 to 1.54. So `docker compose up --build` is still unrun and the P0-005 in-container
+Ollama reach is still unchecked. Both need a Docker Desktop restart.
+
+### Next Step
+Merge, let CI run once, then add the 5 checks to branch protection as required. That closes
+the last acceptance criterion on P0-001.
+
+---
+
 ## 2026-09-17 | Keshan | P0-003
 Status: IN_PROGRESS
 

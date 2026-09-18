@@ -1,0 +1,196 @@
+name: CI
+
+# Every pull request is checked before review. No job here holds a real credential:
+# GitHub and Jira tokens are read-only and live on a developer machine, and inference
+# is local (DEC-017), so there is no LLM API key anywhere in this system.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      - name: ruff
+        run: ruff check .
+
+      - name: black
+        run: black --check .
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      # Evaluation tests are excluded here. They need Ollama running locally,
+      # so they are run on a developer machine, not in CI.
+      - name: pytest
+        run: pytest -v --ignore=tests/eval
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The gitleaks binary directly, not the marketplace action, which asks
+      # organizations for a licence key. This stays free and adds no paid
+      # dependency (CLAUDE.md rule 13).
+      - name: Install gitleaks
+        run: |
+          VERSION=8.21.2
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+
+      - name: Scan working tree
+        run: gitleaks dir . --redact --verbose
+
+      - name: Scan commit history
+        run: gitleaks git . --redact --verbose
+
+  migrations:
+    name: Migrations
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: argus
+          POSTGRES_PASSWORD: argus
+          POSTGRES_DB: argus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U argus -d argus"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      # Migrations arrive in P1-001. Until then these steps are skipped rather
+      # than faked, so the job turns itself on when the directory appears.
+      - name: Check whether migrations exist yet
+        id: check
+        run: |
+          if [ -f alembic.ini ] && [ -d migrations/versions ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No alembic.ini or migrations/versions yet. Skipped until P1-001."
+          fi
+
+      - name: alembic upgrade head
+        if: steps.check.outputs.present == 'true'
+        env:
+          DATABASE_URL: postgresql+psycopg://argus:argus@localhost:5432/argus
+        run: alembic upgrade head
+
+      # With 2 developers and 1 migration directory, a second head is the most
+      # common and most silent conflict in the project.
+      - name: Exactly 1 alembic head
+        if: steps.check.outputs.present == 'true'
+        env:
+          DATABASE_URL: postgresql+psycopg://argus:argus@localhost:5432/argus
+        run: |
+          COUNT=$(alembic heads | grep -c "(head)" || true)
+          echo "heads found: $COUNT"
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Expected exactly 1 alembic head, found $COUNT. Merge them before this can pass."
+            alembic heads
+            exit 1
+          fi
+
+  project-rules:
+    name: Project rules
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # CLAUDE.md rule 1. Commit messages only: CLAUDE.md, HOW_TO.md and WORKLOG.md
+      # all discuss these strings in prose, and documenting a rule is not breaking it.
+      - name: No AI attribution in commit messages
+        run: |
+          RANGE="origin/${{ github.base_ref }}..HEAD"
+          if git log --format='%B' "$RANGE" | grep -inE "co-authored-by:.*(claude|anthropic)|generated with \[?claude|🤖 generated"; then
+            echo "::error::AI attribution found in a commit message. See CLAUDE.md rule 1."
+            exit 1
+          fi
+          echo "No AI attribution in commit messages."
+
+      # CLAUDE.md rule 2.
+      - name: WORKLOG.md updated in this pull request
+        run: |
+          RANGE="origin/${{ github.base_ref }}...HEAD"
+          if git diff --name-only "$RANGE" | grep -qx "WORKLOG.md"; then
+            echo "WORKLOG.md was updated."
+          else
+            echo "::error::WORKLOG.md was not updated in this pull request. See CLAUDE.md rule 2."
+            exit 1
+          fi
+
+      # CLAUDE.md rule 4 and ARCHITECTURE.md 15. Agent-facing tools read
+      # PostgreSQL only. This is the constraint the whole read path rests on.
+      - name: Read-path tools make no network call
+        run: |
+          if [ ! -d app/tools ]; then
+            echo "app/tools does not exist yet. Skipped until P3-002."
+            exit 0
+          fi
+          if grep -rnE "^\s*(import|from)\s+(httpx|requests|urllib|aiohttp)" app/tools/; then
+            echo "::error::A read-path tool imports an HTTP client. Tools read PostgreSQL only."
+            exit 1
+          fi
+          echo "No HTTP client imported under app/tools."
