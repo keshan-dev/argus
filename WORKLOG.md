@@ -61,6 +61,29 @@ criterion in `TASKS.md` is met.
 ---
 
 ## 2026-09-19 | Keshan | P0-003
+Status: DONE
+
+### Completed
+#64 merged. Issue #3 closed with each acceptance criterion recorded against its evidence.
+`TASKS.md` P0-003 set to DONE and `README.md` 14 now says the skeleton exists.
+
+Phase 0 is 3 of 6 done: P0-001, P0-003, P0-006. Open: P0-002, P0-004, P0-005.
+
+### Changed
+`docs/TASKS.md` P0-003 status, `README.md` 14.
+
+### Problems
+**P0-003 closed with 1 criterion unmet:** "Both developers confirm it runs on their
+machine." Only Keshan's machine is confirmed. Closed anyway so it does not block Phase 1,
+and the issue says plainly to reopen it if `docker compose up --build` fails for Isiwara.
+
+### Next Step
+P0-002, real Jira and GitHub data plus fixtures. It is now the only thing blocking Phase 1
+and the only Phase 0 task that needs external access rather than code.
+
+---
+
+## 2026-09-19 | Keshan | P0-003
 Status: IN_REVIEW
 
 ### Completed
