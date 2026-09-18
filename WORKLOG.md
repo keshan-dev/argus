@@ -60,6 +60,60 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P0-003
+Status: IN_REVIEW
+
+### Completed
+Docker verified end to end on Keshan's machine. Every technical criterion on P0-003 passes,
+and the outstanding container criterion on P0-005 is now met.
+
+| Check | Result |
+|---|---|
+| `docker compose up --build` | `db` healthy, `api` up |
+| `GET /health` | 200, `{"status":"ok","service":"argus","version":"0.1.0",...}` |
+| `pytest` inside the container | 1 passed |
+| `ruff check .` inside the container | All checks passed |
+| `black --check .` inside the container | 5 files unchanged |
+| PostgreSQL reachable from `api` | PostgreSQL 15.19 |
+| Ollama reachable from `api` at `host.docker.internal:11434` | HTTP 200, `llama3.2:latest` listed |
+
+### Changed
+`docker-compose.yml`, `.env.example`.
+
+### Discovered
+**Port 8000 cannot be bound on this Windows machine.** `docker compose up` failed with
+"An attempt was made to access a socket in a way forbidden by its access permissions".
+Nothing was listening on 8000. The cause is a Hyper-V reserved TCP range:
+
+```text
+netsh interface ipv4 show excludedportrange protocol=tcp
+  7915  8014      <- 8000 falls inside this
+  8115  8214
+  8316  8415
+```
+
+This is a Windows artifact, not a project bug, and it can appear on any Windows machine
+including Isiwara's. The reserved ranges also move between reboots.
+
+Fixed by making the host port configurable, `${API_PORT:-8000}`, with the container port
+still 8000. The default is unchanged, so nothing breaks for a machine where 8000 is free.
+This machine runs `API_PORT=8080` in its own `.env`. The diagnostic command is recorded in
+`.env.example` next to the variable.
+
+### Problems
+**1 criterion on P0-003 is outstanding: "Both developers confirm it runs on their
+machine."** Isiwara has not started, so only Keshan's machine is confirmed.
+
+**P0-005 cannot close.** 5 of its 7 criteria say "on both machines" explicitly: Ollama
+installed, `llama3.2` pulled, `api/tags` returning the model, a schema-valid structured
+call, and recorded tokens/sec. Only the container reachability and zero-cost criteria are
+fully met. It stays open until Isiwara runs `python scripts/check_ollama.py`.
+
+### Next Step
+P0-002, real Jira and GitHub data plus fixtures.
+
+---
+
 ## 2026-09-19 | Keshan | P0-001
 Status: DONE
 

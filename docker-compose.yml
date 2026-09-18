@@ -22,8 +22,12 @@ services:
     build: .
     env_file:
       - .env
+    # Host port is configurable. Windows reserves several TCP ranges for Hyper-V
+    # (check with: netsh interface ipv4 show excludedportrange protocol=tcp) and
+    # 8000 often falls inside one, which makes the bind fail. Set API_PORT in .env
+    # to any free port. The container port stays 8000.
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
