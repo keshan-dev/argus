@@ -502,7 +502,7 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 **Out of scope:** Using them. That happens in Phases 2 and 4.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P0-003
 **Parallelizable:** YES, alongside P1-001.
 **Components:** Configuration
@@ -521,11 +521,11 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 - Settings MUST fail fast at startup if a required secret is missing.
 
 **Acceptance criteria:**
-- [ ] All 10 thresholds plus the HTTP and model settings exist as named constants.
-- [ ] Secrets are read from environment variables and never have a default value.
-- [ ] Startup fails with a clear message when a required secret is missing.
-- [ ] `.env.example` lists every variable with empty values.
-- [ ] No secret appears in any log line.
+- [x] All 10 thresholds plus the HTTP and model settings exist as named constants.
+- [x] Secrets are read from environment variables and never have a default value.
+- [x] Startup fails with a clear message when a required secret is missing.
+- [x] `.env.example` lists every variable with empty values.
+- [x] No secret appears in any log line.
 
 **Testing required:** A test that a missing required secret raises at startup.
 **Handoff notes:** Both developers import thresholds from here, never hardcode them.

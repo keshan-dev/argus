@@ -60,6 +60,20 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P1-003
+Status: DONE
+
+### Completed
+Implemented `app/config.py` using Pydantic `BaseSettings` with all 10 thresholds and runtime settings defined as typed named constants. Required secrets (`DATABASE_URL`, `GITHUB_TOKEN`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`) have no default values and fail fast when missing from the environment. Sensitive values are redacted in string representations (`__repr__` and `__str__`) to prevent token leaks in log lines. Updated `.env.example` with empty values and added unit tests in `tests/test_config.py` plus test isolation in `tests/conftest.py`.
+
+### Changed
+`app/config.py` (new), `.env.example`, `tests/conftest.py` (new), `tests/test_config.py` (new), `docs/TASKS.md`.
+
+### Next Step
+`P1-004` (database session management and statement timeouts) and `P1-001` (canonical models).
+
+---
+
 ## 2026-09-19 | Keshan | P0-003
 Status: DONE
 
