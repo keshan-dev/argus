@@ -1,0 +1,35 @@
+# seed/identity_map.yml
+# Manual identity mapping between external accounts and internal team members (DEC-008, FR-002).
+#
+# Each person entry defines an internal user and their verified upstream accounts:
+#   display_name: Canonical display name of the team member (required)
+#   role_label: Optional role description e.g. "Backend Engineer"
+#   accounts: List of verified upstream accounts (at least 1 required)
+#     integration: Upstream platform name ("github" or "jira")
+#     external_id: Stable numeric ID or accountId, not username/display name (required)
+#     external_handle: Username or handle at mapping time for display (required)
+#
+# Rules and Constraints:
+# 1. external_id must be the stable identifier (GitHub numeric user ID, Jira accountId).
+# 2. Each (integration, external_id) pair must be globally unique across all people.
+# 3. Mappings loaded from this file are assigned match_method="manual" and confidence="HIGH".
+
+people:
+  - display_name: Keshan
+    role_label: Backend Engineer
+    accounts:
+      - integration: github
+        external_id: "12345678"      # GitHub stable numeric user id
+        external_handle: keshan-dev
+      - integration: jira
+        external_id: "5f3a1b2c3d4e"  # Jira Cloud stable accountId
+        external_handle: Keshan P.
+  - display_name: Isiwara
+    role_label: Frontend Engineer
+    accounts:
+      - integration: github
+        external_id: "87654321"      # GitHub stable numeric user id
+        external_handle: isiwara-dev
+      - integration: jira
+        external_id: "7a8b9c0d1e2f"  # Jira Cloud stable accountId
+        external_handle: Isiwara D.

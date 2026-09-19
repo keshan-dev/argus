@@ -60,6 +60,30 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P1-005
+Status: IN_PROGRESS
+
+### Completed
+Created `seed/identity_map.yml` documented with a header comment block explaining fields,
+constraints, and initial entries for team members Keshan and Isiwara with stable external IDs.
+Implemented `app/integrations/identity_loader.py` with YAML parsing that reports exact problem
+line numbers on syntax errors, Pydantic schema validation, and cross-person duplicate external ID
+checks. Implemented `load_identity_map` writing `IdentityLink` rows with `match_method = manual`
+and `confidence = HIGH`, handling existing user lookup, unmatched entity resolution, and
+idempotent re-runs. Added test suite in `tests/test_identity_loader.py` covering valid seeding,
+idempotency, duplicate rejection across people, malformed YAML lines, and unmatched resolution.
+
+### Changed
+`seed/identity_map.yml` (new), `app/integrations/__init__.py` (new),
+`app/integrations/identity_loader.py` (new), `tests/test_identity_loader.py` (new),
+`docs/TASKS.md`.
+
+### Next Step
+Merge P1-005 to `main`. This completes Phase 1. Proceed to Phase 2 (Data and Integrations,
+P2-001 HTTP client) in parallel with Phase 3 (Agent Foundation).
+
+---
+
 ## 2026-09-19 | Keshan | P1-002
 Status: IN_PROGRESS
 

@@ -582,7 +582,7 @@ verified identity (DEC-008). Every attribution depends on it.
 **Out of scope:** Inferred matching (that is P2-006). The unmatched queue (also P2-006).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P1-001
 **Parallelizable:** YES.
 **Components:** Identity
@@ -609,11 +609,11 @@ people:
 - A duplicate `(integration, external_id)` across 2 people is a hard error, not a warning.
 
 **Acceptance criteria:**
-- [ ] The format is documented in the file itself with a comment block.
-- [ ] The loader creates `identity_link` rows with `match_method = manual`, confidence HIGH.
-- [ ] Re-running the loader does not duplicate rows.
-- [ ] A duplicate external ID across 2 people fails with a clear error.
-- [ ] A malformed file fails with a clear error naming the problem line.
+- [x] The format is documented in the file itself with a comment block.
+- [x] The loader creates `identity_link` rows with `match_method = manual`, confidence HIGH.
+- [x] Re-running the loader does not duplicate rows.
+- [x] A duplicate external ID across 2 people fails with a clear error.
+- [x] A malformed file fails with a clear error naming the problem line.
 
 **Testing required:** Unit tests for a valid file, a duplicate external ID, and a malformed
 file.
