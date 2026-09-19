@@ -172,8 +172,6 @@ people:
 
     db_session.refresh(unmatched)
     assert unmatched.resolved_app_user_id is not None
-    user = db_session.scalar(
-        select(AppUser).where(AppUser.id == unmatched.resolved_app_user_id)
-    )
+    user = db_session.scalar(select(AppUser).where(AppUser.id == unmatched.resolved_app_user_id))
     assert user is not None
     assert user.display_name == "Keshan"

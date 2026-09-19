@@ -72,9 +72,7 @@ def parse_identity_map(source: str | Path) -> IdentityMapSchema:
     except yaml.MarkedYAMLError as e:
         line = e.problem_mark.line + 1 if e.problem_mark else "unknown"
         col = e.problem_mark.column + 1 if e.problem_mark else "unknown"
-        raise IdentityMapError(
-            f"Malformed YAML on line {line}, column {col}: {e.problem}"
-        ) from e
+        raise IdentityMapError(f"Malformed YAML on line {line}, column {col}: {e.problem}") from e
     except yaml.YAMLError as e:
         raise IdentityMapError(f"YAML parsing error: {e}") from e
 
