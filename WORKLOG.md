@@ -59,7 +59,24 @@ and leave the status as `IN_PROGRESS`. Do not mark a task `DONE` unless every ac
 criterion in `TASKS.md` is met.
 
 ---
+...
+criterion in `TASKS.md` is met.
 
+---
+
+## 2026-09-19 | Isiwara | P0-005        <- your new entry starts here
+Status: IN_REVIEW
+...
+(the rest of your P0-005 entry)
+
+---
+
+## 2026-09-19 | Isiwara | P0-003        <- your second entry
+Status: IN_REVIEW
+...
+(the rest of your P0-003 entry)
+
+...
 ## 2026-09-19 | Keshan | P0-003
 Status: DONE
 
