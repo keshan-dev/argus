@@ -12,9 +12,7 @@ class SyncRun(Base):
     """Execution audit for every ingestion attempt (FR-008)."""
 
     __tablename__ = "sync_run"
-    __table_args__ = (
-        Index("ix_sync_run_source_started", "source", "started_at"),
-    )
+    __table_args__ = (Index("ix_sync_run_source_started", "source", "started_at"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     source: Mapped[str] = mapped_column(String(32), nullable=False)  # github, jira

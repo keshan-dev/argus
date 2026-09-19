@@ -17,11 +17,7 @@ def test_is_timeout_error_detection() -> None:
     )
     assert is_timeout_error(timeout_err) is True
 
-    generic_err = OperationalError(
-        statement="SELECT 1",
-        params={},
-        orig=Exception("relation does not exist"),
-    )
+    generic_err = OperationalError(statement="SELECT 1", params={}, orig=Exception("relation does not exist"))
     assert is_timeout_error(generic_err) is False
 
     value_err = ValueError("Something else")

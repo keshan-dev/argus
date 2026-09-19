@@ -85,9 +85,7 @@ class PullRequest(Base):
     """A GitHub pull request."""
 
     __tablename__ = "pull_request"
-    __table_args__ = (
-        Index("ix_pull_request_repo_number", "repository_id", "number"),
-    )
+    __table_args__ = (Index("ix_pull_request_repo_number", "repository_id", "number"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     repository_id: Mapped[int] = mapped_column(
@@ -158,9 +156,7 @@ class Review(Base):
     """A GitHub pull request review."""
 
     __tablename__ = "review"
-    __table_args__ = (
-        UniqueConstraint("pull_request_id", "external_id", name="uq_review_pr_external_id"),
-    )
+    __table_args__ = (UniqueConstraint("pull_request_id", "external_id", name="uq_review_pr_external_id"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     pull_request_id: Mapped[int] = mapped_column(

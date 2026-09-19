@@ -42,9 +42,7 @@ class AgentRun(Base):
     """
 
     __tablename__ = "agent_run"
-    __table_args__ = (
-        Index("ix_agent_run_subject_created", "subject_app_user_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_agent_run_subject_created", "subject_app_user_id", "created_at"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     actor_app_user_id: Mapped[int | None] = mapped_column(
