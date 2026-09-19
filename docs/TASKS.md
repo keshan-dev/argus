@@ -397,7 +397,7 @@ unique constraints and indexes. The first Alembic migration.
 **Out of scope:** Any query logic. Any ingestion. Seed data.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P0-003, P0-004
 **Parallelizable:** NO. Both developers must be present.
 **Components:** Database
@@ -416,13 +416,13 @@ unique constraints and indexes. The first Alembic migration.
 - `evidence` is **not** a table. The evidence set is JSON inside `agent_run.evidence_set`.
 
 **Acceptance criteria:**
-- [ ] All 17 tables are defined as SQLAlchemy models.
-- [ ] `alembic upgrade head` succeeds on an empty database.
-- [ ] `alembic downgrade base` then `upgrade head` succeeds.
-- [ ] Every external-data table has both freshness columns, non-null.
-- [ ] All listed unique constraints and indexes exist.
-- [ ] No table is named `user`.
-- [ ] CI migration job is green.
+- [x] All 17 tables are defined as SQLAlchemy models.
+- [x] `alembic upgrade head` succeeds on an empty database.
+- [x] `alembic downgrade base` then `upgrade head` succeeds.
+- [x] Every external-data table has both freshness columns, non-null.
+- [x] All listed unique constraints and indexes exist.
+- [x] No table is named `user`.
+- [x] CI migration job is green.
 
 **Testing required:** An integration test that applies the migration and asserts every
 table and unique constraint exists.
@@ -547,7 +547,7 @@ read sessions and a longer one for the sync path.
 **Out of scope:** Queries.
 **Owner:** Developer 1
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-001
 **Parallelizable:** YES.
 **Components:** Database
@@ -556,10 +556,10 @@ read sessions and a longer one for the sync path.
 **Implementation notes:** Set `statement_timeout` per session, not globally, so the sync
 path can run longer queries.
 **Acceptance criteria:**
-- [ ] A session dependency is available to routes.
-- [ ] Read sessions carry a 2 second statement timeout.
-- [ ] A query exceeding it raises an error mappable to `TIMEOUT`.
-- [ ] Sessions are closed correctly on both success and exception.
+- [x] A session dependency is available to routes.
+- [x] Read sessions carry a 2 second statement timeout.
+- [x] A query exceeding it raises an error mappable to `TIMEOUT`.
+- [x] Sessions are closed correctly on both success and exception.
 
 **Testing required:** A test using `pg_sleep` to confirm the timeout fires.
 **Handoff notes:** All tools use this dependency.
