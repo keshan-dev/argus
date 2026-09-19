@@ -1,7 +1,7 @@
 """Unit tests for the configuration module (P1-003, Issue #9)."""
 
-from pydantic import ValidationError
 import pytest
+from pydantic import ValidationError
 
 from app.config import (
     DB_STATEMENT_TIMEOUT_MS,
@@ -17,7 +17,6 @@ from app.config import (
     NO_ACTIVITY_DAYS,
     OLLAMA_NUM_PREDICT,
     OLLAMA_SEED,
-    OLLAMA_URL,
     PR_REVIEW_WAIT_DAYS,
     PROMPT_VERSION,
     RECENT_ACTIVITY_DAYS,
