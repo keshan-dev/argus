@@ -39,6 +39,10 @@ include = ["app*"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# `pip install .` writes a copy of the tree into build/lib. Black excludes "build"
+# by default, ruff does not, so CI linted the generated copy and reported every
+# error twice. Exclude it here rather than deleting it in the workflow.
+extend-exclude = ["build"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "S"]
