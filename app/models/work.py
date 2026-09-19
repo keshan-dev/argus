@@ -156,7 +156,9 @@ class Review(Base):
     """A GitHub pull request review."""
 
     __tablename__ = "review"
-    __table_args__ = (UniqueConstraint("pull_request_id", "external_id", name="uq_review_pr_external_id"),)
+    __table_args__ = (
+        UniqueConstraint("pull_request_id", "external_id", name="uq_review_pr_external_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     pull_request_id: Mapped[int] = mapped_column(

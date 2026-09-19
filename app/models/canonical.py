@@ -98,8 +98,12 @@ class Repository(Base):
     default_branch: Mapped[str] = mapped_column(String(255), default="main", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    organization: Mapped["Organization"] = relationship("Organization", back_populates="repositories")
-    pull_requests: Mapped[list["PullRequest"]] = relationship("PullRequest", back_populates="repository")
+    organization: Mapped["Organization"] = relationship(
+        "Organization", back_populates="repositories"
+    )
+    pull_requests: Mapped[list["PullRequest"]] = relationship(
+        "PullRequest", back_populates="repository"
+    )
     commits: Mapped[list["Commit"]] = relationship("Commit", back_populates="repository")
 
 

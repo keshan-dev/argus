@@ -55,36 +55,28 @@ def test_unique_constraints_exist() -> None:
     # 1. identity_link(integration, external_id)
     id_link = Base.metadata.tables["identity_link"]
     unique_cols = [
-        {c.name for c in uq.columns}
-        for uq in id_link.constraints
-        if getattr(uq, "columns", None)
+        {c.name for c in uq.columns} for uq in id_link.constraints if getattr(uq, "columns", None)
     ]
     assert {"integration", "external_id"} in unique_cols
 
     # 2. unmatched_entity(integration, external_id)
     unmatched = Base.metadata.tables["unmatched_entity"]
     unique_cols = [
-        {c.name for c in uq.columns}
-        for uq in unmatched.constraints
-        if getattr(uq, "columns", None)
+        {c.name for c in uq.columns} for uq in unmatched.constraints if getattr(uq, "columns", None)
     ]
     assert {"integration", "external_id"} in unique_cols
 
     # 3. commit(repository_id, sha)
     commit = Base.metadata.tables["commit"]
     unique_cols = [
-        {c.name for c in uq.columns}
-        for uq in commit.constraints
-        if getattr(uq, "columns", None)
+        {c.name for c in uq.columns} for uq in commit.constraints if getattr(uq, "columns", None)
     ]
     assert {"repository_id", "sha"} in unique_cols
 
     # 4. work_item_link(work_item_id, target_type, target_id)
     link = Base.metadata.tables["work_item_link"]
     unique_cols = [
-        {c.name for c in uq.columns}
-        for uq in link.constraints
-        if getattr(uq, "columns", None)
+        {c.name for c in uq.columns} for uq in link.constraints if getattr(uq, "columns", None)
     ]
     assert {"work_item_id", "target_type", "target_id"} in unique_cols
 
