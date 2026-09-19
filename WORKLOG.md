@@ -88,6 +88,93 @@ Implemented `app/config.py` using Pydantic `BaseSettings` with all 10 thresholds
 
 ---
 
+## 2026-09-19 | Isiwara | P0-005
+Status: IN_REVIEW
+
+### Completed
+Ran `scripts/check_ollama.py` on my machine. 12 checks passed, 0 failed. Model `llama3.2`
+was already pulled. The `api` container reaches Ollama at `host.docker.internal:11434`
+(HTTP 200).
+
+| Measurement | Value |
+|---|---|
+| Machine | Windows 11 Pro, 15.6 GB RAM, Intel CPU (family 6, model 154) |
+| Ollama | 0.34.2 |
+| Model | `llama3.2` (3B) |
+| Prompt processing | 4837.9 tok/s (not comparable, see Discovered) |
+| Generation | 15.4 tok/s |
+| Narrative call latency | 8.7 s |
+| Warm-up | 2.1 s |
+| Schema enforcement | works |
+| Reproducible (temperature 0 + seed) | yes, byte-identical across runs |
+| Cost | zero |
+
+With Keshan's entry of 2026-09-13, both machines now have every measurement the "on both
+machines" criteria of #5 ask for. I have not changed the task status. That is for Keshan.
+
+### Changed
+`WORKLOG.md` only. No code changed.
+
+### Discovered
+**Prompt processing reads 4837.9 tok/s here against 98.7 tok/s on Keshan's machine.** That
+is a 49x gap while generation speed is close (15.4 against 14.2 tok/s), so it is not a
+hardware difference. My guess is that Ollama reused a cached prompt after the warm-up run,
+but I have not confirmed it. Treat this number as not comparable. Generation speed and
+latency are the ones that matter for NFR-013.
+
+**`ollama --version` printed 0.33.2 earlier today and the script printed 0.34.2 later.** The
+measurements above are from 0.34.2. Keshan's were on 0.33.3.
+
+### Next Step
+Waiting on P0-002 (Keshan), which unblocks Phase 1 for me.
+
+### AI Assistance
+An AI assistant guided me through both tasks and drafted these 2 entries. Every number is
+copied from my own terminal output. The prompt-processing figure is the 1 item that needs
+a human check.
+
+---
+
+## 2026-09-19 | Isiwara | P0-003
+Status: IN_REVIEW
+
+### Completed
+Confirmed the skeleton runs on my machine. This is the 1 criterion left open when #3 was
+closed: "Both developers confirm it runs on their machine."
+
+| Check | Result |
+|---|---|
+| `docker compose up --build -d` | `db` healthy, `api` up (image build 55.5 s) |
+| `GET /health` | 200, `{"status":"ok","service":"argus","version":"0.1.0",...}` |
+| `pytest` inside the container | 1 passed |
+| `ruff check .` inside the container | All checks passed |
+| `black --check .` inside the container | 5 files unchanged |
+| Ollama reachable from `api` at `host.docker.internal:11434` | HTTP 200 |
+
+The default `API_PORT=8000` worked. The reserved TCP ranges on this machine are all
+50000 and above, so port 8000 was free.
+
+### Changed
+`WORKLOG.md` only. No code changed.
+
+### Discovered
+**Docker Desktop refused to start with "Virtualization support not detected", but
+virtualization was on.** `systeminfo` reported "A hypervisor has been detected", and
+`wsl --status` reported that WSL was not installed. Docker Desktop needs WSL 2 on Windows,
+and the error message points at the BIOS when the real cause is the missing WSL. Fix, in an
+Administrator prompt: `wsl --install --no-distribution`, then restart Windows. No BIOS
+change was needed.
+
+**`python` on this machine is a Microsoft Store shortcut that fails** with "The system
+cannot find the path specified". `py` works (Python 3.14.6). The Ollama check ran as
+`py -X utf8 scripts/check_ollama.py`. The project itself runs on Python 3.11 inside the
+container, so the host Python version did not matter.
+
+### Next Step
+Keshan to review. Suggest adding the 2 Windows findings above to `docs/HOW_TO.md`. I have
+not changed it.
+
+---
 ## 2026-09-19 | Keshan | P0-003
 Status: DONE
 
