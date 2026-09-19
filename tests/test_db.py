@@ -55,4 +55,3 @@ def test_get_sync_session_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
 
     session = get_sync_session(timeout_ms=5000)
     assert session is mock_session
-

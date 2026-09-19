@@ -69,6 +69,9 @@ Implemented `app/db.py` with SQLAlchemy engine, `SessionLocal`, FastAPI `get_ses
 ### Changed
 `app/db.py` (new), `app/models/__init__.py` (new), `app/models/canonical.py` (new), `app/models/identity.py` (new), `app/models/work.py` (new), `app/models/agent.py` (new), `app/models/operations.py` (new), `alembic.ini` (new), `migrations/` (new), `tests/test_models.py` (new), `tests/test_db.py` (new), `docs/TASKS.md`.
 
+### Problems
+The CI lint job failed on `black --check`: `tests/test_db.py` ended with a trailing blank line. CI installs the newest black (26.5.1) because `pyproject.toml` pins only `black>=24.10`, and neither developer has black installed locally, so formatting has been corrected by hand across 3 commits. Fixed by running black over the file. Ruff cannot catch this: `W391` is preview-only, so adding `W` to the selected rules would not have prevented it. Pinning black to an exact version in the dev extras is the real fix and needs agreement first.
+
 ### Next Step
 `P1-002` (freeze Pydantic contracts) and `P1-005` (identity map format and loader).
 
