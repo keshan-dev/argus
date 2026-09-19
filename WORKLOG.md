@@ -60,6 +60,29 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P1-002
+Status: IN_PROGRESS
+
+### Completed
+Defined all frozen Pydantic contracts across `app/schemas/`. Created `app/schemas/errors.py`
+with `ToolFailure` and typed error categories. Created `app/schemas/tools.py` with exact
+inputs and outputs for all 7 deterministic read tools (T-001 through T-007) matching
+`AGENT_TOOLS.md`. Created `app/schemas/insight.py` defining `EvidenceItem` matching
+`DATA_AND_EVIDENCE.md` 6.5, `Claim` with strict `list[str]` evidence ID invariance
+enforcing DEC-004, `Insight`, and `MemberInsight` including per-source freshness and health
+status. Exported all contracts via `app/schemas/__init__.py`. Added comprehensive unit
+tests in `tests/test_schemas.py` covering round-trip serialization and rejection of
+embedded evidence objects.
+
+### Changed
+`app/schemas/__init__.py` (new), `app/schemas/errors.py` (new), `app/schemas/tools.py` (new),
+`app/schemas/insight.py` (new), `tests/test_schemas.py` (new), `docs/TASKS.md`.
+
+### Next Step
+Merge P1-002 to `main`, then proceed to `P1-005` (identity map format and loader).
+
+---
+
 ## 2026-09-19 | Keshan | P1-001 & P1-004
 Status: DONE
 

@@ -448,7 +448,7 @@ work in progress on both sides.
 **Out of scope:** Implementations. Only the shapes.
 **Owner:** Shared
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P1-001
 **Parallelizable:** NO.
 **Components:** Contracts
@@ -472,11 +472,11 @@ is wrong, the hallucination defence does not work (DEC-004).
 Copy the tool input and output models from `AGENT_TOOLS.md` exactly.
 
 **Acceptance criteria:**
-- [ ] Input and output models exist for all 7 tools (T-001 to T-007).
-- [ ] `EvidenceItem` matches `DATA_AND_EVIDENCE.md` 6.5, including `id` and `source_state`.
-- [ ] `Claim.evidence_ids` is `list[str]`, not a list of objects.
-- [ ] `ToolFailure` with the 4 read-path error types exists.
-- [ ] `MemberInsight` includes per-source `last_synced` and health state.
+- [x] Input and output models exist for all 7 tools (T-001 to T-007).
+- [x] `EvidenceItem` matches `DATA_AND_EVIDENCE.md` 6.5, including `id` and `source_state`.
+- [x] `Claim.evidence_ids` is `list[str]`, not a list of objects.
+- [x] `ToolFailure` with the 4 read-path error types exists.
+- [x] `MemberInsight` includes per-source `last_synced` and health state.
 - [ ] Merged to `main`.
 
 **Testing required:** Round-trip serialization tests for each model.
