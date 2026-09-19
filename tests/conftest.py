@@ -1,7 +1,6 @@
 """Pytest configuration and environment fixtures for ARGUS."""
 
 import os
-import pytest
 
 # Ensure dummy configuration secrets exist so app.config can load in test environments
 os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://argus:argus@localhost:5432/argus")

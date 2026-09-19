@@ -1,6 +1,5 @@
 """Unit tests for the configuration module (P1-003, Issue #9)."""
 
-import os
 import pytest
 from pydantic import ValidationError
 
@@ -26,7 +25,6 @@ from app.config import (
     SYNC_INTERVAL_MINUTES,
     Settings,
     load_settings,
-    settings,
 )
 
 
