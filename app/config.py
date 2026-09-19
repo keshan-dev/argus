@@ -214,30 +214,43 @@ def load_settings(**kwargs: Any) -> Settings:
         raise
 
 
-# Instantiate global settings singleton
-settings: Settings = load_settings()
-
 # -----------------------------------------------------------------------------
 # Named Constants Export
 # Both developers import thresholds from here, never hardcoding them.
 # -----------------------------------------------------------------------------
-FRESHNESS_WINDOW_HOURS: int = settings.freshness_window_hours
-RECENT_ACTIVITY_DAYS: int = settings.recent_activity_days
-PR_REVIEW_WAIT_DAYS: int = settings.pr_review_wait_days
-DRAFT_PR_STALE_DAYS: int = settings.draft_pr_stale_days
-ISSUE_NO_CODE_DAYS: int = settings.issue_no_code_days
-DUE_SOON_DAYS: int = settings.due_soon_days
-STATUS_STUCK_DAYS: int = settings.status_stuck_days
-NO_ACTIVITY_DAYS: int = settings.no_activity_days
-EXCERPT_MAX_CHARS: int = settings.excerpt_max_chars
-MAX_EVIDENCE_ITEMS: int = settings.max_evidence_items
-SYNC_INTERVAL_MINUTES: int = settings.sync_interval_minutes
+FRESHNESS_WINDOW_HOURS: int = 24
+RECENT_ACTIVITY_DAYS: int = 14
+PR_REVIEW_WAIT_DAYS: int = 3
+DRAFT_PR_STALE_DAYS: int = 5
+ISSUE_NO_CODE_DAYS: int = 3
+DUE_SOON_DAYS: int = 3
+STATUS_STUCK_DAYS: int = 5
+NO_ACTIVITY_DAYS: int = 7
+EXCERPT_MAX_CHARS: int = 500
+MAX_EVIDENCE_ITEMS: int = 40
+SYNC_INTERVAL_MINUTES: int = 5
 
-HTTP_TIMEOUT_SECONDS: float = settings.http_timeout_seconds
-HTTP_MAX_ATTEMPTS: int = settings.http_max_attempts
-MODEL_ID: str = settings.model_id
-OLLAMA_URL: str = settings.ollama_url
-OLLAMA_SEED: int = settings.ollama_seed
-OLLAMA_NUM_PREDICT: int = settings.ollama_num_predict
-PROMPT_VERSION: str = settings.prompt_version
-DB_STATEMENT_TIMEOUT_MS: int = settings.db_statement_timeout_ms
+HTTP_TIMEOUT_SECONDS: float = 10.0
+HTTP_MAX_ATTEMPTS: int = 3
+MODEL_ID: str = "llama3.2"
+OLLAMA_URL: str = "http://localhost:11434"
+OLLAMA_SEED: int = 42
+OLLAMA_NUM_PREDICT: int = 300
+PROMPT_VERSION: str = "narrative_v1"
+DB_STATEMENT_TIMEOUT_MS: int = 2000
+
+# Instantiate global settings singleton if environment permits
+try:
+    settings: Settings = load_settings()
+except Exception:
+    # Allow imports in environments like Alembic migrations or unit tests
+    # where only a subset of environment variables is provided.
+    settings = None  # type: ignore[assignment]
+
+
+def get_settings() -> Settings:
+    """Return settings instance, failing fast if required secrets are missing."""
+    global settings
+    if settings is None:
+        settings = load_settings()
+    return settings

@@ -20,7 +20,11 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Use DATABASE_URL from environment / config
-database_url = os.getenv("DATABASE_URL", settings.database_url)
+database_url = os.getenv("DATABASE_URL")
+if not database_url and settings is not None:
+    database_url = settings.database_url
+if not database_url:
+    database_url = config.get_main_option("sqlalchemy.url")
 config.set_main_option("sqlalchemy.url", database_url)
 
 

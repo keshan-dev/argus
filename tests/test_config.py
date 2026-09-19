@@ -1,7 +1,7 @@
 """Unit tests for the configuration module (P1-003, Issue #9)."""
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from app.config import (
     DB_STATEMENT_TIMEOUT_MS,

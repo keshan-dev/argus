@@ -4,6 +4,7 @@ Configures connection pooling, statement timeouts for read sessions (NFR-014),
 and session lifecycles for FastAPI dependencies and background ingestion (P1-004).
 """
 
+import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, text
@@ -17,8 +18,13 @@ Base = declarative_base()
 
 # Connection engine
 # Uses psycopg3 via the postgresql+psycopg driver specified in DATABASE_URL
+default_db_url = "postgresql+psycopg://argus:argus@localhost:5432/argus"
+database_url = os.getenv(
+    "DATABASE_URL",
+    settings.database_url if settings is not None else default_db_url,
+)
 engine = create_engine(
-    settings.database_url,
+    database_url,
     pool_pre_ping=True,
     future=True,
 )
