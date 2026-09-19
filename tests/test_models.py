@@ -4,7 +4,7 @@ from app.models import Base
 
 
 def test_table_count_and_names() -> None:
-    """Exactly 17 tables must be defined, and none named 'user' (CLAUDE.md, DATA_AND_EVIDENCE.md 6.3)."""
+    """17 tables must be defined, and none named 'user' (DATA_AND_EVIDENCE.md 6.3)."""
     table_names = set(Base.metadata.tables.keys())
 
     expected_tables = {
@@ -40,12 +40,14 @@ def test_external_data_freshness_columns() -> None:
     for table_name in external_tables:
         table = Base.metadata.tables[table_name]
         assert "retrieved_at" in table.c, f"Missing retrieved_at on {table_name}"
-        assert not table.c["retrieved_at"].nullable, f"retrieved_at must be non-null on {table_name}"
+        msg_retrieved = f"retrieved_at must be non-null on {table_name}"
+        assert not table.c["retrieved_at"].nullable, msg_retrieved
 
-        # work_item, pull_request, and review have source_updated_at / submitted_at
+        # work_item and pull_request carry source_updated_at
         if table_name in ("work_item", "pull_request"):
             assert "source_updated_at" in table.c, f"Missing source_updated_at on {table_name}"
-            assert not table.c["source_updated_at"].nullable, f"source_updated_at must be non-null on {table_name}"
+            msg_source = f"source_updated_at must be non-null on {table_name}"
+            assert not table.c["source_updated_at"].nullable, msg_source
 
 
 def test_unique_constraints_exist() -> None:
@@ -53,28 +55,36 @@ def test_unique_constraints_exist() -> None:
     # 1. identity_link(integration, external_id)
     id_link = Base.metadata.tables["identity_link"]
     unique_cols = [
-        set(c.name for c in uq.columns) for uq in id_link.constraints if getattr(uq, "columns", None)
+        {c.name for c in uq.columns}
+        for uq in id_link.constraints
+        if getattr(uq, "columns", None)
     ]
     assert {"integration", "external_id"} in unique_cols
 
     # 2. unmatched_entity(integration, external_id)
     unmatched = Base.metadata.tables["unmatched_entity"]
     unique_cols = [
-        set(c.name for c in uq.columns) for uq in unmatched.constraints if getattr(uq, "columns", None)
+        {c.name for c in uq.columns}
+        for uq in unmatched.constraints
+        if getattr(uq, "columns", None)
     ]
     assert {"integration", "external_id"} in unique_cols
 
     # 3. commit(repository_id, sha)
     commit = Base.metadata.tables["commit"]
     unique_cols = [
-        set(c.name for c in uq.columns) for uq in commit.constraints if getattr(uq, "columns", None)
+        {c.name for c in uq.columns}
+        for uq in commit.constraints
+        if getattr(uq, "columns", None)
     ]
     assert {"repository_id", "sha"} in unique_cols
 
     # 4. work_item_link(work_item_id, target_type, target_id)
     link = Base.metadata.tables["work_item_link"]
     unique_cols = [
-        set(c.name for c in uq.columns) for uq in link.constraints if getattr(uq, "columns", None)
+        {c.name for c in uq.columns}
+        for uq in link.constraints
+        if getattr(uq, "columns", None)
     ]
     assert {"work_item_id", "target_type", "target_id"} in unique_cols
 

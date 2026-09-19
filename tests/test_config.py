@@ -76,13 +76,22 @@ def test_secrets_redacted_in_repr_and_str() -> None:
     assert "jira_top_secret_token_abc" not in str_text
 
 
-def test_missing_required_secret_raises_validation_error() -> None:
+def test_missing_required_secret_raises_validation_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Settings cannot be created without required secrets and has no default secrets."""
+    for secret in (
+        "DATABASE_URL",
+        "GITHUB_TOKEN",
+        "JIRA_BASE_URL",
+        "JIRA_EMAIL",
+        "JIRA_API_TOKEN",
+    ):
+        monkeypatch.delenv(secret, raising=False)
+        monkeypatch.delenv(secret.lower(), raising=False)
+
     with pytest.raises(ValidationError) as exc_info:
-        Settings(
-            _env_file=None,
-            # Omitting database_url, github_token, jira_base_url, jira_email, jira_api_token
-        )
+        Settings(_env_file=None)
 
     errors = exc_info.value.errors()
     missing_fields = {str(err["loc"][0]) for err in errors if err["type"] == "missing"}
