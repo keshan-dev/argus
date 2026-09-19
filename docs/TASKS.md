@@ -397,7 +397,7 @@ unique constraints and indexes. The first Alembic migration.
 **Out of scope:** Any query logic. Any ingestion. Seed data.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P0-003, P0-004
 **Parallelizable:** NO. Both developers must be present.
 **Components:** Database
@@ -416,13 +416,13 @@ unique constraints and indexes. The first Alembic migration.
 - `evidence` is **not** a table. The evidence set is JSON inside `agent_run.evidence_set`.
 
 **Acceptance criteria:**
-- [ ] All 17 tables are defined as SQLAlchemy models.
-- [ ] `alembic upgrade head` succeeds on an empty database.
-- [ ] `alembic downgrade base` then `upgrade head` succeeds.
-- [ ] Every external-data table has both freshness columns, non-null.
-- [ ] All listed unique constraints and indexes exist.
-- [ ] No table is named `user`.
-- [ ] CI migration job is green.
+- [x] All 17 tables are defined as SQLAlchemy models.
+- [x] `alembic upgrade head` succeeds on an empty database.
+- [x] `alembic downgrade base` then `upgrade head` succeeds.
+- [x] Every external-data table has both freshness columns, non-null.
+- [x] All listed unique constraints and indexes exist.
+- [x] No table is named `user`.
+- [x] CI migration job is green.
 
 **Testing required:** An integration test that applies the migration and asserts every
 table and unique constraint exists.
@@ -502,7 +502,7 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 **Out of scope:** Using them. That happens in Phases 2 and 4.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P0-003
 **Parallelizable:** YES, alongside P1-001.
 **Components:** Configuration
@@ -521,11 +521,11 @@ thresholds from `DATA_AND_EVIDENCE.md` 6.8.
 - Settings MUST fail fast at startup if a required secret is missing.
 
 **Acceptance criteria:**
-- [ ] All 10 thresholds plus the HTTP and model settings exist as named constants.
-- [ ] Secrets are read from environment variables and never have a default value.
-- [ ] Startup fails with a clear message when a required secret is missing.
-- [ ] `.env.example` lists every variable with empty values.
-- [ ] No secret appears in any log line.
+- [x] All 10 thresholds plus the HTTP and model settings exist as named constants.
+- [x] Secrets are read from environment variables and never have a default value.
+- [x] Startup fails with a clear message when a required secret is missing.
+- [x] `.env.example` lists every variable with empty values.
+- [x] No secret appears in any log line.
 
 **Testing required:** A test that a missing required secret raises at startup.
 **Handoff notes:** Both developers import thresholds from here, never hardcode them.
@@ -547,7 +547,7 @@ read sessions and a longer one for the sync path.
 **Out of scope:** Queries.
 **Owner:** Developer 1
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-001
 **Parallelizable:** YES.
 **Components:** Database
@@ -556,10 +556,10 @@ read sessions and a longer one for the sync path.
 **Implementation notes:** Set `statement_timeout` per session, not globally, so the sync
 path can run longer queries.
 **Acceptance criteria:**
-- [ ] A session dependency is available to routes.
-- [ ] Read sessions carry a 2 second statement timeout.
-- [ ] A query exceeding it raises an error mappable to `TIMEOUT`.
-- [ ] Sessions are closed correctly on both success and exception.
+- [x] A session dependency is available to routes.
+- [x] Read sessions carry a 2 second statement timeout.
+- [x] A query exceeding it raises an error mappable to `TIMEOUT`.
+- [x] Sessions are closed correctly on both success and exception.
 
 **Testing required:** A test using `pg_sleep` to confirm the timeout fires.
 **Handoff notes:** All tools use this dependency.

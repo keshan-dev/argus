@@ -60,6 +60,37 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P1-001 & P1-004
+Status: DONE
+
+### Completed
+Implemented `app/db.py` with SQLAlchemy engine, `SessionLocal`, FastAPI `get_session` dependency, and read-path statement timeout support (`DB_STATEMENT_TIMEOUT_MS = 2000`). Defined all 17 canonical models across `app/models/` (`canonical.py`, `identity.py`, `work.py`, `agent.py`, `operations.py`) using SQLAlchemy 2.0 declarative mappings. Ensured person table is named `app_user` (not `user`), all timestamps are `timestamptz` in UTC, and external tables carry non-null `source_updated_at` and `retrieved_at` columns. Configured Alembic (`alembic.ini`, `migrations/env.py`) and created initial migration `migrations/versions/0001_initial.py` defining all tables, unique constraints, and indexes. Added unit tests in `tests/test_models.py` and `tests/test_db.py`.
+
+### Changed
+`app/db.py` (new), `app/models/__init__.py` (new), `app/models/canonical.py` (new), `app/models/identity.py` (new), `app/models/work.py` (new), `app/models/agent.py` (new), `app/models/operations.py` (new), `alembic.ini` (new), `migrations/` (new), `tests/test_models.py` (new), `tests/test_db.py` (new), `docs/TASKS.md`.
+
+### Problems
+The CI lint job failed on `black --check`: `tests/test_db.py` ended with a trailing blank line. CI installs the newest black (26.5.1) because `pyproject.toml` pins only `black>=24.10`, and neither developer has black installed locally, so formatting has been corrected by hand across 3 commits. Fixed by running black over the file. Ruff cannot catch this: `W391` is preview-only, so adding `W` to the selected rules would not have prevented it. Pinning black to an exact version in the dev extras is the real fix and needs agreement first.
+
+### Next Step
+`P1-002` (freeze Pydantic contracts) and `P1-005` (identity map format and loader).
+
+---
+
+## 2026-09-19 | Keshan | P1-003
+Status: DONE
+
+### Completed
+Implemented `app/config.py` using Pydantic `BaseSettings` with all 10 thresholds and runtime settings defined as typed named constants. Required secrets (`DATABASE_URL`, `GITHUB_TOKEN`, `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`) have no default values and fail fast when missing from the environment. Sensitive values are redacted in string representations (`__repr__` and `__str__`) to prevent token leaks in log lines. Updated `.env.example` with empty values and added unit tests in `tests/test_config.py` plus test isolation in `tests/conftest.py`.
+
+### Changed
+`app/config.py` (new), `.env.example`, `tests/conftest.py` (new), `tests/test_config.py` (new), `docs/TASKS.md`.
+
+### Next Step
+`P1-004` (database session management and statement timeouts) and `P1-001` (canonical models).
+
+---
+
 ## 2026-09-19 | Isiwara | P0-005
 Status: IN_REVIEW
 
