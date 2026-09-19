@@ -16,9 +16,9 @@ class EvidenceItem(BaseModel):
 
     id: str = Field(description="Sequential identifier within 1 run e.g. ev_1")
     source: Literal["jira", "github"] = Field(description="Authoritative source platform")
-    entity_type: Literal[
-        "work_item", "pull_request", "commit", "review", "work_item_link"
-    ] = Field(description="Underlying entity type")
+    entity_type: Literal["work_item", "pull_request", "commit", "review", "work_item_link"] = Field(
+        description="Underlying entity type"
+    )
     entity_key: str = Field(
         description="Natural identifier e.g. AUTH-245, acme/api#182, or commit sha"
     )
@@ -126,15 +126,9 @@ class MemberInsight(BaseModel):
     assigned: list[WorkItemOut] = Field(
         default_factory=list, description="Currently assigned work items"
     )
-    blockers: list[Insight] = Field(
-        default_factory=list, description="Detected blocker insights"
-    )
-    risks: list[Insight] = Field(
-        default_factory=list, description="Detected risk insights"
-    )
-    unknowns: list[str] = Field(
-        default_factory=list, description="Explicit unknowns or data gaps"
-    )
+    blockers: list[Insight] = Field(default_factory=list, description="Detected blocker insights")
+    risks: list[Insight] = Field(default_factory=list, description="Detected risk insights")
+    unknowns: list[str] = Field(default_factory=list, description="Explicit unknowns or data gaps")
     last_synced: dict[str, datetime | None] = Field(
         default_factory=dict,
         description="Per-source last successful sync timestamp",
@@ -143,6 +137,4 @@ class MemberInsight(BaseModel):
         default_factory=list,
         description="Per-source operational health and availability state",
     )
-    summary: str | None = Field(
-        default=None, description="Optional high-level narrative summary"
-    )
+    summary: str | None = Field(default=None, description="Optional high-level narrative summary")

@@ -76,7 +76,16 @@ embedded evidence objects.
 
 ### Changed
 `app/schemas/__init__.py` (new), `app/schemas/errors.py` (new), `app/schemas/tools.py` (new),
-`app/schemas/insight.py` (new), `tests/test_schemas.py` (new), `docs/TASKS.md`.
+`app/schemas/insight.py` (new), `tests/test_schemas.py` (new), `docs/TASKS.md`, `.gitignore`, `pyproject.toml`.
+
+### Problems
+The CI lint job failed. 2 separate causes.
+
+1. 10 `UP017` violations: `datetime.now(timezone.utc)` in `app/schemas/errors.py` and `tests/test_schemas.py`. `app/main.py` already used `datetime.now(UTC)`, so the new files did not follow the convention already in the tree. Fixed with `ruff --fix`. `UTC` is an alias of `timezone.utc`, so behaviour is unchanged.
+2. `black` wanted 2 files rewrapped. They were wrapped at 88 columns, black's default, not the 100 this project sets.
+
+### Discovered
+**CI was linting a generated copy of the tree.** `pip install ".[dev]"` makes setuptools write `build/lib/app/...`, and ruff's default exclude list has `_build`, `buck-out` and `dist` but not `build`. Black's defaults do exclude `build`. So ruff reported 11 errors where only 10 were real, the 11th being the copy of `app/schemas/errors.py` under `build/lib/`. A stale `build/` on a developer machine is worse than noise: it keeps copies of deleted files, so ruff reports errors in code that no longer exists. Added `extend-exclude = ["build"]` to `[tool.ruff]` and `build/` plus `dist/` to `.gitignore`, which was missing both.
 
 ### Next Step
 Merge P1-002 to `main`, then proceed to `P1-005` (identity map format and loader).

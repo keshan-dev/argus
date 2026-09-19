@@ -1,6 +1,6 @@
 """Error contracts for tool calls and upstream integrations (P1-002, Issue #8)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -25,6 +25,6 @@ class ToolFailure(BaseModel):
     error_type: ToolErrorType = Field(description="Structured category of failure")
     detail: str = Field(description="Human readable explanation without secrets")
     occurred_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Timestamp when failure occurred in UTC",
     )

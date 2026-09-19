@@ -24,9 +24,7 @@ class LinkedAccount(BaseModel):
 
     integration: Literal["github", "jira"] = Field(description="Upstream platform name")
     external_handle: str = Field(description="Handle or username on the upstream platform")
-    match_method: Literal["manual", "inferred"] = Field(
-        description="How identity link was matched"
-    )
+    match_method: Literal["manual", "inferred"] = Field(description="How identity link was matched")
     confidence: Literal["HIGH", "MEDIUM", "LOW"] = Field(
         description="Confidence level of identity link"
     )
@@ -47,9 +45,7 @@ class TeamMemberOut(BaseModel):
 class GetTeamMembersOutput(BaseModel):
     """Output for get_team_members tool."""
 
-    members: list[TeamMemberOut] = Field(
-        default_factory=list, description="List of team members"
-    )
+    members: list[TeamMemberOut] = Field(default_factory=list, description="List of team members")
     unmatched_count: int = Field(
         default=0, description="Count of unmatched entities for UI warning banner"
     )
@@ -118,9 +114,7 @@ class GetPullRequestsInput(BaseModel):
     states: list[Literal["open", "merged", "closed"]] | None = Field(
         default=None, description="Filter for pull request states"
     )
-    include_drafts: bool = Field(
-        default=True, description="Whether to include draft pull requests"
-    )
+    include_drafts: bool = Field(default=True, description="Whether to include draft pull requests")
 
 
 class PullRequestOut(BaseModel):
@@ -142,12 +136,8 @@ class PullRequestOut(BaseModel):
     review_state: Literal["none", "pending", "approved", "changes_requested"] = Field(
         description="Overall review state"
     )
-    last_review_at: datetime | None = Field(
-        default=None, description="Timestamp of latest review"
-    )
-    checks_state: Literal["unknown", "passing", "failing"] = Field(
-        description="CI checks status"
-    )
+    last_review_at: datetime | None = Field(default=None, description="Timestamp of latest review")
+    checks_state: Literal["unknown", "passing", "failing"] = Field(description="CI checks status")
     created_at: datetime = Field(description="When opened at source")
     last_commit_at: datetime | None = Field(
         default=None, description="Timestamp of latest commit on PR"
@@ -189,9 +179,7 @@ class CommitOut(BaseModel):
     message_excerpt: str = Field(
         description="Capped and sanitized commit message excerpt (untrusted)"
     )
-    branch_name: str | None = Field(
-        default=None, description="Branch name where commit appeared"
-    )
+    branch_name: str | None = Field(default=None, description="Branch name where commit appeared")
     author_user_id: int | None = Field(
         default=None, description="Internal user ID of author or None if unmatched"
     )
@@ -272,9 +260,7 @@ class GetWorkItemLinksInput(BaseModel):
     def validate_ids_provided(self) -> "GetWorkItemLinksInput":
         """Validate that at least one of work_item_ids or pull_request_ids is given."""
         if not self.work_item_ids and not self.pull_request_ids:
-            raise ValueError(
-                "At least one of work_item_ids or pull_request_ids must be provided"
-            )
+            raise ValueError("At least one of work_item_ids or pull_request_ids must be provided")
         return self
 
 
@@ -295,9 +281,7 @@ class WorkItemLinkOut(BaseModel):
         "pr_body",
         "commit_message",
     ] = Field(description="Method used to establish link")
-    confidence: Literal["HIGH", "MEDIUM", "LOW"] = Field(
-        description="Confidence level of link"
-    )
+    confidence: Literal["HIGH", "MEDIUM", "LOW"] = Field(description="Confidence level of link")
     created_at: datetime = Field(description="When link was established")
 
 
@@ -316,18 +300,14 @@ class GetSourceHealthInput(BaseModel):
     """Input parameters for get_source_health tool."""
 
     team_id: int = Field(description="Internal team ID")
-    sources: list[Literal["github", "jira"]] = Field(
-        description="Sources to evaluate health for"
-    )
+    sources: list[Literal["github", "jira"]] = Field(description="Sources to evaluate health for")
 
 
 class SourceHealthOut(BaseModel):
     """Operational freshness and availability state for an integration source."""
 
     source: Literal["github", "jira"] = Field(description="Data source name")
-    state: Literal["fresh", "stale", "unavailable"] = Field(
-        description="Evaluated freshness state"
-    )
+    state: Literal["fresh", "stale", "unavailable"] = Field(description="Evaluated freshness state")
     last_success_at: datetime | None = Field(
         default=None, description="Timestamp of most recent successful sync"
     )
@@ -338,9 +318,7 @@ class SourceHealthOut(BaseModel):
         default=None,
         description="Typed error category if last attempt failed (TIMEOUT, RATE_LIMITED, etc.)",
     )
-    age_hours: float | None = Field(
-        default=None, description="Hours since last successful sync"
-    )
+    age_hours: float | None = Field(default=None, description="Hours since last successful sync")
 
 
 class GetSourceHealthOutput(BaseModel):

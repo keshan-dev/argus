@@ -1,6 +1,6 @@
 """Unit tests for Pydantic contracts and schemas (P1-002, Issue #8)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -41,7 +41,7 @@ def test_tool_failure_read_path_types() -> None:
             tool_id="T-001",
             error_type=err,  # type: ignore[arg-type]
             detail="Test detail message",
-            occurred_at=datetime.now(timezone.utc),
+            occurred_at=datetime.now(UTC),
         )
         data = failure.model_dump()
         restored = ToolFailure.model_validate(data)
@@ -86,7 +86,7 @@ def test_t001_get_team_members_roundtrip() -> None:
 
 def test_t002_get_assigned_work_items_roundtrip() -> None:
     """Verify T-002 inputs and outputs round-trip serialize."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetAssignedWorkItemsInput(
         subject_user_id=7,
         window_start=now,
@@ -122,7 +122,7 @@ def test_t002_get_assigned_work_items_roundtrip() -> None:
 
 def test_t003_get_pull_requests_roundtrip() -> None:
     """Verify T-003 inputs and outputs round-trip serialize."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetPullRequestsInput(
         subject_user_id=7,
         window_start=now,
@@ -161,7 +161,7 @@ def test_t003_get_pull_requests_roundtrip() -> None:
 
 def test_t004_get_commits_roundtrip() -> None:
     """Verify T-004 inputs and outputs round-trip serialize."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetCommitsInput(
         subject_user_id=7,
         window_start=now,
@@ -191,7 +191,7 @@ def test_t004_get_commits_roundtrip() -> None:
 
 def test_t005_get_reviews_roundtrip() -> None:
     """Verify T-005 inputs and outputs round-trip serialize."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetReviewsInput(
         subject_user_id=7,
         window_start=now,
@@ -225,7 +225,7 @@ def test_t006_get_work_item_links_validation_and_roundtrip() -> None:
     with pytest.raises(ValidationError):
         GetWorkItemLinksInput()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetWorkItemLinksInput(work_item_ids=[41], min_confidence="HIGH")
     assert inp.work_item_ids == [41]
     assert inp.min_confidence == "HIGH"
@@ -249,7 +249,7 @@ def test_t006_get_work_item_links_validation_and_roundtrip() -> None:
 
 def test_t007_get_source_health_roundtrip() -> None:
     """Verify T-007 inputs and outputs round-trip serialize."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     inp = GetSourceHealthInput(team_id=1, sources=["github", "jira"])
     assert inp.sources == ["github", "jira"]
 
@@ -281,7 +281,7 @@ def test_t007_get_source_health_roundtrip() -> None:
 
 def test_evidence_item_contract() -> None:
     """Verify EvidenceItem matches DATA_AND_EVIDENCE.md 6.5 specification."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     evidence = EvidenceItem(
         id="ev_1",
         source="jira",
@@ -328,7 +328,7 @@ def test_claim_evidence_ids_invariance() -> None:
 
 def test_insight_and_member_insight_roundtrip() -> None:
     """Verify Insight and MemberInsight full response contracts."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     evidence = EvidenceItem(
         id="ev_1",
         source="github",
