@@ -94,7 +94,7 @@ def test_missing_required_secret_raises_validation_error(
         Settings(_env_file=None)
 
     errors = exc_info.value.errors()
-    missing_fields = {str(err["loc"][0]) for err in errors if err["type"] == "missing"}
+    missing_fields = {str(err["loc"][0]).lower() for err in errors}
     expected_required = {
         "database_url",
         "github_token",
@@ -107,17 +107,22 @@ def test_missing_required_secret_raises_validation_error(
 
 def test_load_settings_fails_fast_with_clear_message(monkeypatch: pytest.MonkeyPatch) -> None:
     """load_settings raises RuntimeError naming missing secrets when environment lacks them."""
-    monkeypatch.delenv("DATABASE_URL", raising=False)
-    monkeypatch.delenv("database_url", raising=False)
-    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
-    monkeypatch.delenv("github_token", raising=False)
+    for secret in (
+        "DATABASE_URL",
+        "GITHUB_TOKEN",
+        "JIRA_BASE_URL",
+        "JIRA_EMAIL",
+        "JIRA_API_TOKEN",
+    ):
+        monkeypatch.delenv(secret, raising=False)
+        monkeypatch.delenv(secret.lower(), raising=False)
 
     with pytest.raises(RuntimeError) as exc_info:
         load_settings(_env_file=None)
 
     error_message = str(exc_info.value)
     assert "Missing required configuration secrets" in error_message
-    assert "DATABASE_URL" in error_message or "GITHUB_TOKEN" in error_message
+    assert "DATABASE_URL" in error_message
 
 
 def test_alias_support() -> None:

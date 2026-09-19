@@ -61,6 +61,7 @@ def is_timeout_error(exc: Exception) -> bool:
     """Determine whether an exception was caused by a database statement timeout.
 
     Used by read-path tools to map query failures to TIMEOUT (FR-033).
+    """
     if isinstance(exc, (OperationalError, DatabaseError)):
         msg = str(exc).lower()
         return (
