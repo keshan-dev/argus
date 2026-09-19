@@ -60,6 +60,38 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-19 | Keshan | P1-005
+Status: IN_PROGRESS
+
+### Completed
+Created `seed/identity_map.yml` documented with a header comment block explaining fields,
+constraints, and initial entries for team members Keshan and Isiwara with stable external IDs.
+Implemented `app/integrations/identity_loader.py` with YAML parsing that reports exact problem
+line numbers on syntax errors, Pydantic schema validation, and cross-person duplicate external ID
+checks. Implemented `load_identity_map` writing `IdentityLink` rows with `match_method = manual`
+and `confidence = HIGH`, handling existing user lookup, unmatched entity resolution, and
+idempotent re-runs. Added test suite in `tests/test_identity_loader.py` covering valid seeding,
+idempotency, duplicate rejection across people, malformed YAML lines, and unmatched resolution.
+
+### Changed
+`seed/identity_map.yml` (new), `app/integrations/__init__.py` (new),
+`app/integrations/identity_loader.py` (new), `tests/test_identity_loader.py` (new),
+`docs/TASKS.md`.
+
+### Problems
+The CI lint job failed on `black --check`. `app/integrations/identity_loader.py` and `tests/test_identity_loader.py` were wrapped at 88 columns, black's default, not the 100 this project sets in `pyproject.toml`. Both statements fit on 1 line at 100. Ruff passed. Fixed by running black, no logic changed.
+
+This is the 3rd pull request in a row to fail on exactly this (#66, #68, #69). The cause is that neither developer has black installed, so formatting is done by hand or with a tool using its own default width. Pinning black to an exact version in the dev extras and actually installing it locally is the fix. It needs agreement, so it is raised below rather than done here.
+
+### Decisions Needed
+**Pin `black` and `ruff` to exact versions in `[project.optional-dependencies] dev`.** Today they are floating (`black>=24.10`, `ruff>=0.7`), so CI resolves the newest release on every run and the formatting target moves without anyone changing code. A commit that passed last week can fail today. Pinning also makes a local install match CI, which is what stops the repeat failures above. Cost is zero, it is not a new dependency, only a version constraint on 2 that are already there.
+
+### Next Step
+Merge P1-005 to `main`. This completes Phase 1. Proceed to Phase 2 (Data and Integrations,
+P2-001 HTTP client) in parallel with Phase 3 (Agent Foundation).
+
+---
+
 ## 2026-09-19 | Keshan | P1-002
 Status: IN_PROGRESS
 
