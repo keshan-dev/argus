@@ -60,6 +60,45 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-20 | Keshan | P2-001
+Status: DONE
+
+### Completed
+Built the shared HTTP client layer for all upstream integrations (`P2-001`, Issue #12):
+1. Created `app/integrations/errors.py` with base `IntegrationError` and typed subclasses:
+`IntegrationTimeoutError` (`TIMEOUT`), `AuthError` (`AUTH_FAILED`), `RateLimitError`
+(`RATE_LIMITED`), `NotFoundError` (`NOT_FOUND`), and `UpstreamError` (`UPSTREAM_ERROR`). Each
+provides `to_tool_failure` to map directly to the frozen `ToolFailure` schema contract.
+2. Created `app/integrations/http.py` implementing `HttpClient` wrapping `httpx.Client`:
+   - Configures explicit 10-second connect and read timeouts (`HTTP_TIMEOUT_SECONDS`, NFR-001).
+   - Retries up to 3 attempts (`HTTP_MAX_ATTEMPTS`, NFR-002) using tenacity on 429, 5xx, and
+     connection/transport errors. Never retries other 4xx errors (400, 401, 403, 404).
+   - Implemented `_WaitRetryAfterOrExponential` honoring `Retry-After` headers on 429,
+     falling back to exponential backoff with jitter.
+   - Disambiguates HTTP 403: detects rate-limiting headers (`x-ratelimit-remaining: 0` or
+     `retry-after`) and maps to `RateLimitError`, while standard 403 maps to `AuthError`.
+   - Redacts sensitive tokens from authorization headers and query parameters before logging.
+   - Supports injectable `httpx.BaseTransport` for offline fixture replay and tests (DEC-012).
+3. Added test suite in `tests/test_http_client.py` covering: success 200, timeout retry exhaustion,
+401 without retry, 403 rate-limited vs forbidden, 404 without retry, 429 retry with `Retry-After`,
+500 upstream error with 3 attempts, secret log redaction, mock transport injection, and explicit
+timeout enforcement.
+4. Marked `P2-001` as DONE in `docs/TASKS.md`.
+
+### Changed
+`app/integrations/errors.py` (new), `app/integrations/http.py` (new),
+`app/integrations/__init__.py`, `tests/test_http_client.py` (new), `docs/TASKS.md`,
+`WORKLOG.md`.
+
+### Discovered
+GitHub rate-limiting on 403 is distinguished cleanly from authorization denial using the
+`x-ratelimit-remaining` and `retry-after` response headers.
+
+### Next Step
+Start `P2-002` (GitHub read-only client) using `HttpClient`.
+
+---
+
 ## 2026-09-20 | Keshan | P1-005
 Status: DONE
 
