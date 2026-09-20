@@ -275,7 +275,8 @@ class HttpClient:
                 timeout_err,
             )
             raise IntegrationTimeoutError(
-                f"Request to {clean_url} timed out after {self.max_attempts} attempts: {timeout_err}"
+                f"Request to {clean_url} timed out after {self.max_attempts} "
+                f"attempts: {timeout_err}"
             ) from timeout_err
         except httpx.TransportError as transport_err:
             logger.error(
