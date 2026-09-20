@@ -8,6 +8,7 @@ from app.integrations.errors import (
     RateLimitError,
     UpstreamError,
 )
+from app.integrations.github import GitHubClient
 from app.integrations.http import HttpClient
 from app.integrations.identity_loader import (
     IdentityMapError,
@@ -17,6 +18,7 @@ from app.integrations.identity_loader import (
 
 __all__ = [
     "AuthError",
+    "GitHubClient",
     "HttpClient",
     "IdentityMapError",
     "IntegrationError",

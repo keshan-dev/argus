@@ -691,11 +691,11 @@ commits and branches for a repository, returning raw validated payloads.
 **Out of scope:** Normalization (P2-003). Any write endpoint.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-001, P0-002
 **Parallelizable:** YES, alongside P2-004.
 **Components:** Integration layer
-**Files:** `app/integrations/github_client.py`
+**Files:** `app/integrations/github.py`
 **Inputs:** Fixtures from P0-002, a read-only token.
 **Implementation notes:**
 - Fine-grained token, read-only, only the configured repositories.
@@ -704,13 +704,13 @@ commits and branches for a repository, returning raw validated payloads.
 - Capture rate-limit headers so `RATE_LIMITED` can be detected accurately.
 
 **Acceptance criteria:**
-- [ ] Lists pull requests with state, draft flag, branch, title, body.
-- [ ] Lists reviews with state, body and timestamp.
-- [ ] Lists commits with sha, message, author and timestamp.
-- [ ] Pagination is handled and tested.
-- [ ] Only read endpoints are called. Verified by inspection and noted in review.
-- [ ] Rate-limit responses produce `RATE_LIMITED`.
-- [ ] All tests use fixtures, no live network call.
+- [x] Lists pull requests with state, draft flag, branch, title, body.
+- [x] Lists reviews with state, body and timestamp.
+- [x] Lists commits with sha, message, author and timestamp.
+- [x] Pagination is handled and tested.
+- [x] Only read endpoints are called. Verified by inspection and noted in review.
+- [x] Rate-limit responses produce `RATE_LIMITED`.
+- [x] All tests use fixtures, no live network call.
 
 **Testing required:** respx tests against the P0-002 fixtures for success, pagination,
 403 rate-limited, 401 and 404.

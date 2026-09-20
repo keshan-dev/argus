@@ -60,6 +60,39 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-20 | Keshan | P2-002
+Status: DONE
+
+### Completed
+Built the GitHub read-only API client (`P2-002`, Issue #13):
+1. Created `app/integrations/github.py` implementing `GitHubClient` using `HttpClient` and
+authenticated via `GITHUB_TOKEN`.
+2. Implemented methods to fetch repositories, pull requests, reviews, commits, and branches.
+Strictly read-only; no write endpoints exist in the module (AC-17).
+3. Handled GitHub pagination by parsing RFC-5988 `Link` headers (`rel="next"`) with
+automated multi-page collection in `_paginate`.
+4. Created realistic GitHub JSON fixtures in `seed/fixtures/github/` (`repositories.json`,
+`pull_requests.json`, `reviews.json`, `commits.json`, `branches.json`) covering all test
+scenarios (impediments, draft PRs, unlinked PRs, external contributors).
+5. Added unit test suite in `tests/test_github_client.py` covering PR listing, review states,
+commit metadata, branches, pagination across multiple pages, 401 auth failure, 403 rate-limiting,
+and 404 not found. All 10 tests pass without live network calls.
+6. Marked `P2-002` as DONE in `docs/TASKS.md`.
+
+### Changed
+`app/integrations/github.py` (new), `app/integrations/__init__.py`,
+`seed/fixtures/github/*.json` (new), `tests/test_github_client.py` (new),
+`docs/TASKS.md`, `WORKLOG.md`.
+
+### Discovered
+RFC-5988 `Link` headers embed existing query parameters in the `rel="next"` URL, so subsequent
+pagination calls do not need original query params re-applied.
+
+### Next Step
+Proceed to `P2-003` (GitHub normalization into canonical tables) or `P2-004` (Jira read-only client).
+
+---
+
 ## 2026-09-20 | Keshan | P2-001
 Status: DONE
 
