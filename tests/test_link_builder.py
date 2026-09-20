@@ -32,13 +32,13 @@ def test_extract_ticket_keys_word_boundaries_and_case() -> None:
     """extract_ticket_keys matches configured project keys and obeys word boundaries."""
     project_keys = ["AUTH", "PAY"]
 
-    # Word boundary prevents AUTH-245 from matching inside AUTH-2450
+    # The word boundary stops AUTH-2450 being truncated to AUTH-245. Both are real
+    # references in this text, so both are extracted, and a lowercase key is matched.
     text = "Work on AUTH-245 and not AUTH-2450. Also fixes pay-101."
-    keys = extract_ticket_keys(text, project_keys)
-    assert "AUTH-245" in keys
-    assert "PAY-101" in keys
-    assert "AUTH-2450" not in keys
-    assert len(keys) == 2
+    assert extract_ticket_keys(text, project_keys) == {"AUTH-245", "AUTH-2450", "PAY-101"}
+
+    # A project key inside a longer token is not a reference.
+    assert extract_ticket_keys("XAUTH-245 and AUTHX-245", project_keys) == set()
 
     # None or empty text
     assert extract_ticket_keys(None, project_keys) == set()
@@ -48,7 +48,7 @@ def test_extract_ticket_keys_word_boundaries_and_case() -> None:
 
 def test_link_branch_name_creates_high_link(db_session: Session) -> None:
     """A ticket ID in a branch name creates a HIGH confidence link."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -102,7 +102,7 @@ def test_link_branch_name_creates_high_link(db_session: Session) -> None:
 
 def test_link_jira_remote_link_creates_high_link(db_session: Session) -> None:
     """A Jira remote link matching a PR URL creates a HIGH confidence link."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -160,7 +160,7 @@ def test_link_jira_remote_link_creates_high_link(db_session: Session) -> None:
 
 def test_link_pr_title_and_body_creates_medium_link(db_session: Session) -> None:
     """Ticket IDs in PR titles or bodies create MEDIUM confidence links."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -212,7 +212,7 @@ def test_link_pr_title_and_body_creates_medium_link(db_session: Session) -> None
 
 def test_link_commit_message_creates_medium_link(db_session: Session) -> None:
     """Ticket ID in a commit message creates a MEDIUM confidence link."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -262,7 +262,7 @@ def test_link_commit_message_creates_medium_link(db_session: Session) -> None:
 
 def test_no_ticket_reference_creates_no_link(db_session: Session) -> None:
     """A pull request with no ticket reference anywhere produces no link."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -314,7 +314,7 @@ def test_no_ticket_reference_creates_no_link(db_session: Session) -> None:
 
 def test_duplicate_link_preserves_highest_confidence(db_session: Session) -> None:
     """A duplicate (work_item, target_type, target_id) keeps the highest confidence."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -380,7 +380,7 @@ def test_duplicate_link_preserves_highest_confidence(db_session: Session) -> Non
 
 def test_no_link_created_from_timing_or_authorship(db_session: Session) -> None:
     """No link is ever created from timing or authorship alone."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 

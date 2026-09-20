@@ -6,8 +6,8 @@ no display-name matching exists anywhere in this module. Unmatched accounts are
 tracked in unmatched_entity with occurrence counts and timestamps.
 """
 
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select

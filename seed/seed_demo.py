@@ -8,8 +8,8 @@ unlinked PRs (S-8), and Jira/GitHub state conflicts (CF-1).
 
 import json
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import httpx
 from sqlalchemy import select
@@ -120,17 +120,31 @@ def seed_demo_database(
     # 3. Create offline clients using FixtureTransport
     transport = FixtureTransport(fixtures_dir=fdir)
     gh_client = GitHubClient(
-        token="demo-offline-token",
+        token="demo-offline-token",  # noqa: S106 offline fixture transport, no network call
         transport=transport,
     )
     jira_client = JiraClient(
         base_url="https://example.atlassian.net",
         email="demo@example.com",
-        api_token="demo-offline-token",
+        api_token="demo-offline-token",  # noqa: S106 offline fixture transport, no network call
         transport=transport,
     )
 
-    # 4. Ingest via real sync path
+    # 4. Ingest via real sync path.
+    # Linking crosses the 2 sources in both directions: sync_github matches branch
+    # names, titles and bodies against work items that must already exist, and
+    # sync_jira matches remote links against pull requests that must already exist.
+    # No single pass can satisfy both, so Jira runs, GitHub runs, then Jira runs once
+    # more to settle the remote links. A later seeding adds no rows, which is the
+    # re-run safety P2-009 requires.
+    logger.info("Running Jira demo sync...")
+    sync_jira(
+        session=session,
+        team_id=team.id,
+        scope="ALL",
+        jira_client=jira_client,
+    )
+
     logger.info("Running GitHub demo sync...")
     gh_run = sync_github(
         session=session,
@@ -139,7 +153,7 @@ def seed_demo_database(
         gh_client=gh_client,
     )
 
-    logger.info("Running Jira demo sync...")
+    logger.info("Running Jira demo sync again to settle cross-source links...")
     jira_run = sync_jira(
         session=session,
         team_id=team.id,

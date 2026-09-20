@@ -5,9 +5,9 @@ bounded retries (NFR-002), secret-safe logging (NFR-011), and typed error mappin
 The transport is injectable for offline fixtures and testing (DEC-012).
 """
 
+import logging
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
-import logging
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
@@ -17,9 +17,12 @@ from tenacity import (
     Retrying,
     retry_if_exception,
     stop_after_attempt,
-    wait_base,
     wait_exponential,
 )
+
+# tenacity 9.1 stopped re-exporting wait_base from the package root. It has always
+# lived in tenacity.wait, which is the documented home for custom wait strategies.
+from tenacity.wait import wait_base
 
 from app.config import HTTP_MAX_ATTEMPTS, HTTP_TIMEOUT_SECONDS
 from app.integrations.errors import (

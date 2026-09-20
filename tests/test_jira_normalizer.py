@@ -1,8 +1,8 @@
 """Unit tests for Jira normalizer and canonical database loader (P2-005, Issue #16)."""
 
+import logging
 from collections.abc import Generator
 from datetime import UTC, datetime
-import logging
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -11,14 +11,11 @@ from sqlalchemy.orm import Session
 from app.db import Base
 from app.integrations.jira_normalizer import (
     extract_blocking_dependencies,
-    ingest_dependencies,
-    ingest_projects,
     ingest_work_items,
     is_issue_flagged,
     map_status,
     normalize_project,
     normalize_work_item,
-    parse_datetime,
     upsert_project,
     upsert_work_item,
     upsert_work_item_dependency,
@@ -185,7 +182,7 @@ def test_extract_blocking_dependencies() -> None:
 
 def test_upsert_project_idempotent(db_session: Session) -> None:
     """upsert_project updates name on re-run without duplicating records."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -212,7 +209,7 @@ def test_upsert_project_idempotent(db_session: Session) -> None:
 
 def test_upsert_work_item_idempotent(db_session: Session) -> None:
     """upsert_work_item updates fields on re-run without creating duplicates."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -258,7 +255,7 @@ def test_upsert_work_item_idempotent(db_session: Session) -> None:
 
 def test_upsert_work_item_dependency_idempotent(db_session: Session) -> None:
     """upsert_work_item_dependency updates on re-run without duplicate rows."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -309,7 +306,7 @@ def test_upsert_work_item_dependency_idempotent(db_session: Session) -> None:
 
 def test_ingest_work_items_skips_malformed(db_session: Session) -> None:
     """ingest_work_items skips invalid records and increments counts without crashing."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 

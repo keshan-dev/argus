@@ -5,10 +5,9 @@ and WorkItemDependency records. Normalizes statuses into canonical taxonomy,
 captures impediment flags, and performs idempotent upserts without duplicates.
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
-import logging
-import re
 from typing import Any
 
 from sqlalchemy import select
@@ -18,6 +17,9 @@ from app.models.canonical import Project
 from app.models.work import WorkItem, WorkItemDependency
 
 logger = logging.getLogger("argus.integrations.jira_normalizer")
+
+# Values a Jira impediment field carries, whatever the field is named.
+_IMPEDIMENT_VALUES = frozenset({"impediment", "flagged"})
 
 # Canonical status taxonomy: todo | in_progress | in_review | done | blocked
 STATUS_MAP: dict[str, str] = {
@@ -120,6 +122,18 @@ def map_status(raw_status: str, status_category_key: str | None = None) -> str:
     return "todo"
 
 
+def _holds_impediment_value(value: Any) -> bool:
+    """Report whether a custom field value carries Jira's impediment vocabulary."""
+    if isinstance(value, str):
+        return value.lower() in _IMPEDIMENT_VALUES
+    if isinstance(value, list):
+        return any(
+            isinstance(item, dict) and str(item.get("value", "")).lower() in _IMPEDIMENT_VALUES
+            for item in value
+        )
+    return False
+
+
 def is_issue_flagged(fields: dict[str, Any]) -> bool:
     """Detect if an issue has the Jira impediment / flagged indicator set."""
     if bool(fields.get("flagged")):
@@ -134,6 +148,10 @@ def is_issue_flagged(fields: dict[str, Any]) -> bool:
                 return True
             if isinstance(value, str) and value.lower() in ("impediment", "flagged", "true"):
                 return True
+        # A Jira instance exposes the impediment field under an opaque id such as
+        # customfield_10015, so the name carries no signal. Match on the value.
+        elif key.startswith("customfield_") and _holds_impediment_value(value):
+            return True
     return False
 
 
@@ -253,9 +271,7 @@ def extract_blocking_dependencies(
         if "inwardIssue" in link:
             inward_key = link["inwardIssue"].get("key")
             inward_desc = (link_type_obj.get("inward") or "").lower()
-            if inward_key in work_items_by_key and (
-                "block" in link_name or "block" in inward_desc
-            ):
+            if inward_key in work_items_by_key and ("block" in link_name or "block" in inward_desc):
                 blocking_item = work_items_by_key[inward_key]
                 dependencies.append(
                     {

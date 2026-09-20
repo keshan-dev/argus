@@ -42,7 +42,7 @@ class JiraClient:
             raise RuntimeError("Jira email and API token are required but not configured.")
 
         # Jira Cloud uses HTTP Basic auth: base64(email:api_token)
-        raw_auth = f"{self._email}:{self._api_token}".encode("utf-8")
+        raw_auth = f"{self._email}:{self._api_token}".encode()
         b64_auth = base64.b64encode(raw_auth).decode("ascii")
 
         self._headers = {

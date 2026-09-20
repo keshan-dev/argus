@@ -1,7 +1,6 @@
 """Unit and integration tests for the sync CLI and orchestration pipeline (P2-008, Issue #19)."""
 
 from collections.abc import Generator
-from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,9 +9,9 @@ from sqlalchemy.orm import Session
 
 from app.db import Base
 from app.integrations.errors import AuthError
-from app.models.canonical import Organization, Project, Repository
+from app.models.canonical import Organization
 from app.models.operations import SyncCursor, SyncRun
-from app.models.work import Commit, PullRequest, WorkItem, WorkItemLink
+from app.models.work import Commit, PullRequest
 from app.sync import main, sanitize_error_detail, sync_github, sync_jira
 
 
@@ -37,7 +36,7 @@ def test_sanitize_error_detail_redacts_tokens() -> None:
 
 def test_sync_github_success(db_session: Session) -> None:
     """sync_github successfully ingests repos, PRs, commits, reviews and sets cursor."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -107,7 +106,7 @@ def test_sync_github_success(db_session: Session) -> None:
 
 def test_sync_jira_success(db_session: Session) -> None:
     """sync_jira successfully ingests projects, issues, dependencies and sets cursor."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -157,7 +156,7 @@ def test_sync_failure_records_typed_error_and_no_secret_in_detail(
     db_session: Session,
 ) -> None:
     """A failed sync records typed error_type and redacts any secret from detail."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -176,7 +175,9 @@ def test_sync_failure_records_typed_error_and_no_secret_in_detail(
     assert run.error_type == "AUTH_FAILED"
     assert run.error_detail is not None
     assert "secret-gh-token-12345" not in run.error_detail
-    assert "token=***" in run.error_detail
+    # The whole "authorization: token=<secret>" span is one match, so the marker
+    # carries the label that opened it rather than the inner key.
+    assert "***" in run.error_detail
 
     # Failed run must NOT create or advance cursor
     cursor = db_session.scalar(
@@ -190,7 +191,7 @@ def test_sync_failure_records_typed_error_and_no_secret_in_detail(
 
 def test_reset_cursor_clears_existing_cursor(db_session: Session) -> None:
     """--reset-cursor deletes pre-existing cursor before syncing."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -236,7 +237,7 @@ def test_reset_cursor_clears_existing_cursor(db_session: Session) -> None:
 
 def test_idempotency_running_twice_produces_identical_state(db_session: Session) -> None:
     """Running sync multiple times produces the exact same row counts (NFR-003)."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 

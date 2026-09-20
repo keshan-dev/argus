@@ -11,9 +11,9 @@ requests, branches, and commits based on the correlation confidence matrix in DE
 Enforces that no links are ever created from timing or authorship alone (AC-13).
 """
 
-from datetime import UTC, datetime
 import logging
 import re
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select

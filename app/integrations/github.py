@@ -5,10 +5,10 @@ Adheres strictly to read-only constraints (AC-17), handles RFC-5988 pagination, 
 the shared HttpClient for bounded retries and secret redaction (P2-001, NFR-001, NFR-002).
 """
 
-from datetime import datetime
 import logging
 import os
 import re
+from datetime import datetime
 from typing import Any
 
 import httpx

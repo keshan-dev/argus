@@ -5,10 +5,10 @@ Commit, and Review records. Enforces URL stripping and length caps on excerpts (
 UTC freshness timestamps (AC-7), and idempotent upsert without duplicates (NFR-003).
 """
 
-from dataclasses import dataclass
-from datetime import UTC, datetime
 import logging
 import re
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -347,9 +347,7 @@ def ingest_reviews(
     results: list[Review] = []
     for raw in payloads:
         try:
-            norm = normalize_review(
-                raw, pull_request_id=pull_request_id, retrieved_at=retrieved_at
-            )
+            norm = normalize_review(raw, pull_request_id=pull_request_id, retrieved_at=retrieved_at)
             review = upsert_review(session, norm)
             results.append(review)
             counts.written += 1
@@ -357,4 +355,3 @@ def ingest_reviews(
             logger.warning("Skipping malformed review record: %s", exc)
             counts.skipped += 1
     return results, counts
-

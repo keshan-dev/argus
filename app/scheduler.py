@@ -6,8 +6,8 @@ and recovers from stuck running states after STUCK_SYNC_TIMEOUT_MINUTES (DEC-016
 """
 
 import asyncio
-from datetime import UTC, datetime, timedelta
 import logging
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select

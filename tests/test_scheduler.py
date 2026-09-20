@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from app.db import Base
@@ -136,16 +136,21 @@ def test_failed_tick_does_not_raise(
     assert results["jira"] == "success"
 
 
-@pytest.mark.asyncio
-async def test_scheduler_lifecycle_start_and_stop() -> None:
+def test_scheduler_lifecycle_start_and_stop() -> None:
     """start_scheduler_task starts asyncio task and stop_scheduler_task cleanly cancels it."""
-    task, stop_event = start_scheduler_task(
-        interval_minutes=1,
-        enabled=True,
-    )
-    assert task is not None
-    assert stop_event is not None
-    assert not task.done()
 
-    await stop_scheduler_task(task, stop_event)
-    assert task.done()
+    # Driven with asyncio.run rather than an async test, so the suite needs no
+    # async pytest plugin.
+    async def lifecycle() -> None:
+        task, stop_event = start_scheduler_task(
+            interval_minutes=1,
+            enabled=True,
+        )
+        assert task is not None
+        assert stop_event is not None
+        assert not task.done()
+
+        await stop_scheduler_task(task, stop_event)
+        assert task.done()
+
+    asyncio.run(lifecycle())

@@ -26,9 +26,7 @@ def test_parse_next_page_url() -> None:
         '<https://api.github.com/repos/org/repo/pulls?page=2>; rel="next", '
         '<https://api.github.com/repos/org/repo/pulls?page=5>; rel="last"'
     )
-    assert (
-        parse_next_page_url(header) == "https://api.github.com/repos/org/repo/pulls?page=2"
-    )
+    assert parse_next_page_url(header) == "https://api.github.com/repos/org/repo/pulls?page=2"
     assert parse_next_page_url(None) is None
     assert (
         parse_next_page_url('<https://api.github.com/repos/org/repo/pulls?page=1>; rel="prev"')
@@ -49,7 +47,7 @@ def test_list_pull_requests_from_fixture() -> None:
     prs = client.list_pull_requests("keshan-dev", "argus")
 
     assert route.called
-    assert len(prs) == 3
+    assert len(prs) == 4
 
     pr1 = prs[0]
     assert pr1["number"] == 1
@@ -68,14 +66,21 @@ def test_list_pull_requests_from_fixture() -> None:
     assert pr3["state"] == "closed"
     assert pr3["user"]["login"] == "external-contributor"
 
+    # Pull request 182 carries the CF-1 scenario: merged while AUTH-245 is in progress.
+    pr182 = prs[3]
+    assert pr182["number"] == 182
+    assert pr182["state"] == "closed"
+    assert pr182["merged_at"] is not None
+    assert pr182["head"]["ref"] == "feature/AUTH-245-refresh-token"
+
 
 @respx.mock
 def test_list_reviews_from_fixture() -> None:
     """GitHub client lists reviews with state, body, and submitted_at timestamp."""
     reviews_data = load_fixture("reviews.json")
-    route = respx.get(
-        "https://api.github.com/repos/keshan-dev/argus/pulls/1/reviews"
-    ).respond(200, json=reviews_data)
+    route = respx.get("https://api.github.com/repos/keshan-dev/argus/pulls/1/reviews").respond(
+        200, json=reviews_data
+    )
 
     client = GitHubClient(token="ghp_test_token_123")
     reviews = client.list_reviews("keshan-dev", "argus", pull_number=1)
@@ -92,9 +97,9 @@ def test_list_reviews_from_fixture() -> None:
 def test_list_commits_from_fixture() -> None:
     """GitHub client lists commits with sha, author, message, and date."""
     commits_data = load_fixture("commits.json")
-    route = respx.get(
-        "https://api.github.com/repos/keshan-dev/argus/commits"
-    ).respond(200, json=commits_data)
+    route = respx.get("https://api.github.com/repos/keshan-dev/argus/commits").respond(
+        200, json=commits_data
+    )
 
     client = GitHubClient(token="ghp_test_token_123")
     commits = client.list_commits("keshan-dev", "argus")
@@ -111,9 +116,9 @@ def test_list_commits_from_fixture() -> None:
 def test_list_branches_from_fixture() -> None:
     """GitHub client lists branches with name and commit sha."""
     branches_data = load_fixture("branches.json")
-    route = respx.get(
-        "https://api.github.com/repos/keshan-dev/argus/branches"
-    ).respond(200, json=branches_data)
+    route = respx.get("https://api.github.com/repos/keshan-dev/argus/branches").respond(
+        200, json=branches_data
+    )
 
     client = GitHubClient(token="ghp_test_token_123")
     branches = client.list_branches("keshan-dev", "argus")
@@ -217,10 +222,10 @@ def test_github_404_not_found() -> None:
 
 def test_missing_github_token_raises_runtime_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """GitHubClient raises RuntimeError if token is missing."""
-    import app.config
-
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
-    monkeypatch.setattr(app.config, "settings", None)
+    # app/integrations/github.py binds settings at import time, so patching
+    # app.config.settings would leave that binding in place.
+    monkeypatch.setattr("app.integrations.github.settings", None)
 
     with pytest.raises(RuntimeError) as exc_info:
         GitHubClient(token=None)

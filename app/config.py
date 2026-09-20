@@ -137,9 +137,7 @@ class Settings(BaseSettings):
     )
     stuck_sync_timeout_minutes: int = Field(
         default=15,
-        validation_alias=AliasChoices(
-            "STUCK_SYNC_TIMEOUT_MINUTES", "stuck_sync_timeout_minutes"
-        ),
+        validation_alias=AliasChoices("STUCK_SYNC_TIMEOUT_MINUTES", "stuck_sync_timeout_minutes"),
         description="Timeout in minutes after which a running sync is considered stuck.",
     )
 

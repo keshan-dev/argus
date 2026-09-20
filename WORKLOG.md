@@ -60,6 +60,68 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-21 | Keshan | P2 CI fixes
+Status: DONE
+
+### Completed
+Made the `Lint and format` and `Tests` jobs pass on the phase 2 pull request. Both were
+failing, so nothing in phase 2 had actually been run by CI.
+1. `tenacity` 9.1 stopped re-exporting `wait_base` from the package root, which broke the
+import in `app/integrations/http.py` and failed collection for all 12 test modules. It is
+imported from `tenacity.wait` now.
+2. Fixed 32 ruff findings and reformatted 5 files with black. Nearly all were import
+ordering and hand wrapping at 88 columns instead of the configured 100.
+3. Fixed 4 real defects found once the suite could run: `sync_github` and `sync_jira` read
+`exc.error_code` in their failure handler and the attribute is `error_type`, so every typed
+integration failure raised `AttributeError` instead of recording the failure;
+`SECRET_REDACT_REGEX` left the credential in `Authorization: Bearer <token>` unredacted;
+`is_issue_flagged` only inspected fields whose name contained "flag", so an impediment under
+an opaque id such as `customfield_10015` was missed; demo seeding ran GitHub before Jira, so
+no work item links were built on the first pass and 7 more appeared on the second.
+4. Fixed the test defects: 27 constructor calls passed a `key` argument `Organization` does
+not have, a `PullRequest` was built without the non-null `branch_name`, 2 tests patched
+`app.config.settings` when the module under test binds `settings` at import, and 1 test used
+`@pytest.mark.asyncio` with no async plugin installed.
+
+### Changed
+`app/integrations/http.py`, `app/sync.py`, `app/integrations/jira_normalizer.py`,
+`seed/seed_demo.py`, `app/config.py`, and 7 other modules for formatting only. Test changes
+in `tests/test_github_client.py`, `test_github_normalizer.py`, `test_identity_resolver.py`,
+`test_jira_client.py`, `test_jira_normalizer.py`, `test_link_builder.py`,
+`test_scheduler.py`, `test_sync.py`.
+
+### Discovered
+Seeding cannot build every link in 1 pass. `sync_github` matches branch names and titles
+against work items that must already exist, and `sync_jira` matches remote links against
+pull requests that must already exist. `seed_demo_database` now runs Jira, then GitHub, then
+Jira again so the cross-source links settle and a re-run adds no rows.
+
+`pyproject.toml` pins no upper bound on any dependency, so CI resolves the newest release
+every run. That is what broke `tenacity`, and it will happen again.
+
+### Problems
+2 test assertions were wrong rather than the code, and were changed:
+`test_extract_ticket_keys_word_boundaries_and_case` asserted `AUTH-2450` is not extracted
+from text containing it, but it is a valid key and dropping it would lose a real reference.
+`test_sync_failure_records_typed_error_and_no_secret_in_detail` asserted the exact marker
+`token=***`, which the widened redaction no longer produces; it asserts the secret is absent
+and a marker is present.
+
+### Decisions Needed
+Whether to pin upper bounds, or exact versions, in `pyproject.toml`. `black` is already
+floating, which has cost 3 CI runs on an earlier branch, and `tenacity` has now cost 1 more.
+This is a dependency change, so it needs both developers.
+
+### Next Step
+Merge the phase 2 pull request once CI is green.
+
+### AI Assistance
+An AI assistant made these fixes. Worth a human check: the widened `SECRET_REDACT_REGEX` in
+`app/sync.py`, the extra Jira pass in `seed/seed_demo.py`, and the 2 changed test assertions
+listed under Problems.
+
+---
+
 ## 2026-09-20 | Keshan | P2-010
 Status: DONE
 

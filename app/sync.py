@@ -7,10 +7,10 @@ logs (NFR-011).
 """
 
 import argparse
-from datetime import UTC, datetime
 import logging
 import re
 import sys
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import delete, select
@@ -49,8 +49,13 @@ from app.models.work import PullRequest, WorkItem
 
 logger = logging.getLogger("argus.sync")
 
+# An Authorization header renders as "Authorization: Bearer <credential>", so the
+# scheme word has to be consumed too or the credential after it survives redaction.
 SECRET_REDACT_REGEX = re.compile(
-    r"(token|bearer|basic|key|password|secret|authorization)\s*[:=]\s*\S+",
+    r"(token|bearer|basic|key|password|secret|authorization)"
+    r"\s*[:=]\s*"
+    r"(?:(?:bearer|basic|token)\s+)?"
+    r"\S+",
     re.IGNORECASE,
 )
 
@@ -206,7 +211,7 @@ def sync_github(
 
     except Exception as exc:
         session.rollback()
-        err_type = exc.error_code if isinstance(exc, IntegrationError) else type(exc).__name__
+        err_type = exc.error_type if isinstance(exc, IntegrationError) else type(exc).__name__
         safe_detail = sanitize_error_detail(str(exc))
         sync_run.status = "failed"
         sync_run.error_type = err_type
@@ -323,7 +328,7 @@ def sync_jira(
 
     except Exception as exc:
         session.rollback()
-        err_type = exc.error_code if isinstance(exc, IntegrationError) else type(exc).__name__
+        err_type = exc.error_type if isinstance(exc, IntegrationError) else type(exc).__name__
         safe_detail = sanitize_error_detail(str(exc))
         sync_run.status = "failed"
         sync_run.error_type = err_type

@@ -10,16 +10,14 @@ from sqlalchemy.orm import Session
 
 from app.db import Base
 from app.integrations.identity_resolver import (
-    attribute_commits,
     attribute_pull_requests,
-    attribute_reviews,
     attribute_work_items,
     record_inferred_link,
     resolve_actor,
 )
 from app.models.canonical import AppUser, Organization, Project, Repository
 from app.models.identity import IdentityLink, UnmatchedEntity
-from app.models.work import Commit, PullRequest, Review, WorkItem
+from app.models.work import PullRequest, WorkItem
 
 
 @pytest.fixture
@@ -33,7 +31,7 @@ def db_session() -> Generator[Session, None, None]:
 
 def test_verified_manual_link_attributes_correctly(db_session: Session) -> None:
     """A verified manual identity link attributes the record to the internal app_user."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -96,7 +94,7 @@ def test_repeat_unmapped_account_increments_count(db_session: Session) -> None:
 
 def test_inferred_link_stored_but_never_used_for_attribution(db_session: Session) -> None:
     """An unverified inferred link is stored for review but MUST NOT be used for attribution."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -132,7 +130,7 @@ def test_no_display_name_matching_exists(db_session: Session) -> None:
     Even if external_handle matches an AppUser's display_name exactly,
     the account must NOT be attributed without a verified IdentityLink.
     """
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -154,7 +152,7 @@ def test_no_display_name_matching_exists(db_session: Session) -> None:
 
 def test_attribute_pull_requests_never_discards_records(db_session: Session) -> None:
     """attribute_pull_requests sets user ID when verified, None when unmapped; never discards."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -216,7 +214,7 @@ def test_attribute_pull_requests_never_discards_records(db_session: Session) -> 
 
 def test_attribute_work_items_jira(db_session: Session) -> None:
     """attribute_work_items resolves Jira assignee accountId; handles unassigned issues."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 

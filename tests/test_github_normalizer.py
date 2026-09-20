@@ -10,12 +10,9 @@ from sqlalchemy.orm import Session
 from app.config import EXCERPT_MAX_CHARS
 from app.db import Base
 from app.integrations.github_normalizer import (
-    NormalizationCounts,
     clean_excerpt,
     ingest_commits,
     ingest_pull_requests,
-    ingest_repositories,
-    ingest_reviews,
     normalize_commit,
     normalize_pull_request,
     normalize_repository,
@@ -202,7 +199,7 @@ def test_normalize_review_pure() -> None:
 
 def test_upsert_repository_idempotent(db_session: Session) -> None:
     """upsert_repository updates attributes on repeat call without creating duplicates."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -233,7 +230,7 @@ def test_upsert_repository_idempotent(db_session: Session) -> None:
 
 def test_upsert_pull_request_idempotent(db_session: Session) -> None:
     """upsert_pull_request updates attributes on re-run without duplicating records."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -281,7 +278,7 @@ def test_upsert_pull_request_idempotent(db_session: Session) -> None:
 
 def test_upsert_commit_idempotent(db_session: Session) -> None:
     """upsert_commit updates attributes on re-run without creating duplicates."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -318,7 +315,7 @@ def test_upsert_commit_idempotent(db_session: Session) -> None:
 
 def test_upsert_review_idempotent(db_session: Session) -> None:
     """upsert_review updates review state on re-run without creating duplicates."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -332,6 +329,7 @@ def test_upsert_review_idempotent(db_session: Session) -> None:
         number=14,
         title="Test PR",
         state="open",
+        branch_name="feat/review-fixture",
         created_at_source=now,
         source_url="https://github.com/keshan-dev/argus/pull/14",
         source_updated_at=now,
@@ -369,7 +367,7 @@ def test_upsert_review_idempotent(db_session: Session) -> None:
 
 def test_batch_ingest_pull_requests_skips_malformed(db_session: Session) -> None:
     """ingest_pull_requests skips malformed records without failing the batch."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -409,7 +407,7 @@ def test_batch_ingest_pull_requests_skips_malformed(db_session: Session) -> None
 
 def test_batch_ingest_commits_skips_malformed(db_session: Session) -> None:
     """ingest_commits skips malformed commit records without failing the batch."""
-    org = Organization(name="Keshan Org", key="KES")
+    org = Organization(name="Keshan Org")
     db_session.add(org)
     db_session.flush()
 
@@ -446,4 +444,3 @@ def test_batch_ingest_commits_skips_malformed(db_session: Session) -> None:
         "1111111111111111111111111111111111111111",
         "2222222222222222222222222222222222222222",
     }
-

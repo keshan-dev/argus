@@ -196,7 +196,9 @@ def test_jira_404_not_found(jira_client: JiraClient) -> None:
 
 def test_missing_config_raises_runtime_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Missing base URL, email or API token raises RuntimeError."""
-    monkeypatch.setattr("app.config.settings", None)
+    # app/integrations/jira.py binds settings at import time, so patching
+    # app.config.settings would leave that binding in place.
+    monkeypatch.setattr("app.integrations.jira.settings", None)
 
     with pytest.raises(RuntimeError, match="Jira base URL is required"):
         JiraClient(base_url="", email="a@b.com", api_token="tok")
