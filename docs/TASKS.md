@@ -643,7 +643,7 @@ typed failure mapping. An injectable transport so fixtures can replace it.
 **Out of scope:** GitHub or Jira specifics.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-003
 **Parallelizable:** YES.
 **Components:** Integration layer
@@ -662,13 +662,13 @@ typed failure mapping. An injectable transport so fixtures can replace it.
   (DEC-012).
 
 **Acceptance criteria:**
-- [ ] Every request carries a timeout.
-- [ ] Retries stop at 3 attempts.
-- [ ] A 404 is not retried.
-- [ ] A 429 is retried and honours `Retry-After`.
-- [ ] Each failure maps to the correct typed error.
-- [ ] No token appears in any log line, verified by a test.
-- [ ] The transport is injectable.
+- [x] Every request carries a timeout.
+- [x] Retries stop at 3 attempts.
+- [x] A 404 is not retried.
+- [x] A 429 is retried and honours `Retry-After`.
+- [x] Each failure maps to the correct typed error.
+- [x] No token appears in any log line, verified by a test.
+- [x] The transport is injectable.
 
 **Testing required:** respx unit tests for success, timeout, 401, 403 rate-limited, 404,
 429 with `Retry-After`, and 500. Plus a test asserting no token in logs.
