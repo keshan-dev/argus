@@ -733,11 +733,11 @@ rows.
 **Out of scope:** Identity resolution (P2-006). Link building (P2-007).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-002, P1-001
 **Parallelizable:** YES.
 **Components:** Ingestion
-**Files:** `app/integrations/ingest.py`
+**Files:** `app/integrations/github_normalizer.py`
 **Inputs:** P0-002 fixtures.
 **Implementation notes:**
 - Normalization MUST be a pure function of the payload, testable with no database.
@@ -749,12 +749,12 @@ rows.
 - A record failing validation is skipped and counted, and MUST NOT fail the sync.
 
 **Acceptance criteria:**
-- [ ] Pull requests, commits, reviews and repositories are written correctly.
-- [ ] Both freshness timestamps are set, non-null, UTC.
-- [ ] Re-running produces no duplicates.
-- [ ] Excerpts are capped and URL-stripped.
-- [ ] A malformed record is skipped, counted and logged, and the sync continues.
-- [ ] Normalization functions are tested with no database.
+- [x] Pull requests, commits, reviews and repositories are written correctly.
+- [x] Both freshness timestamps are set, non-null, UTC.
+- [x] Re-running produces no duplicates.
+- [x] Excerpts are capped and URL-stripped.
+- [x] A malformed record is skipped, counted and logged, and the sync continues.
+- [x] Normalization functions are tested with no database.
 
 **Testing required:** Unit tests for normalization, plus an integration test for
 idempotency (run twice, assert row counts).
@@ -777,11 +777,11 @@ links and remote links.
 **Out of scope:** Normalization (P2-005). Comments (not in MVP scope).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-001, P0-002
 **Parallelizable:** YES, alongside P2-002.
 **Components:** Integration layer
-**Files:** `app/integrations/jira_client.py`
+**Files:** `app/integrations/jira.py`, `app/integrations/jira_client.py`
 **Inputs:** P0-002 fixtures, a Jira API token.
 **Implementation notes:**
 - Basic auth with email plus API token.
@@ -793,12 +793,12 @@ links and remote links.
 - **No write endpoint may appear in this file.**
 
 **Acceptance criteria:**
-- [ ] Lists issues with key, title, status, assignee, priority, due date and flag.
-- [ ] Fetches issue links (blocks / is blocked by).
-- [ ] Fetches remote links.
-- [ ] Pagination is handled and tested.
-- [ ] 429 produces `RATE_LIMITED` and honours `Retry-After`.
-- [ ] Only read endpoints are called.
+- [x] Lists issues with key, title, status, assignee, priority, due date and flag.
+- [x] Fetches issue links (blocks / is blocked by).
+- [x] Fetches remote links.
+- [x] Pagination is handled and tested.
+- [x] 429 produces `RATE_LIMITED` and honours `Retry-After`.
+- [x] Only read endpoints are called.
 
 **Testing required:** respx tests for success, pagination, 401, 403, 429 with `Retry-After`.
 **Handoff notes:** P2-005 consumes these payloads.
@@ -820,11 +820,11 @@ and is why DEC-008 exists. Record the finding.
 **Out of scope:** Identity resolution. Link building.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-004, P1-001
 **Parallelizable:** YES.
 **Components:** Ingestion
-**Files:** `app/integrations/ingest.py`
+**Files:** `app/integrations/jira_normalizer.py`
 **Inputs:** P0-002 fixtures.
 **Implementation notes:**
 - Normalize status to `todo | in_progress | in_review | done | blocked`, and **preserve the
@@ -836,12 +836,12 @@ and is why DEC-008 exists. Record the finding.
 - Write `work_item_dependency` rows from issue links of the blocking kind.
 
 **Acceptance criteria:**
-- [ ] Work items are written with normalized status plus `raw_status`.
-- [ ] The impediment flag is captured.
-- [ ] Blocking dependencies are written.
-- [ ] Both freshness timestamps are set.
-- [ ] Re-running produces no duplicates.
-- [ ] An unmapped status is logged, not silently dropped.
+- [x] Work items are written with normalized status plus `raw_status`.
+- [x] The impediment flag is captured.
+- [x] Blocking dependencies are written.
+- [x] Both freshness timestamps are set.
+- [x] Re-running produces no duplicates.
+- [x] An unmapped status is logged, not silently dropped.
 
 **Testing required:** Unit tests for status mapping including an unknown status, plus an
 idempotency integration test.
@@ -867,7 +867,7 @@ links without using them. Record unmatched accounts with counts.
 **Out of scope:** A resolution UI (that is P5-006).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-005, P2-003, P2-005
 **Parallelizable:** NO. Depends on both normalizers.
 **Components:** Identity
@@ -883,12 +883,12 @@ links without using them. Record unmatched accounts with counts.
 - The underlying record is still ingested, with a null actor. Never discarded.
 
 **Acceptance criteria:**
-- [ ] A verified mapping attributes the record correctly.
-- [ ] An unmapped account leaves the actor null and creates an `unmatched_entity` row.
-- [ ] Seeing the same unmapped account twice increments the count, does not create a row.
-- [ ] An inferred link is stored but never used for attribution.
-- [ ] No display-name matching exists anywhere in the file.
-- [ ] No record is discarded for having an unknown actor.
+- [x] A verified mapping attributes the record correctly.
+- [x] An unmapped account leaves the actor null and creates an `unmatched_entity` row.
+- [x] Seeing the same unmapped account twice increments the count, does not create a row.
+- [x] An inferred link is stored but never used for attribution.
+- [x] No display-name matching exists anywhere in the file.
+- [x] No record is discarded for having an unknown actor.
 
 **Testing required:** Unit tests for verified match, unmatched, repeat unmatched, inferred
 link not used for attribution. Plus a test asserting display names are never compared.
@@ -915,7 +915,7 @@ messages. Read Jira remote links. Write links with method and confidence.
 **Out of scope:** Reading links (that is T-006, Developer 2).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-003, P2-005
 **Parallelizable:** NO.
 **Components:** Correlation
@@ -931,14 +931,14 @@ messages. Read Jira remote links. Write links with method and confidence.
 - A pull request with no ticket ID anywhere produces no link. That is correct behaviour.
 
 **Acceptance criteria:**
-- [ ] A ticket ID in a branch name creates a HIGH link.
-- [ ] A Jira remote link creates a HIGH link.
-- [ ] A ticket ID in a title or body creates a MEDIUM link.
-- [ ] A ticket ID in a commit message creates a MEDIUM link.
-- [ ] A pull request with no ticket reference creates no link.
-- [ ] A duplicate keeps the highest-confidence method.
-- [ ] No link is ever created from timing or authorship.
-- [ ] Multiple project keys are supported.
+- [x] A ticket ID in a branch name creates a HIGH link.
+- [x] A Jira remote link creates a HIGH link.
+- [x] A ticket ID in a title or body creates a MEDIUM link.
+- [x] A ticket ID in a commit message creates a MEDIUM link.
+- [x] A pull request with no ticket reference creates no link.
+- [x] A duplicate keeps the highest-confidence method.
+- [x] No link is ever created from timing or authorship.
+- [x] Multiple project keys are supported.
 
 **Testing required:** Unit tests for each of the 5 link methods, the no-link case, the
 duplicate case, and a multi-project-key case.
@@ -966,7 +966,7 @@ records what happened.
 **Out of scope:** Webhooks. The scheduler is P2-010. The refresh endpoint is P5-007.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-003, P2-005, P2-006, P2-007
 **Parallelizable:** NO. Integrates the whole write path.
 **Components:** Ingestion
@@ -983,13 +983,13 @@ records what happened.
 - Log what was attempted, what came back, and what was skipped.
 
 **Acceptance criteria:**
-- [ ] `python -m app.sync --source github --team 1` completes and writes a `sync_run`.
-- [ ] The same for Jira.
-- [ ] A successful run records `success` with all 3 counts.
-- [ ] A forced failure records `failed` with a typed error and no secret in the detail.
-- [ ] A failed run does not advance the cursor.
-- [ ] Running twice produces identical database state.
-- [ ] `--reset-cursor` forces a full refetch.
+- [x] `python -m app.sync --source github --team 1` completes and writes a `sync_run`.
+- [x] The same for Jira.
+- [x] A successful run records `success` with all 3 counts.
+- [x] A forced failure records `failed` with a typed error and no secret in the detail.
+- [x] A failed run does not advance the cursor.
+- [x] Running twice produces identical database state.
+- [x] `--reset-cursor` forces a full refetch.
 
 **Testing required:** Integration tests using fixtures for a successful run, a failed run,
 a partial run, and idempotency.
@@ -1016,7 +1016,7 @@ map, running the real ingestion.
 **Out of scope:** Direct row insertion. That is what this task exists to avoid.
 **Owner:** Developer 1
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-008, P1-005
 **Parallelizable:** NO.
 **Components:** Seeding
@@ -1031,14 +1031,14 @@ map, running the real ingestion.
 - The same fixtures are reused by the evaluation suite (P6-003).
 
 **Acceptance criteria:**
-- [ ] Seeding makes 0 network calls, verified by a test.
-- [ ] It runs the real ingestion code, not direct inserts.
-- [ ] From an empty database it produces a complete demo team.
-- [ ] Both developers get identical database state.
-- [ ] At least 1 unmatched entity exists, for scenario S-6.
-- [ ] At least 1 unlinked pull request exists, for scenario S-8.
-- [ ] At least 1 Jira / GitHub conflict exists, for CF-1.
-- [ ] Re-running is safe.
+- [x] Seeding makes 0 network calls, verified by a test.
+- [x] It runs the real ingestion code, not direct inserts.
+- [x] From an empty database it produces a complete demo team.
+- [x] Both developers get identical database state.
+- [x] At least 1 unmatched entity exists, for scenario S-6.
+- [x] At least 1 unlinked pull request exists, for scenario S-8.
+- [x] At least 1 Jira / GitHub conflict exists, for CF-1.
+- [x] Re-running is safe.
 
 **Testing required:** An integration test that seeds an empty database and asserts expected
 row counts and the presence of the 3 special cases.
@@ -1066,7 +1066,7 @@ once.
 endpoint, which is P5-007.
 **Owner:** Developer 1
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P2-008
 **Parallelizable:** YES, alongside P2-009.
 **Components:** Ingestion, scheduling
@@ -1087,14 +1087,14 @@ endpoint, which is P5-007.
   repositories.
 
 **Acceptance criteria:**
-- [ ] Sync runs automatically every `SYNC_INTERVAL_MINUTES`, default 5.
-- [ ] The interval and the enable flag are named constants in `app/config.py`.
-- [ ] Setting `SCHEDULER_ENABLED=false` fully disables it.
-- [ ] A sync already running for the same (source, scope) is not started again.
-- [ ] A stuck `running` row does not block the scheduler permanently.
-- [ ] A failed tick records `sync_run` and later ticks still run.
-- [ ] It calls the same code path as the CLI, verified by test.
-- [ ] Measured API usage at the default interval is recorded and within budget.
+- [x] Sync runs automatically every `SYNC_INTERVAL_MINUTES`, default 5.
+- [x] The interval and the enable flag are named constants in `app/config.py`.
+- [x] Setting `SCHEDULER_ENABLED=false` fully disables it.
+- [x] A sync already running for the same (source, scope) is not started again.
+- [x] A stuck `running` row does not block the scheduler permanently.
+- [x] A failed tick records `sync_run` and later ticks still run.
+- [x] It calls the same code path as the CLI, verified by test.
+- [x] Measured API usage at the default interval is recorded and within budget.
 
 **Testing required:** Unit tests for the interval trigger, the disable flag, the
 skip-if-running guard, the stuck-run recovery, and that a failed tick does not stop the
