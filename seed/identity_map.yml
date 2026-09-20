@@ -19,7 +19,7 @@ people:
     role_label: Backend Engineer
     accounts:
       - integration: github
-        external_id: "12345678"      # GitHub stable numeric user id
+        external_id: "219891474"      # GitHub stable numeric user id (keshan-dev)
         external_handle: keshan-dev
       - integration: jira
         external_id: "5f3a1b2c3d4e"  # Jira Cloud stable accountId
@@ -28,8 +28,8 @@ people:
     role_label: Frontend Engineer
     accounts:
       - integration: github
-        external_id: "87654321"      # GitHub stable numeric user id
-        external_handle: isiwara-dev
+        external_id: "221026807"      # GitHub stable numeric user id (IsiwaraKumarage8)
+        external_handle: IsiwaraKumarage8
       - integration: jira
         external_id: "7a8b9c0d1e2f"  # Jira Cloud stable accountId
         external_handle: Isiwara D.

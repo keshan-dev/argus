@@ -261,7 +261,7 @@ merge.
 **Out of scope:** Deployment. Evaluation tests (they need an API key and run locally).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** IN_PROGRESS
+**Status:** DONE
 **Dependencies:** P0-003
 **Parallelizable:** YES, alongside P0-002.
 **Components:** CI
@@ -275,12 +275,12 @@ merge.
 - Evaluation tests are excluded from CI by marker.
 
 **Acceptance criteria:**
-- [ ] Lint, format check and pytest run on every pull request.
-- [ ] A secret scanner runs and fails the build on a detected secret.
-- [ ] `alembic upgrade head` runs against an empty database and succeeds.
-- [ ] A second Alembic head fails the build.
-- [ ] No real credential exists in CI configuration or secrets.
-- [ ] The pipeline is green on a trial pull request.
+- [x] Lint, format check and pytest run on every pull request.
+- [x] A secret scanner runs and fails the build on a detected secret.
+- [x] `alembic upgrade head` runs against an empty database and succeeds.
+- [x] A second Alembic head fails the build.
+- [x] No real credential exists in CI configuration or secrets.
+- [x] The pipeline is green on a trial pull request.
 
 **Testing required:** Verified by a deliberately failing trial pull request (a fake secret,
 then a second head).
@@ -304,7 +304,7 @@ speed on each machine, agree the fallback model.
 **Out of scope:** Writing the reasoning client. That is P4-005.
 **Owner:** Shared
 **Priority:** P0
-**Status:** IN_PROGRESS
+**Status:** DONE
 **Dependencies:** None
 **Parallelizable:** YES.
 **Components:** Local runtime
@@ -322,13 +322,13 @@ speed on each machine, agree the fallback model.
 - **Pre-warm before any demo.** The first call loads about 2 GB from disk.
 
 **Acceptance criteria:**
-- [ ] Ollama installed on both machines.
-- [ ] `llama3.2` pulled on both machines.
-- [ ] `curl http://localhost:11434/api/tags` returns the model on both.
-- [ ] A structured-output call returns schema-valid JSON on both.
-- [ ] Measured tokens/sec recorded in `WORKLOG.md` for each machine.
-- [ ] Reachability from a container confirmed.
-- [ ] Monetary cost is zero. No account, no key, no card.
+- [x] Ollama installed on both machines.
+- [x] `llama3.2` pulled on both machines.
+- [x] `curl http://localhost:11434/api/tags` returns the model on both.
+- [x] A structured-output call returns schema-valid JSON on both.
+- [x] Measured tokens/sec recorded in `WORKLOG.md` for each machine.
+- [x] Reachability from a container confirmed.
+- [x] Monetary cost is zero. No account, no key, no card.
 
 **Testing required:** Manual verification, recorded in `WORKLOG.md`.
 **Handoff notes:** P4-005 depends on this. The recorded speed sets the realistic latency
@@ -448,7 +448,7 @@ work in progress on both sides.
 **Out of scope:** Implementations. Only the shapes.
 **Owner:** Shared
 **Priority:** P0
-**Status:** IN_PROGRESS
+**Status:** DONE
 **Dependencies:** P1-001
 **Parallelizable:** NO.
 **Components:** Contracts
@@ -477,7 +477,7 @@ Copy the tool input and output models from `AGENT_TOOLS.md` exactly.
 - [x] `Claim.evidence_ids` is `list[str]`, not a list of objects.
 - [x] `ToolFailure` with the 4 read-path error types exists.
 - [x] `MemberInsight` includes per-source `last_synced` and health state.
-- [ ] Merged to `main`.
+- [x] Merged to `main`.
 
 **Testing required:** Round-trip serialization tests for each model.
 **Handoff notes:** **Frozen.** A change requires agreement from both developers plus a
@@ -582,7 +582,7 @@ verified identity (DEC-008). Every attribution depends on it.
 **Out of scope:** Inferred matching (that is P2-006). The unmatched queue (also P2-006).
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** IN_PROGRESS
+**Status:** DONE
 **Dependencies:** P1-001
 **Parallelizable:** YES.
 **Components:** Identity

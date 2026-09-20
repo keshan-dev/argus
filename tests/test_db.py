@@ -55,3 +55,33 @@ def test_get_sync_session_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
 
     session = get_sync_session(timeout_ms=5000)
     assert session is mock_session
+
+
+def test_statement_timeout_pg_sleep() -> None:
+    """pg_sleep query exceeding DB_STATEMENT_TIMEOUT_MS raises a statement timeout error."""
+    from sqlalchemy import text
+
+    from app.db import engine, get_session
+
+    if engine.dialect.name != "postgresql":
+        pytest.skip("pg_sleep test requires PostgreSQL")
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as exc:
+        pytest.skip(f"PostgreSQL connection unavailable for live pg_sleep test: {exc}")
+
+    gen = get_session()
+    session = next(gen)
+    try:
+        with pytest.raises(OperationalError) as exc_info:
+            # Read session sets statement_timeout to 2000ms. Sleeping 3s triggers timeout.
+            session.execute(text("SELECT pg_sleep(3)"))
+
+        assert is_timeout_error(exc_info.value) is True
+    finally:
+        try:
+            next(gen)
+        except StopIteration:
+            pass

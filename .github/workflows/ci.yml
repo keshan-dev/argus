@@ -42,6 +42,22 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: argus
+          POSTGRES_PASSWORD: argus
+          POSTGRES_DB: argus
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U argus -d argus"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +74,8 @@ jobs:
       # Evaluation tests are excluded here. They need Ollama running locally,
       # so they are run on a developer machine, not in CI.
       - name: pytest
+        env:
+          DATABASE_URL: postgresql+psycopg://argus:argus@localhost:5432/argus
         run: pytest -v --ignore=tests/eval
 
   secret-scan:

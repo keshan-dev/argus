@@ -60,6 +60,63 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-20 | Keshan | P1-005
+Status: DONE
+
+### Completed
+Resolved remaining open criteria for Phase 0 and Phase 1:
+1. Closed #9 (`P1-003`): Added `lifespan` handler to `app/main.py` calling `get_settings()` during
+startup so missing secrets halt immediately. Removed localhost fallback in `app/db.py`, raising
+`RuntimeError` if `DATABASE_URL` is unset. Added startup failure test in `tests/test_config.py`.
+2. Closed #10 (`P1-004`): Added real `pg_sleep(3)` statement timeout test in `tests/test_db.py`
+verifying statement cancellation and `is_timeout_error` detection. Added PostgreSQL 15 service
+container to the CI `test` job in `.github/workflows/ci.yml`.
+3. Closed #11 (`P1-005`): Discovered exact GitHub numeric IDs (`keshan-dev`: 219891474,
+`IsiwaraKumarage8`: 221026807) and populated `seed/identity_map.yml`, replacing dummy literals.
+Updated `tests/test_identity_loader.py` assertions to verify real IDs and handles.
+4. Closed #4 (`P0-004`) and #5 (`P0-005`): Marked DONE in `docs/TASKS.md` following confirmed CI
+workflows and Ollama measurements on both machines. Marked #8 (`P1-002`) DONE following merge to
+`main`.
+
+Phase 0 and Phase 1 are now 100% complete.
+
+### Verification
+Ran in a scratch venv pinned to the versions CI resolves (black 26.5.1, ruff 0.16.8):
+`ruff check .` passed, `black --check .` initially failed on 3 files and was corrected by
+running `black .` rather than by hand.
+
+Full suite run against a throwaway `postgres:15` container: 32 passed, 0 failed. The live
+`pg_sleep(3)` test confirms the 2000ms read-path statement timeout cancels the query and
+that `is_timeout_error` recognises it. Not verified: the CI job itself, which runs on the
+pull request.
+
+### Problems
+1. `black --check` would have failed CI on `app/db.py`, `tests/test_db.py` and
+`tests/test_config.py` (2 trailing blank lines, 1 line-length reflow). Fixed by running
+black. This is the third time hand-formatting has caused this. Pinning an exact black
+version in the dev extras would remove the class of failure, but it is a dependency change
+and needs both developers to agree (rule 13).
+2. `test_startup_fails_without_secrets` passed in CI but failed on a developer machine.
+`Settings` reads `env_file=".env"` relative to the working directory, so a local `.env`
+supplied the secrets the test expects to be missing and no `RuntimeError` was raised. Fixed
+by adding `monkeypatch.chdir(tmp_path)` so the test asserts the same thing in both places.
+
+### Changed
+`app/db.py`, `app/main.py`, `seed/identity_map.yml`, `tests/test_config.py`, `tests/test_db.py`,
+`tests/test_identity_loader.py`, `.github/workflows/ci.yml`, `docs/TASKS.md`, `README.md`,
+`WORKLOG.md`.
+
+### Discovered
+Isiwara's GitHub account is `IsiwaraKumarage8` (numeric ID 221026807), matching repository
+contributors.
+
+### Next Step
+Open the pull request from `fix/9-close-phase-0-and-1-criteria`, closing #4, #9, #10 and #11.
+CI validates all 5 jobs. Begin Phase 2 (`P2-001` shared HTTP client) while Isiwara starts
+Phase 3 (`P3-001` FastAPI routes and auth seam).
+
+---
+
 ## 2026-09-19 | Keshan | P1-005
 Status: IN_PROGRESS
 
