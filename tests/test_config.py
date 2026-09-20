@@ -1,5 +1,7 @@
 """Unit tests for the configuration module (P1-003, Issue #9)."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
@@ -140,3 +142,34 @@ def test_alias_support() -> None:
     assert cfg.ollama_url == "http://ollama-host:11434"
     assert cfg.model_id == "llama3.2:1b"
     assert cfg.recent_activity_days == 21
+
+
+def test_startup_fails_without_secrets(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Starting FastAPI app fails fast when required secrets are missing."""
+    from fastapi.testclient import TestClient
+
+    import app.config
+    import app.main
+
+    # Settings reads env_file=".env", resolved against the working directory. A
+    # developer machine has one and CI does not, so move to an empty directory to
+    # make the test assert the same thing in both places.
+    monkeypatch.chdir(tmp_path)
+
+    for secret in (
+        "DATABASE_URL",
+        "GITHUB_TOKEN",
+        "JIRA_BASE_URL",
+        "JIRA_EMAIL",
+        "JIRA_API_TOKEN",
+    ):
+        monkeypatch.delenv(secret, raising=False)
+        monkeypatch.delenv(secret.lower(), raising=False)
+
+    monkeypatch.setattr(app.config, "settings", None)
+
+    with pytest.raises(RuntimeError) as exc_info:
+        with TestClient(app.main.app):
+            pass
+
+    assert "Missing required configuration secrets" in str(exc_info.value)

@@ -18,11 +18,13 @@ Base = declarative_base()
 
 # Connection engine
 # Uses psycopg3 via the postgresql+psycopg driver specified in DATABASE_URL
-default_db_url = "postgresql+psycopg://argus:argus@localhost:5432/argus"
-database_url = os.getenv(
-    "DATABASE_URL",
-    settings.database_url if settings is not None else default_db_url,
-)
+database_url = os.getenv("DATABASE_URL")
+if not database_url and settings is not None:
+    database_url = settings.database_url
+
+if not database_url:
+    raise RuntimeError("DATABASE_URL must be configured in environment variables or .env file.")
+
 engine = create_engine(
     database_url,
     pool_pre_ping=True,

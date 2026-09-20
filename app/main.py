@@ -4,15 +4,27 @@ P0-003 scope is the skeleton only: the app object and a health endpoint. Routers
 models, tools and agent code arrive in later phases.
 """
 
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from app.config import get_settings
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Verify application configuration and fail fast if secrets are missing."""
+    get_settings()
+    yield
+
+
 app = FastAPI(
     title="ARGUS",
     description="Evidence-based engineering team intelligence agent",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 

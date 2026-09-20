@@ -44,6 +44,15 @@ def test_parse_valid_identity_map_file() -> None:
 
     integrations = {a.integration for a in keshan.accounts}
     assert integrations == {"github", "jira"}
+    keshan_gh = next(a for a in keshan.accounts if a.integration == "github")
+    assert keshan_gh.external_id == "219891474"
+    assert keshan_gh.external_handle == "keshan-dev"
+
+    isiwara = next(p for p in parsed.people if p.display_name == "Isiwara")
+    assert isiwara.role_label == "Frontend Engineer"
+    isiwara_gh = next(a for a in isiwara.accounts if a.integration == "github")
+    assert isiwara_gh.external_id == "221026807"
+    assert isiwara_gh.external_handle == "IsiwaraKumarage8"
 
 
 def test_parse_identity_map_duplicate_external_id() -> None:

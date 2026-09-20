@@ -4,7 +4,7 @@ An evidence-based engineering team intelligence agent. It tells a team lead what
 member is working on, what is blocking them, and what is at risk, and it shows the
 evidence behind every statement.
 
-**Status:** Phase 0 nearly complete. Skeleton runs, CI is green and required on `main`. Phase 1 blocked on P0-002.
+**Status:** Phase 0 and Phase 1 complete. Database schema, frozen contracts, config, timeouts, identity map, and CI are in place. Phase 2 and Phase 3 ready to start.
 **Stage:** MVP (Stage 1).
 **Team:** 2 developers.
 
