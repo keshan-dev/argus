@@ -1,0 +1,22 @@
+[
+  {
+    "id": 10001,
+    "self": "https://example.atlassian.net/rest/api/3/issue/AUTH-245/remotelink/10001",
+    "relationship": "mentioned in",
+    "object": {
+      "url": "https://github.com/keshan-dev/argus/pull/1",
+      "title": "feat(auth): implement session validation seam",
+      "summary": "GitHub Pull Request #1: feat(auth): implement session validation seam",
+      "icon": {
+        "url16x16": "https://github.githubassets.com/favicon.ico",
+        "title": "GitHub"
+      },
+      "status": {
+        "resolved": false,
+        "icon": {
+          "title": "Open"
+        }
+      }
+    }
+  }
+]
