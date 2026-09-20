@@ -130,6 +130,18 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SYNC_INTERVAL_MINUTES", "sync_interval_minutes"),
         description="Cadence of sync scheduler in minutes.",
     )
+    scheduler_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("SCHEDULER_ENABLED", "scheduler_enabled"),
+        description="Master switch to enable or disable background sync scheduler.",
+    )
+    stuck_sync_timeout_minutes: int = Field(
+        default=15,
+        validation_alias=AliasChoices(
+            "STUCK_SYNC_TIMEOUT_MINUTES", "stuck_sync_timeout_minutes"
+        ),
+        description="Timeout in minutes after which a running sync is considered stuck.",
+    )
 
     # -------------------------------------------------------------------------
     # HTTP and Inference Settings
@@ -229,6 +241,8 @@ NO_ACTIVITY_DAYS: int = 7
 EXCERPT_MAX_CHARS: int = 500
 MAX_EVIDENCE_ITEMS: int = 40
 SYNC_INTERVAL_MINUTES: int = 5
+SCHEDULER_ENABLED: bool = True
+STUCK_SYNC_TIMEOUT_MINUTES: int = 15
 
 HTTP_TIMEOUT_SECONDS: float = 10.0
 HTTP_MAX_ATTEMPTS: int = 3
