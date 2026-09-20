@@ -1,0 +1,388 @@
+"""Synchronization CLI and orchestration pipeline (P2-008, Issue #19).
+
+Orchestrates upstream clients, canonical normalizers, identity resolution,
+and work item link builders. Tracks run state in sync_run (FR-008), cursor
+positions in sync_cursor (FR-009), and enforces secret redaction in error
+logs (NFR-011).
+"""
+
+import argparse
+from datetime import UTC, datetime
+import logging
+import re
+import sys
+from typing import Any
+
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
+
+from app.db import get_sync_session
+from app.integrations.errors import IntegrationError
+from app.integrations.github import GitHubClient
+from app.integrations.github_normalizer import (
+    ingest_commits,
+    ingest_pull_requests,
+    ingest_repositories,
+    ingest_reviews,
+    parse_datetime,
+)
+from app.integrations.identity_resolver import (
+    attribute_commits,
+    attribute_pull_requests,
+    attribute_reviews,
+    attribute_work_items,
+)
+from app.integrations.jira import JiraClient
+from app.integrations.jira_normalizer import (
+    ingest_dependencies,
+    ingest_projects,
+    ingest_work_items,
+)
+from app.integrations.link_builder import (
+    link_commit,
+    link_jira_remote_links,
+    link_pull_request,
+)
+from app.models.canonical import Organization, Project, Repository
+from app.models.operations import SyncCursor, SyncRun
+from app.models.work import PullRequest, WorkItem
+
+logger = logging.getLogger("argus.sync")
+
+SECRET_REDACT_REGEX = re.compile(
+    r"(token|bearer|basic|key|password|secret|authorization)\s*[:=]\s*\S+",
+    re.IGNORECASE,
+)
+
+
+def sanitize_error_detail(detail: str | None) -> str | None:
+    """Mask any tokens, bearer credentials, or passwords in error messages (NFR-011)."""
+    if not detail:
+        return None
+    return SECRET_REDACT_REGEX.sub(r"\1=***", detail)
+
+
+def get_or_create_cursor(
+    session: Session,
+    source: str,
+    scope: str,
+) -> SyncCursor | None:
+    """Fetch the active SyncCursor for source and scope."""
+    stmt = select(SyncCursor).where(SyncCursor.source == source, SyncCursor.scope == scope)
+    return session.scalar(stmt)
+
+
+def advance_cursor(
+    session: Session,
+    source: str,
+    scope: str,
+    cursor_value: str,
+) -> SyncCursor:
+    """Update or insert a resume position cursor for incremental sync."""
+    cursor = get_or_create_cursor(session, source, scope)
+    if cursor:
+        cursor.cursor_value = cursor_value
+        cursor.updated_at = datetime.now(UTC)
+        return cursor
+
+    new_cursor = SyncCursor(
+        source=source,
+        scope=scope,
+        cursor_value=cursor_value,
+        updated_at=datetime.now(UTC),
+    )
+    session.add(new_cursor)
+    session.flush()
+    return new_cursor
+
+
+def sync_github(
+    session: Session,
+    team_id: int = 1,
+    scope: str = "keshan-dev/argus",
+    reset_cursor: bool = False,
+    gh_client: GitHubClient | None = None,
+) -> SyncRun:
+    """Run end-to-end GitHub ingestion, normalization, identity attribution and links."""
+    logger.info("Starting GitHub sync for scope=%s, team_id=%d", scope, team_id)
+
+    # 1. Reset cursor if requested
+    if reset_cursor:
+        stmt = delete(SyncCursor).where(
+            SyncCursor.source == "github",
+            SyncCursor.scope == scope,
+        )
+        session.execute(stmt)
+        session.flush()
+
+    # 2. Start running audit row
+    start_time = datetime.now(UTC)
+    sync_run = SyncRun(
+        source="github",
+        scope=scope,
+        status="running",
+        started_at=start_time,
+    )
+    session.add(sync_run)
+    session.commit()
+
+    try:
+        client = gh_client or GitHubClient()
+
+        # Find or create repository
+        repo_stmt = select(Repository).where(Repository.full_name == scope)
+        repo = session.scalar(repo_stmt)
+        if not repo:
+            org = session.scalar(select(Organization))
+            org_id = org.id if org else 1
+            raw_repo = client.get_repository(scope.split("/")[0], scope.split("/")[1])
+            repos, _ = ingest_repositories(session, org_id, [raw_repo])
+            repo = repos[0]
+            session.commit()
+
+        # Check cursor
+        cursor = get_or_create_cursor(session, "github", scope)
+        since_dt = parse_datetime(cursor.cursor_value) if cursor else None
+
+        owner, repo_name = scope.split("/")
+
+        # Fetch data
+        raw_prs = client.list_pull_requests(owner, repo_name)
+        raw_commits = client.list_commits(owner, repo_name, since=since_dt)
+
+        # Ingest and normalize
+        prs, pr_counts = ingest_pull_requests(session, repo.id, raw_prs)
+        commits, commit_counts = ingest_commits(session, repo.id, raw_commits)
+
+        # Fetch & ingest reviews
+        total_rev_fetched = 0
+        total_rev_written = 0
+        total_rev_skipped = 0
+        all_raw_reviews: list[dict[str, Any]] = []
+        all_persisted_reviews = []
+
+        for pr in prs:
+            raw_revs = client.list_reviews(owner, repo_name, pr.number)
+            total_rev_fetched += len(raw_revs)
+            all_raw_reviews.extend(raw_revs)
+            revs, rev_counts = ingest_reviews(session, pr.id, raw_revs)
+            total_rev_written += rev_counts.written
+            total_rev_skipped += rev_counts.skipped
+            all_persisted_reviews.extend(revs)
+
+        # Identity resolution
+        attribute_pull_requests(session, prs, raw_prs)
+        attribute_commits(session, commits, raw_commits)
+        attribute_reviews(session, all_persisted_reviews, all_raw_reviews)
+
+        # Link building
+        projects = session.scalars(select(Project)).all()
+        project_keys = [p.key for p in projects]
+        work_items = session.scalars(select(WorkItem)).all()
+        wi_by_key = {wi.external_id: wi for wi in work_items}
+
+        for pr in prs:
+            link_pull_request(session, pr, wi_by_key, project_keys)
+        for commit in commits:
+            link_commit(session, commit, wi_by_key, project_keys)
+
+        # Totals
+        fetched = pr_counts.fetched + commit_counts.fetched + total_rev_fetched
+        written = pr_counts.written + commit_counts.written + total_rev_written
+        skipped = pr_counts.skipped + commit_counts.skipped + total_rev_skipped
+
+        status = "partial" if skipped > 0 else "success"
+
+        # Advance cursor only on success/partial
+        advance_cursor(session, "github", scope, datetime.now(UTC).isoformat())
+
+        sync_run.status = status
+        sync_run.items_fetched = fetched
+        sync_run.items_written = written
+        sync_run.items_skipped = skipped
+        sync_run.finished_at = datetime.now(UTC)
+        session.commit()
+        return sync_run
+
+    except Exception as exc:
+        session.rollback()
+        err_type = exc.error_code if isinstance(exc, IntegrationError) else type(exc).__name__
+        safe_detail = sanitize_error_detail(str(exc))
+        sync_run.status = "failed"
+        sync_run.error_type = err_type
+        sync_run.error_detail = safe_detail
+        sync_run.finished_at = datetime.now(UTC)
+        session.commit()
+        logger.error("GitHub sync failed: %s (%s)", err_type, safe_detail)
+        return sync_run
+
+
+def sync_jira(
+    session: Session,
+    team_id: int = 1,
+    scope: str = "ALL",
+    reset_cursor: bool = False,
+    jira_client: JiraClient | None = None,
+) -> SyncRun:
+    """Run end-to-end Jira ingestion, normalization, dependencies and remote links."""
+    logger.info("Starting Jira sync for scope=%s, team_id=%d", scope, team_id)
+
+    # 1. Reset cursor if requested
+    if reset_cursor:
+        stmt = delete(SyncCursor).where(
+            SyncCursor.source == "jira",
+            SyncCursor.scope == scope,
+        )
+        session.execute(stmt)
+        session.flush()
+
+    # 2. Start running audit row
+    start_time = datetime.now(UTC)
+    sync_run = SyncRun(
+        source="jira",
+        scope=scope,
+        status="running",
+        started_at=start_time,
+    )
+    session.add(sync_run)
+    session.commit()
+
+    try:
+        client = jira_client or JiraClient()
+
+        # Ingest projects
+        raw_projects = client.list_projects()
+        org = session.scalar(select(Organization))
+        org_id = org.id if org else 1
+        projects, proj_counts = ingest_projects(session, org_id, raw_projects)
+        session.commit()
+
+        # Search issues
+        raw_issues = client.search_issues(jql="", auto_paginate=True)
+
+        # Ingest issues for each project
+        total_wi_fetched = len(raw_issues)
+        total_wi_written = 0
+        total_wi_skipped = 0
+        all_persisted_items: list[WorkItem] = []
+
+        proj_by_key = {p.key: p for p in projects}
+
+        # Group raw issues by project
+        issues_by_proj: dict[str, list[dict[str, Any]]] = {}
+        for raw in raw_issues:
+            pkey = raw.get("fields", {}).get("project", {}).get("key") or "UNKNOWN"
+            issues_by_proj.setdefault(pkey, []).append(raw)
+
+        for pkey, raw_group in issues_by_proj.items():
+            proj = proj_by_key.get(pkey)
+            if not proj:
+                continue
+            items, counts = ingest_work_items(session, proj.id, raw_group)
+            total_wi_written += counts.written
+            total_wi_skipped += counts.skipped
+            all_persisted_items.extend(items)
+
+        # Attribute work items
+        attribute_work_items(session, all_persisted_items, raw_issues)
+
+        # Ingest blocking dependencies
+        wi_by_key = {w.external_id: w for w in all_persisted_items}
+        deps, dep_counts = ingest_dependencies(session, wi_by_key, raw_issues)
+
+        # Fetch remote links and build WorkItemLink
+        all_prs = session.scalars(select(PullRequest)).all()
+        prs_by_url = {pr.source_url: pr for pr in all_prs}
+
+        for raw_issue in raw_issues:
+            key = raw_issue.get("key")
+            if key and key in wi_by_key:
+                wi = wi_by_key[key]
+                try:
+                    remote_links = client.get_remote_links(key)
+                    link_jira_remote_links(session, wi, remote_links, prs_by_url)
+                except Exception as rlink_exc:
+                    logger.warning("Could not fetch remote links for %s: %s", key, rlink_exc)
+
+        fetched = proj_counts.fetched + total_wi_fetched + dep_counts.fetched
+        written = proj_counts.written + total_wi_written + dep_counts.written
+        skipped = proj_counts.skipped + total_wi_skipped + dep_counts.skipped
+
+        status = "partial" if skipped > 0 else "success"
+
+        # Advance cursor only on success/partial
+        advance_cursor(session, "jira", scope, datetime.now(UTC).isoformat())
+
+        sync_run.status = status
+        sync_run.items_fetched = fetched
+        sync_run.items_written = written
+        sync_run.items_skipped = skipped
+        sync_run.finished_at = datetime.now(UTC)
+        session.commit()
+        return sync_run
+
+    except Exception as exc:
+        session.rollback()
+        err_type = exc.error_code if isinstance(exc, IntegrationError) else type(exc).__name__
+        safe_detail = sanitize_error_detail(str(exc))
+        sync_run.status = "failed"
+        sync_run.error_type = err_type
+        sync_run.error_detail = safe_detail
+        sync_run.finished_at = datetime.now(UTC)
+        session.commit()
+        logger.error("Jira sync failed: %s (%s)", err_type, safe_detail)
+        return sync_run
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entrypoint for running integration synchronizations."""
+    parser = argparse.ArgumentParser(description="ARGUS Ingestion Sync CLI")
+    parser.add_argument(
+        "--source",
+        choices=["github", "jira", "all"],
+        required=True,
+        help="Integration source to sync",
+    )
+    parser.add_argument(
+        "--team",
+        type=int,
+        default=1,
+        help="Target team ID",
+    )
+    parser.add_argument(
+        "--reset-cursor",
+        action="store_true",
+        help="Reset sync cursor to force full resync",
+    )
+
+    args = parser.parse_args(argv)
+
+    session = get_sync_session()
+    try:
+        if args.source in ("github", "all"):
+            gh_run = sync_github(session, team_id=args.team, reset_cursor=args.reset_cursor)
+            print(
+                f"GitHub Sync finished: status={gh_run.status} "
+                f"fetched={gh_run.items_fetched} written={gh_run.items_written} "
+                f"skipped={gh_run.items_skipped}"
+            )
+            if gh_run.status == "failed":
+                return 1
+
+        if args.source in ("jira", "all"):
+            jira_run = sync_jira(session, team_id=args.team, reset_cursor=args.reset_cursor)
+            print(
+                f"Jira Sync finished: status={jira_run.status} "
+                f"fetched={jira_run.items_fetched} written={jira_run.items_written} "
+                f"skipped={jira_run.items_skipped}"
+            )
+            if jira_run.status == "failed":
+                return 1
+
+        return 0
+    finally:
+        session.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
