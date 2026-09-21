@@ -10,6 +10,20 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.web.auth import auth_router
+from app.config import get_settings
+from app.scheduler import start_scheduler_task, stop_scheduler_task
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Verify application configuration and manage scheduler background task."""
+    settings = get_settings()
+    task, stop_event = start_scheduler_task(enabled=settings.scheduler_enabled)
+    try:
+        yield
+    finally:
+        await stop_scheduler_task(task, stop_event)
+
 
 app = FastAPI(
     title="ARGUS",

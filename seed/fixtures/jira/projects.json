@@ -1,0 +1,14 @@
+[
+  {
+    "id": "10000",
+    "key": "AUTH",
+    "name": "Authentication Service",
+    "projectTypeKey": "software"
+  },
+  {
+    "id": "10001",
+    "key": "PAY",
+    "name": "Payments and Profiles",
+    "projectTypeKey": "software"
+  }
+]
