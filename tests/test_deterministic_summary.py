@@ -55,8 +55,9 @@ def _sample_pull_requests() -> list[PullRequestOut]:
             branch_name="feature/AUTH-245-token",
             review_state="approved",
             checks_state="passing",
-            created_at_source=now - timedelta(days=1),
+            created_at=now - timedelta(days=1),
             source_updated_at=now,
+            retrieved_at=now,
             source_url="https://github.com/keshan-dev/argus/pull/182",
         ),
         PullRequestOut(
@@ -69,8 +70,9 @@ def _sample_pull_requests() -> list[PullRequestOut]:
             branch_name="docs/cookie",
             review_state="approved",
             checks_state="passing",
-            created_at_source=now - timedelta(days=2),
+            created_at=now - timedelta(days=2),
             source_updated_at=now,
+            retrieved_at=now,
             source_url="https://github.com/keshan-dev/argus/pull/180",
         ),
     ]
@@ -105,6 +107,7 @@ def _sample_reviews() -> list[ReviewOut]:
             body_excerpt="Looks solid.",
             submitted_at=now,
             source_url="https://github.com/keshan-dev/argus/pull/182#r201",
+            retrieved_at=now,
         )
     ]
 

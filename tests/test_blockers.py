@@ -51,9 +51,10 @@ def _base_pr(
         branch_name=branch_name,
         review_state=review_state,
         checks_state=checks_state,
-        created_at_source=created_at_source or now,
+        created_at=created_at_source or now,
         last_review_at=last_review_at,
         source_updated_at=now,
+        retrieved_at=now,
         source_url=f"https://github.com/keshan-dev/argus/pull/{number}",
     )
 

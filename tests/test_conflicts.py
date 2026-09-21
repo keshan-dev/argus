@@ -47,8 +47,9 @@ def _make_pull_request(
         branch_name=branch_name,
         review_state=review_state,
         checks_state=checks_state,
-        created_at_source=now,
+        created_at=now,
         source_updated_at=now,
+        retrieved_at=now,
         source_url=f"https://github.com/keshan-dev/argus/pull/{number}",
     )
 

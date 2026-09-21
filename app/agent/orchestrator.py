@@ -15,9 +15,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import httpx
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-import httpx
 
 from app.agent.blockers import detect_blockers
 from app.agent.cache import (
@@ -481,8 +481,10 @@ async def run_agent(
     # Resolve likely current work
     likely_current_work = None
     active_items = [w for w in context.retrieval.work_items if w.status == "in_progress"]
-    target_item = active_items[0] if active_items else (
-        context.retrieval.work_items[0] if context.retrieval.work_items else None
+    target_item = (
+        active_items[0]
+        if active_items
+        else (context.retrieval.work_items[0] if context.retrieval.work_items else None)
     )
     if target_item is not None:
         target_ev = [
@@ -516,15 +518,11 @@ async def run_agent(
         conf = evaluate_confidence(
             b_ev,
             claim_type="declared_blocker",
-            has_unresolved_conflict=any(
-                c.work_item_external_id == b.entity_key for c in conflicts
-            ),
+            has_unresolved_conflict=any(c.work_item_external_id == b.entity_key for c in conflicts),
             is_truncated=evidence_set.truncated,
             as_of=context.started_at,
         )
-        conf_descs = [
-            c.description for c in conflicts if c.work_item_external_id == b.entity_key
-        ]
+        conf_descs = [c.description for c in conflicts if c.work_item_external_id == b.entity_key]
         blocker_insights.append(
             Insight(
                 claim=b.description,
@@ -546,15 +544,11 @@ async def run_agent(
         conf = evaluate_confidence(
             r_ev,
             claim_type="due_date",
-            has_unresolved_conflict=any(
-                c.work_item_external_id == r.entity_key for c in conflicts
-            ),
+            has_unresolved_conflict=any(c.work_item_external_id == r.entity_key for c in conflicts),
             is_truncated=evidence_set.truncated,
             as_of=context.started_at,
         )
-        conf_descs = [
-            c.description for c in conflicts if c.work_item_external_id == r.entity_key
-        ]
+        conf_descs = [c.description for c in conflicts if c.work_item_external_id == r.entity_key]
         risk_insights.append(
             Insight(
                 claim=r.description,

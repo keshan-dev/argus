@@ -60,6 +60,50 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-22 | Keshan | Phase 4 CI fixes
+Status: DONE
+
+### Completed
+Made `Lint and format` and `Tests` pass on the phase 4 pull request. 7 test modules failed
+collection, so most of phase 4 had never been run by CI.
+1. Broke a circular import: `evidence_builder` imported `AgentRunContext` from
+`orchestrator` while `orchestrator` imported `build_evidence` back. The use is type only,
+so it moved under `TYPE_CHECKING`. S3 depending on the orchestrator at runtime was the
+wrong direction anyway.
+2. Fixed 9 ruff findings and reformatted 13 files with black.
+3. Fixed 2 production defects: `blockers.py` read `pr.created_at_source` for BL-5 and BL-6,
+and `PullRequestOut` has no such field, so both rules raised `AttributeError` on every open
+pull request. `validation.py` declared a `dropped_claims` local that no return path used.
+4. Fixed the test fixtures: 17 `PullRequestOut` constructors used the database column name
+`created_at_source` instead of the schema field `created_at` and omitted the required
+`retrieved_at`, 1 `ReviewOut` omitted `retrieved_at`, and `Organization(domain=...)` and
+`AppUser(email=..., full_name=...)` passed columns those models do not have.
+
+### Changed
+`app/agent/evidence_builder.py`, `app/agent/blockers.py`, `app/agent/validation.py`,
+`app/agent/deterministic_summary.py`, `app/agent/narrative.py`, `app/agent/orchestrator.py`,
+and the phase 4 test modules.
+
+### Discovered
+The schema contracts frozen in #68 and the SQLAlchemy models use different names for the
+same value: the model column is `created_at_source`, the tool output field is `created_at`,
+and `app/tools/get_pull_requests.py` is the only place that maps between them. Phase 4 code
+and its tests both guessed the column name. `AppUser` has no `email` and `Organization` has
+no `domain` or `key`, and test fixtures keep inventing them.
+
+### Decisions Needed
+Nothing new. The unpinned dependency versions raised on 2026-09-21 are still unresolved.
+
+### Next Step
+Merge the phase 4 pull request once CI is green.
+
+### AI Assistance
+An AI assistant made these fixes. Worth a human check: the `TYPE_CHECKING` change in
+`evidence_builder.py`, and whether BL-5 and BL-6 should measure age from `created_at` or
+from `last_commit_at`, since neither rule has ever executed.
+
+---
+
 ## 2026-09-22 | Isiwara | P4-001, P4-005, P4-006, P4-007
 Status: DONE
 

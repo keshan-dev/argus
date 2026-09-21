@@ -1,6 +1,6 @@
 """Unit tests for deterministic confidence engine (P4-004, Issue #28)."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from app.agent.confidence import evaluate_confidence
 from app.schemas.insight import EvidenceItem

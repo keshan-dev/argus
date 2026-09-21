@@ -20,9 +20,7 @@ from app.schemas.tools import CommitOut, PullRequestOut, WorkItemLinkOut, WorkIt
 class RiskFinding(BaseModel):
     """Structured record of a detected risk signal."""
 
-    signal_id: Literal["RK-1", "RK-2", "RK-3", "RK-4"] = Field(
-        description="Risk rule identifier"
-    )
+    signal_id: Literal["RK-1", "RK-2", "RK-3", "RK-4"] = Field(description="Risk rule identifier")
     description: str = Field(description="Objective risk statement describing work item and dates")
     entity_key: str = Field(description="Natural identifier of affected ticket")
     work_item_id: int | None = Field(

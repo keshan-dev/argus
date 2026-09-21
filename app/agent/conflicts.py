@@ -40,10 +40,7 @@ def _matches_work_item(
     """Determine if a pull request is correlated to a work item via links or text."""
     # 1. Match via pre-established work_item_link
     for link in links:
-        if (
-            link.work_item_id == item.work_item_id
-            or link.work_item_external_id == item.external_id
-        ):
+        if link.work_item_id == item.work_item_id or link.work_item_external_id == item.external_id:
             if link.target_type == "pull_request":
                 if link.target_id == pr.pull_request_id or str(link.target_id) == str(pr.number):
                     return True
@@ -65,13 +62,9 @@ def _matches_commit(
 ) -> bool:
     """Determine if a commit is correlated to a work item via links or branch/message."""
     for link in links:
-        if (
-            link.work_item_id == item.work_item_id
-            or link.work_item_external_id == item.external_id
-        ):
+        if link.work_item_id == item.work_item_id or link.work_item_external_id == item.external_id:
             if link.target_type == "commit" and (
-                str(link.target_id) == str(commit.commit_id)
-                or str(link.target_id) == commit.sha
+                str(link.target_id) == str(commit.commit_id) or str(link.target_id) == commit.sha
             ):
                 return True
             if link.target_type == "branch" and commit.branch_name:
@@ -146,8 +139,10 @@ def detect_conflicts(
             # CF-4: Jira blocked and linked pull request approved with passing checks
             # -----------------------------------------------------------------
             if (
-                item.status == "blocked" or item.is_flagged
-            ) and pr.review_state == "approved" and pr.checks_state == "passing":
+                (item.status == "blocked" or item.is_flagged)
+                and pr.review_state == "approved"
+                and pr.checks_state == "passing"
+            ):
                 conflicts.append(
                     ConflictFinding(
                         conflict_id="CF-4",

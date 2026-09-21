@@ -66,14 +66,13 @@ def test_cache_storage_and_retrieval() -> None:
 
     try:
         # Create organization and user
-        org = Organization(name="Test Org", domain="test.com")
+        org = Organization(name="Test Org")
         session.add(org)
         session.flush()
 
         user = AppUser(
             organization_id=org.id,
-            email="keshan@example.com",
-            full_name="Keshan",
+            display_name="Keshan",
         )
         session.add(user)
         session.flush()

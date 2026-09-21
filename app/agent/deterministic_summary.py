@@ -7,7 +7,7 @@ an LLM call fails, times out, or is rejected by the narrative validator
 (DEC-018, FR-012, FR-022, FR-026).
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from pydantic import BaseModel, Field
 
@@ -67,9 +67,7 @@ def generate_deterministic_summary(
                 prio_str = f", {item.priority}" if item.priority else ""
                 flag_str = " [FLAGGED]" if item.is_flagged else ""
                 blocked_str = (
-                    f" (blocked by: {', '.join(item.blocked_by)})"
-                    if item.blocked_by
-                    else ""
+                    f" (blocked by: {', '.join(item.blocked_by)})" if item.blocked_by else ""
                 )
                 wi_lines.append(
                     f"  - {item.external_id}: {item.title} "
@@ -90,16 +88,8 @@ def generate_deterministic_summary(
         pr_lines = [f"Pull requests ({len(open_prs)} open, {len(merged_prs)} merged):"]
         for pr in open_prs:
             draft_label = " [DRAFT]" if pr.is_draft else ""
-            checks_label = (
-                f", checks: {pr.checks_state}"
-                if pr.checks_state != "unknown"
-                else ""
-            )
-            review_label = (
-                f", review: {pr.review_state}"
-                if pr.review_state != "none"
-                else ""
-            )
+            checks_label = f", checks: {pr.checks_state}" if pr.checks_state != "unknown" else ""
+            review_label = f", review: {pr.review_state}" if pr.review_state != "none" else ""
             pr_lines.append(
                 f"  - #{pr.number} ({pr.repo_full_name}): {pr.title}"
                 f"{draft_label} [{pr.state}{review_label}{checks_label}]"

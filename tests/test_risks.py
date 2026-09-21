@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 
 from app.agent.conflicts import ConflictFinding
 from app.agent.risks import detect_risks
-from app.schemas.tools import CommitOut, PullRequestOut, WorkItemOut
+from app.schemas.tools import CommitOut, WorkItemOut
 
 
 def _base_work_item(
@@ -46,8 +46,7 @@ def test_rk1_due_soon_positive() -> None:
     )
     risks = detect_risks([wi], as_of=now)
     assert any(
-        r.signal_id == "RK-1" and "AUTH-245 is due in 2 day(s)" in r.description
-        for r in risks
+        r.signal_id == "RK-1" and "AUTH-245 is due in 2 day(s)" in r.description for r in risks
     )
 
 
@@ -110,8 +109,7 @@ def test_rk3_high_priority_inactive_positive() -> None:
     risks = detect_risks([wi], as_of=now)
     assert any(
         r.signal_id == "RK-3"
-        and "High priority item AUTH-245 has had no recorded activity for 9 days"
-        in r.description
+        and "High priority item AUTH-245 has had no recorded activity for 9 days" in r.description
         for r in risks
     )
 
@@ -205,6 +203,6 @@ def test_fr021_risk_descriptions_never_describe_person() -> None:
 
     for r in risks:
         for pat in forbidden_patterns:
-            assert not pat.search(r.description), (
-                f"Risk description '{r.description}' violated FR-021"
-            )
+            assert not pat.search(
+                r.description
+            ), f"Risk description '{r.description}' violated FR-021"

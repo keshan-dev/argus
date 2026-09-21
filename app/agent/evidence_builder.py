@@ -5,17 +5,23 @@ Deduplicates, ranks, truncates to MAX_EVIDENCE_ITEMS, sanitizes excerpts,
 excludes null actors (DEC-008), and assigns sequential IDs ev_1..ev_n (DEC-004).
 """
 
+from __future__ import annotations
+
 import re
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from app.agent.orchestrator import AgentRunContext
 from app.schemas.evidence import (
     EntityType,
     EvidenceItem,
     EvidenceSet,
     SourceState,
 )
+
+# orchestrator imports build_evidence from this module, so importing AgentRunContext
+# from it at runtime is a cycle. S3 only needs the type, never the class itself.
+if TYPE_CHECKING:
+    from app.agent.orchestrator import AgentRunContext
 
 MAX_EVIDENCE_ITEMS = 50
 MAX_EXCERPT_LENGTH = 500
@@ -156,9 +162,7 @@ def build_evidence(context: AgentRunContext) -> EvidenceSet:
         seen.add(dedupe_key)
 
         observed_at = pr.source_updated_at or now
-        pr_url = (
-            pr.source_url or f"https://github.com/{pr.repo_full_name}/pull/{pr.number}"
-        )
+        pr_url = pr.source_url or f"https://github.com/{pr.repo_full_name}/pull/{pr.number}"
         evidence = EvidenceItem(
             id="",
             source="github",

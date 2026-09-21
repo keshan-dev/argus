@@ -63,8 +63,6 @@ def validate_narrative(
     Under DEC-018: A validation rejection discards the narrative and substitutes
     the deterministic summary without modifying underlying findings.
     """
-    dropped_claims: list[dict[str, Any]] = []
-
     # Check 1: Shape and length constraints
     if not summary or len(summary.strip()) < 20 or not needs_attention:
         logger.warning("Narrative failed shape check. Using deterministic fallback.")
@@ -88,9 +86,7 @@ def validate_narrative(
             needs_attention="See detailed findings below.",
             attention_needed=False,
             fallback_used=True,
-            dropped_claims=[
-                {"reason": "INVENTED_ENTITY", "entity": entity} for entity in invented
-            ],
+            dropped_claims=[{"reason": "INVENTED_ENTITY", "entity": entity} for entity in invented],
         )
 
     # Check 3: Forbidden language (person-judgment terms)

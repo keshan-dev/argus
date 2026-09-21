@@ -14,8 +14,9 @@ async def test_narrative_success() -> None:
     """Test successful narrative generation with schema validation and metric capture."""
     valid_content = json.dumps(
         {
-            "summary": "The contributor is working on authentication token rotation under AUTH-245. "
-            "Linked pull request #182 is actively passing continuous integration checks.",
+            "summary": "The contributor is working on authentication token rotation "
+            "under AUTH-245. Linked pull request #182 is actively passing "
+            "continuous integration checks.",
             "needs_attention": "No blockers or critical risks require immediate attention.",
             "attention_needed": False,
         }

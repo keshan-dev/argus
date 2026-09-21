@@ -45,10 +45,7 @@ def _has_linked_code(
 ) -> bool:
     """Check whether a work item has any linked pull request or branch."""
     for link in links:
-        if (
-            link.work_item_id == item.work_item_id
-            or link.work_item_external_id == item.external_id
-        ):
+        if link.work_item_id == item.work_item_id or link.work_item_external_id == item.external_id:
             return True
 
     pattern = re.compile(rf"\b{re.escape(item.external_id)}\b", re.IGNORECASE)
@@ -174,7 +171,7 @@ def detect_blockers(
 
         # BL-5 (review): Open with no review for more than PR_REVIEW_WAIT_DAYS
         if not pr.is_draft and pr.review_state == "none":
-            elapsed = now - pr.created_at_source
+            elapsed = now - pr.created_at
             if elapsed > timedelta(days=settings.pr_review_wait_days):
                 days = int(elapsed.total_seconds() // 86400)
                 blockers.append(
@@ -193,7 +190,7 @@ def detect_blockers(
 
         # BL-6 (progress): Draft pull request older than DRAFT_PR_STALE_DAYS
         if pr.is_draft:
-            elapsed = now - pr.created_at_source
+            elapsed = now - pr.created_at
             if elapsed > timedelta(days=settings.draft_pr_stale_days):
                 days = int(elapsed.total_seconds() // 86400)
                 blockers.append(

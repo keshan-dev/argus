@@ -46,7 +46,7 @@ def load_prompt(findings_text: str) -> str:
     """Load the versioned prompt template and substitute findings data."""
     prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "narrative_v1.txt")
     if os.path.exists(prompt_path):
-        with open(prompt_path, "r", encoding="utf-8") as f:
+        with open(prompt_path, encoding="utf-8") as f:
             template = f.read()
         return template.replace("{findings}", findings_text)
     return (
@@ -140,9 +140,7 @@ async def generate_narrative(
                 )
                 break
             except (httpx.HTTPStatusError, json.JSONDecodeError, ValidationError) as err:
-                logger.warning(
-                    "Narrative attempt %d failed: %s. Retrying...", attempt + 1, err
-                )
+                logger.warning("Narrative attempt %d failed: %s. Retrying...", attempt + 1, err)
                 if attempt == attempts - 1:
                     break
     finally:

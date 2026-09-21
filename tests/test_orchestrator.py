@@ -449,7 +449,8 @@ def test_a_failing_tool_on_an_optional_source_is_recorded_but_does_not_close_the
 async def test_run_agent_gate_closed() -> None:
     """When a required source is unavailable, run_agent returns UNKNOWN and persists run."""
     from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session as OrmSession, sessionmaker
+    from sqlalchemy.orm import Session as OrmSession
+    from sqlalchemy.orm import sessionmaker
 
     from app.db import Base
     from app.models.canonical import AppUser, Organization
@@ -458,10 +459,10 @@ async def test_run_agent_gate_closed() -> None:
     Base.metadata.create_all(engine)
     session: OrmSession = sessionmaker(bind=engine)()
     try:
-        org = Organization(name="Test Org", domain="test.com")
+        org = Organization(name="Test Org")
         session.add(org)
         session.flush()
-        user = AppUser(organization_id=org.id, email="k@example.com", full_name="Keshan")
+        user = AppUser(organization_id=org.id, display_name="Keshan")
         session.add(user)
         session.flush()
 
@@ -487,7 +488,8 @@ async def test_run_agent_gate_closed() -> None:
 async def test_run_agent_full_pipeline_success() -> None:
     """Full execution S1-S6 returns MemberInsight with findings, summary, and cache saved."""
     from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session as OrmSession, sessionmaker
+    from sqlalchemy.orm import Session as OrmSession
+    from sqlalchemy.orm import sessionmaker
 
     from app.db import Base
     from app.models.canonical import AppUser, Organization
@@ -496,10 +498,10 @@ async def test_run_agent_full_pipeline_success() -> None:
     Base.metadata.create_all(engine)
     session: OrmSession = sessionmaker(bind=engine)()
     try:
-        org = Organization(name="Test Org", domain="test.com")
+        org = Organization(name="Test Org")
         session.add(org)
         session.flush()
-        user = AppUser(organization_id=org.id, email="k@example.com", full_name="Keshan")
+        user = AppUser(organization_id=org.id, display_name="Keshan")
         session.add(user)
         session.flush()
 
