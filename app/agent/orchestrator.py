@@ -20,8 +20,8 @@ from sqlalchemy.orm import Session
 
 from app.agent.planner import QuestionType, RetrievalPlan, Source, build_plan
 from app.schemas.errors import ToolFailure
-from app.schemas.insight import Insight, MemberInsight
 from app.schemas.evidence import EvidenceSet
+from app.schemas.insight import Insight, MemberInsight
 from app.schemas.tools import (
     CommitOut,
     GetAssignedWorkItemsInput,
