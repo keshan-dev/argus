@@ -22,14 +22,14 @@ class SourceState(StrEnum):
 class EvidenceItem(BaseModel):
     id: str
     source: Literal["jira", "github"]
-    entity_type: EntityType
-    entity_key: str | int
+    entity_type: EntityType | str
+    entity_key: str
     source_url: str | None = None
     summary: str
     excerpt: str | None = None
-    observed_at: datetime | None = None
+    observed_at: datetime
     retrieved_at: datetime
-    source_state: SourceState = SourceState.fresh
+    source_state: SourceState | str = SourceState.fresh
 
 
 class EvidenceSet(BaseModel):

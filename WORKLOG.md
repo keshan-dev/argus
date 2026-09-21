@@ -60,6 +60,45 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-22 | Isiwara | P4-001, P4-005, P4-006, P4-007
+Status: DONE
+
+### Completed
+Completed Developer 2 Phase 4 tasks and end-to-end agent pipeline orchestration:
+1. `P4-001` (Issue #25): Created `app/agent/evidence_builder.py` building a sanitized,
+deduplicated, ranked evidence set with sequential IDs ev_1..ev_n (DEC-004, DEC-008).
+Excludes null actors and unavailable sources; strips URLs and control chars from excerpts.
+2. `P4-005` (Issue #29): Created `app/agent/narrative.py` and `app/agent/prompts/narrative_v1.txt`
+implementing the single local Ollama call with temperature 0, fixed seed 42, num_predict 300,
+schema retry once, and deterministic fallback on connection error or schema failure (DEC-018).
+Asserted zero tool calls and zero claim/confidence generation (AC-3).
+3. `P4-006` (Issue #30): Created `app/agent/validation.py` rejecting invented entities, forbidden
+person-judgment terms, or invalid shapes with automatic deterministic fallback and dropped claim
+tracking (FR-017, FR-022).
+4. `P4-007` (Issue #31): Created `app/agent/cache.py` providing stable SHA-256 evidence hashing,
+insight caching in `Insight` table, and comprehensive audit persistence into `AgentRun` table
+(FR-024, FR-031).
+5. Orchestration Pipeline: Added `run_agent` to `app/agent/orchestrator.py` integrating stages
+S1 through S6 end-to-end (closed gate handling, evidence building, cache check, findings engine,
+narrative generation, validation, and run persistence).
+6. Unit tests: Created `tests/test_evidence_builder.py` (6 tests), `tests/test_narrative.py`
+(4 tests), `tests/test_validation.py` (5 tests), `tests/test_cache.py` (4 tests), and full-flow
+orchestration tests in `tests/test_orchestrator.py`.
+7. Marked P4-001, P4-005, P4-006, and P4-007 as DONE in `docs/TASKS.md`.
+
+### Changed
+`app/agent/evidence_builder.py` (new), `app/agent/narrative.py` (new),
+`app/agent/prompts/narrative_v1.txt` (new), `app/agent/validation.py` (new),
+`app/agent/cache.py` (new), `app/agent/orchestrator.py`, `app/schemas/evidence.py`,
+`app/schemas/insight.py`, `app/agent/__init__.py`, `tests/test_evidence_builder.py` (new),
+`tests/test_narrative.py` (new), `tests/test_validation.py` (new), `tests/test_cache.py` (new),
+`tests/test_orchestrator.py`, `docs/TASKS.md`, `WORKLOG.md`.
+
+### Next Step
+Phase 4 is complete. Proceed to Phase 5 (API and UI routes, templates, and evidence drawer).
+
+---
+
 ## 2026-09-22 | Keshan | P4-002, P4-003, P4-004, P4-008
 Status: DONE
 

@@ -17,10 +17,25 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+import httpx
 
+from app.agent.blockers import detect_blockers
+from app.agent.cache import (
+    compute_evidence_hash,
+    get_cached_insight,
+    persist_agent_run,
+    save_cached_insight,
+)
+from app.agent.confidence import evaluate_confidence
+from app.agent.conflicts import detect_conflicts
+from app.agent.deterministic_summary import generate_deterministic_summary
+from app.agent.evidence_builder import build_evidence
+from app.agent.narrative import deterministic_fallback, generate_narrative
 from app.agent.planner import QuestionType, RetrievalPlan, Source, build_plan
+from app.agent.risks import detect_risks
+from app.agent.validation import validate_narrative
 from app.schemas.errors import ToolFailure
-from app.schemas.insight import Insight, MemberInsight
+from app.schemas.insight import EvidenceItem, Insight, MemberInsight
 from app.schemas.tools import (
     CommitOut,
     GetAssignedWorkItemsInput,
@@ -332,3 +347,289 @@ def unknown_response(context: AgentRunContext) -> MemberInsight:
         last_synced={health.source: health.last_success_at for health in context.health},
         source_health=list(context.health),
     )
+
+
+async def run_agent(
+    session: Session,
+    *,
+    subject_user_id: int,
+    team_id: int,
+    question_type: str,
+    actor_user_id: int | None = None,
+    tools: ReadTools | None = None,
+    now: datetime | None = None,
+    client: httpx.AsyncClient | None = None,
+    skip_llm: bool = False,
+) -> MemberInsight:
+    """Execute end-to-end agent pipeline stages S1 through S6 (DEC-018, FR-014, FR-024).
+
+    1. S1 (plan) and S2 (retrieve)
+    2. Check gate: if closed, persist run and return UNKNOWN
+    3. S3 (build evidence) with deduplication, ranking, and stable IDs
+    4. S6 Cache lookup: return cached answer immediately on hash match
+    5. S4a (deterministic findings engine): conflicts, blockers, risks, confidence
+    6. S4b (narrative generation): Ollama or deterministic fallback
+    7. S5 (validation): safe, grounded narrative or fallback
+    8. S6 (persistence & cache): persist agent_run, store insight cache, return MemberInsight
+    """
+    context = run_s1_s2(
+        session,
+        subject_user_id=subject_user_id,
+        team_id=team_id,
+        question_type=question_type,
+        tools=tools,
+        now=now,
+    )
+
+    # 1. Closed Gate handling (S2 gate)
+    if not context.gate.proceed:
+        insight = unknown_response(context)
+        persist_agent_run(
+            session=session,
+            subject_user_id=subject_user_id,
+            question_type=question_type,
+            window_start=context.window_start,
+            window_end=context.window_end,
+            evidence_set=[],
+            source_health=context.health,
+            actor_user_id=actor_user_id,
+            error_type="GATE_CLOSED",
+        )
+        return insight
+
+    # 2. Stage S3: Build Evidence
+    evidence_set = build_evidence(context)
+    evidence_items = list(evidence_set.items)
+
+    canonical_evidence: list[EvidenceItem] = []
+    for ev in evidence_items:
+        canonical_evidence.append(
+            EvidenceItem(
+                id=ev.id,
+                source=ev.source,
+                entity_type=str(ev.entity_type),
+                entity_key=str(ev.entity_key),
+                source_url=ev.source_url or "",
+                summary=ev.summary,
+                excerpt=ev.excerpt,
+                observed_at=ev.observed_at,
+                retrieved_at=ev.retrieved_at,
+                source_state="fresh" if str(ev.source_state) == "fresh" else "stale",
+            )
+        )
+
+    # 3. Stage S6 Cache Lookup (before S4)
+    ev_hash = compute_evidence_hash(subject_user_id, question_type, canonical_evidence)
+    cached = get_cached_insight(session, subject_user_id, question_type, ev_hash)
+    if cached is not None:
+        logger.info(
+            "Cache hit for subject=%d question=%s hash=%s. Skipping model call.",
+            subject_user_id,
+            question_type,
+            ev_hash[:8],
+        )
+        persist_agent_run(
+            session=session,
+            subject_user_id=subject_user_id,
+            question_type=question_type,
+            window_start=context.window_start,
+            window_end=context.window_end,
+            evidence_set=canonical_evidence,
+            source_health=context.health,
+            actor_user_id=actor_user_id,
+        )
+        return cached
+
+    # 4. Stage S4a: Deterministic Findings Engine
+    conflicts = detect_conflicts(
+        context.retrieval.work_items,
+        context.retrieval.pull_requests,
+        context.retrieval.commits,
+        context.retrieval.links,
+    )
+    blockers = detect_blockers(
+        context.retrieval.work_items,
+        context.retrieval.pull_requests,
+        context.retrieval.commits,
+        context.retrieval.links,
+        as_of=context.started_at,
+    )
+    risks = detect_risks(
+        context.retrieval.work_items,
+        context.retrieval.pull_requests,
+        context.retrieval.commits,
+        context.retrieval.links,
+        conflicts=conflicts,
+        as_of=context.started_at,
+    )
+
+    det_summary = generate_deterministic_summary(
+        context.retrieval.work_items,
+        context.retrieval.pull_requests,
+        context.retrieval.commits,
+        context.retrieval.reviews,
+        is_fallback=False,
+    )
+    det_fallback = generate_deterministic_summary(
+        context.retrieval.work_items,
+        context.retrieval.pull_requests,
+        context.retrieval.commits,
+        context.retrieval.reviews,
+        is_fallback=True,
+    )
+
+    # Resolve likely current work
+    likely_current_work = None
+    active_items = [w for w in context.retrieval.work_items if w.status == "in_progress"]
+    target_item = active_items[0] if active_items else (
+        context.retrieval.work_items[0] if context.retrieval.work_items else None
+    )
+    if target_item is not None:
+        target_ev = [
+            ev
+            for ev in canonical_evidence
+            if ev.entity_key == target_item.external_id or target_item.external_id in ev.summary
+        ]
+        has_conf = any(c.work_item_external_id == target_item.external_id for c in conflicts)
+        conf = evaluate_confidence(
+            target_ev,
+            claim_type="work_item_assignment",
+            has_unresolved_conflict=has_conf,
+            is_truncated=evidence_set.truncated,
+            as_of=context.started_at,
+        )
+        likely_current_work = Insight(
+            claim=f"Likely working on {target_item.external_id}: {target_item.title}.",
+            classification="inference" if len(target_ev) >= 2 else "fact",
+            confidence=conf,
+            evidence=target_ev,
+        )
+
+    # Resolve blocker insights
+    blocker_insights: list[Insight] = []
+    for b in blockers:
+        b_ev = [
+            ev
+            for ev in canonical_evidence
+            if ev.entity_key in b.evidence_keys or any(k in ev.summary for k in b.evidence_keys)
+        ]
+        conf = evaluate_confidence(
+            b_ev,
+            claim_type="declared_blocker",
+            has_unresolved_conflict=any(
+                c.work_item_external_id == b.entity_key for c in conflicts
+            ),
+            is_truncated=evidence_set.truncated,
+            as_of=context.started_at,
+        )
+        conf_descs = [
+            c.description for c in conflicts if c.work_item_external_id == b.entity_key
+        ]
+        blocker_insights.append(
+            Insight(
+                claim=b.description,
+                classification="fact",
+                confidence=conf,
+                evidence=b_ev,
+                conflicts=conf_descs,
+            )
+        )
+
+    # Resolve risk insights
+    risk_insights: list[Insight] = []
+    for r in risks:
+        r_ev = [
+            ev
+            for ev in canonical_evidence
+            if ev.entity_key in r.evidence_keys or any(k in ev.summary for k in r.evidence_keys)
+        ]
+        conf = evaluate_confidence(
+            r_ev,
+            claim_type="due_date",
+            has_unresolved_conflict=any(
+                c.work_item_external_id == r.entity_key for c in conflicts
+            ),
+            is_truncated=evidence_set.truncated,
+            as_of=context.started_at,
+        )
+        conf_descs = [
+            c.description for c in conflicts if c.work_item_external_id == r.entity_key
+        ]
+        risk_insights.append(
+            Insight(
+                claim=r.description,
+                classification="inference",
+                confidence=conf,
+                evidence=r_ev,
+                conflicts=conf_descs,
+            )
+        )
+
+    allowed_entities = {w.external_id for w in context.retrieval.work_items}
+    allowed_entities |= {f"#{pr.number}" for pr in context.retrieval.pull_requests}
+
+    findings_sections = [det_summary.text]
+    if blockers:
+        findings_sections.append("Blockers: " + "; ".join(b.description for b in blockers))
+    if risks:
+        findings_sections.append("Risks: " + "; ".join(r.description for r in risks))
+    findings_prompt_text = "\n\n".join(findings_sections)
+
+    # 5. Stage S4b: Narrative Generation
+    if skip_llm:
+        narrative_res = deterministic_fallback(det_summary.text)
+    else:
+        narrative_res = await generate_narrative(
+            findings_prompt_text,
+            fallback_text=det_fallback.text,
+            client=client,
+        )
+
+    # 6. Stage S5: Narrative Validation
+    validated = validate_narrative(
+        summary=narrative_res.summary,
+        needs_attention=narrative_res.needs_attention,
+        attention_needed=narrative_res.attention_needed,
+        allowed_entities=allowed_entities,
+        fallback_text=det_fallback.text,
+    )
+
+    # 7. Stage S6: Assembly, Persistence, and Cache
+    final_insight = MemberInsight(
+        user_id=subject_user_id,
+        likely_current_work=likely_current_work,
+        assigned=context.retrieval.work_items,
+        blockers=blocker_insights,
+        risks=risk_insights,
+        unknowns=[context.gate.reason] if context.gate.reason else [],
+        last_synced={h.source: h.last_success_at for h in context.health},
+        source_health=list(context.health),
+        summary=validated.summary,
+    )
+
+    save_cached_insight(
+        session=session,
+        subject_user_id=subject_user_id,
+        question_type=question_type,
+        evidence_hash=ev_hash,
+        insight=final_insight,
+    )
+
+    persist_agent_run(
+        session=session,
+        subject_user_id=subject_user_id,
+        question_type=question_type,
+        window_start=context.window_start,
+        window_end=context.window_end,
+        evidence_set=canonical_evidence,
+        source_health=context.health,
+        raw_model_output=narrative_res.raw_response,
+        validated_output=validated.model_dump(),
+        dropped_claims=validated.dropped_claims,
+        input_tokens=narrative_res.prompt_eval_count,
+        output_tokens=narrative_res.eval_count,
+        latency_ms=narrative_res.latency_ms,
+        actor_user_id=actor_user_id,
+    )
+
+    return final_insight
