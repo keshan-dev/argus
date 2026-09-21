@@ -4,14 +4,15 @@ Wires the health endpoint and the auth routes. Member-data routes arrive in P5-0
 and MUST take the MemberGuard dependency from app.web.auth.
 """
 
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app.web.auth import auth_router
 from app.config import get_settings
 from app.scheduler import start_scheduler_task, stop_scheduler_task
+from app.web.auth import auth_router
 
 
 @asynccontextmanager
@@ -29,6 +30,7 @@ app = FastAPI(
     title="ARGUS",
     description="Evidence-based engineering team intelligence agent",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.include_router(auth_router)

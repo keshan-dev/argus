@@ -48,6 +48,6 @@ def test_no_http_client_imported_in_tools() -> None:
                             )
 
     assert not violations, (
-        f"Forbidden HTTP client imports found under app/tools/ (violating AC-1/DEC-002):\n"
+        "Forbidden HTTP client imports found under app/tools/ (violating AC-1/DEC-002):\n"
         + "\n".join(violations)
     )
