@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.agent.planner import QuestionType, RetrievalPlan, Source, build_plan
 from app.schemas.errors import ToolFailure
 from app.schemas.insight import Insight, MemberInsight
+from app.schemas.evidence import EvidenceSet
 from app.schemas.tools import (
     CommitOut,
     GetAssignedWorkItemsInput,
@@ -97,7 +98,7 @@ class GateResult(BaseModel):
 
 
 class AgentRunContext(BaseModel):
-    """Carries everything between stages: plan, retrieval, health and failures."""
+    """Carries everything between stages: plan, retrieval, health, evidence, and failures."""
 
     subject_user_id: int
     team_id: int
@@ -108,6 +109,7 @@ class AgentRunContext(BaseModel):
     window_end: datetime
     health: list[SourceHealthOut] = Field(default_factory=list)
     retrieval: RetrievalResult = Field(default_factory=RetrievalResult)
+    evidence_set: EvidenceSet | None = None
     failures: list[ToolFailure] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
     gate: GateResult = Field(default_factory=GateResult)
