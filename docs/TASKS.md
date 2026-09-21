@@ -1347,7 +1347,7 @@ trusted to find them.
 **Out of scope:** Resolving conflicts. ARGUS never picks a winner.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001
 **Parallelizable:** YES, alongside P4-003 and P4-004.
 **Components:** Agent
@@ -1362,11 +1362,11 @@ trusted to find them.
 - **MUST NOT resolve.** Report both states.
 
 **Acceptance criteria:**
-- [ ] All 4 rules are implemented and independently tested.
-- [ ] Each conflict cites evidence from both sides.
-- [ ] No rule picks a winner.
-- [ ] A conflict drops the affected claim's confidence 1 level.
-- [ ] No conflict is raised when the states agree.
+- [x] All 4 rules are implemented and independently tested.
+- [x] Each conflict cites evidence from both sides.
+- [x] No rule picks a winner.
+- [x] A conflict drops the affected claim's confidence 1 level.
+- [x] No conflict is raised when the states agree.
 
 **Testing required:** A unit test per rule, plus a negative case per rule.
 **Handoff notes:** Conflicts feed the confidence rules in P4-004.
@@ -1387,7 +1387,7 @@ trusted to find them.
 **Out of scope:** Any inference over free text.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001
 **Parallelizable:** YES.
 **Components:** Agent
@@ -1402,12 +1402,12 @@ trusted to find them.
   unavailable, the caller returns UNKNOWN rather than an empty list.
 
 **Acceptance criteria:**
-- [ ] All 8 blocker signals are implemented and independently tested.
-- [ ] All 4 risk signals are implemented and independently tested.
-- [ ] Every blocker and risk cites evidence IDs.
-- [ ] Thresholds come from config.
-- [ ] No statement describes a person.
-- [ ] An empty result is distinguishable from an unavailable source.
+- [x] All 8 blocker signals are implemented and independently tested.
+- [x] All 4 risk signals are implemented and independently tested.
+- [x] Every blocker and risk cites evidence IDs.
+- [x] Thresholds come from config.
+- [x] No statement describes a person.
+- [x] An empty result is distinguishable from an unavailable source.
 
 **Testing required:** A unit test per signal, positive and negative. 24 tests.
 **Handoff notes:** These populate `MemberInsight.blockers` and `.risks`.
@@ -1429,7 +1429,7 @@ against the review time. Get the comparison direction right and test it.
 **Out of scope:** Numeric confidence. Not in the MVP.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001, P4-002
 **Parallelizable:** YES.
 **Components:** Agent
@@ -1446,12 +1446,12 @@ against the review time. Get the comparison direction right and test it.
 - **Model-supplied confidence is discarded.** A test must assert this.
 
 **Acceptance criteria:**
-- [ ] All 4 base levels are implemented.
-- [ ] All 5 modifiers are implemented and applied in order.
-- [ ] Every worked example in `AI_BEHAVIOR.md` 5.4 is a passing test.
-- [ ] Model-supplied confidence is ignored, asserted by a test.
-- [ ] A required source unavailable forces UNKNOWN regardless of other evidence.
-- [ ] Pure functions, testable with no model call.
+- [x] All 4 base levels are implemented.
+- [x] All 5 modifiers are implemented and applied in order.
+- [x] Every worked example in `AI_BEHAVIOR.md` 5.4 is a passing test.
+- [x] Model-supplied confidence is ignored, asserted by a test.
+- [x] A required source unavailable forces UNKNOWN regardless of other evidence.
+- [x] Pure functions, testable with no model call.
 
 **Testing required:** A unit test per base level, per modifier, and for each of the 7
 worked examples.
@@ -1631,7 +1631,7 @@ from tool output.
 **Out of scope:** Inference. That is what the model is for.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P3-002
 **Parallelizable:** YES. Can be built before the reasoning stage exists.
 **Components:** Agent
@@ -1645,13 +1645,13 @@ from tool output.
   (FR-026).
 
 **Acceptance criteria:**
-- [ ] Produces assigned work with status and priority, open pull requests, recent commits
+- [x] Produces assigned work with status and priority, open pull requests, recent commits
       and reviews.
-- [ ] Makes 0 model calls.
-- [ ] Correct against seeded fixture data.
-- [ ] Reachable through the API without the agent.
-- [ ] When used as a fallback, the response says so.
-- [ ] Activity counts carry the context note.
+- [x] Makes 0 model calls.
+- [x] Correct against seeded fixture data.
+- [x] Reachable through the API without the agent.
+- [x] When used as a fallback, the response says so.
+- [x] Activity counts carry the context note.
 
 **Testing required:** Unit tests against seeded data, plus a test that the fallback path
 produces it when the model fails.

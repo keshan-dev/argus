@@ -60,6 +60,43 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-22 | Keshan | P4-002, P4-003, P4-004, P4-008
+Status: DONE
+
+### Completed
+Implemented Developer 1 deterministic findings engine components under DEC-018 and DEC-019:
+1. `P4-008` (Issue #32): Created `app/agent/deterministic_summary.py` providing zero-LLM member
+summary generation with fallback header (FR-022) and mandatory productivity context disclaimer
+(FR-026).
+2. `P4-002` (Issue #26): Created `app/agent/conflicts.py` implementing deterministic conflict
+rules CF-1 through CF-4 across Jira work items and GitHub pull requests/commits. Enforces non-
+resolution rule (C-1, C-2, DEC-005).
+3. `P4-003` (Issue #27): Created `app/agent/blockers.py` (signals BL-1 through BL-8) and
+`app/agent/risks.py` (signals RK-1 through RK-4) driven entirely by config thresholds. Strictly
+enforces FR-021: risk descriptions describe work items and dates, never individuals.
+4. `P4-004` (Issue #28): Created `app/agent/confidence.py` implementing base confidence levels
+(HIGH, MEDIUM, LOW, UNKNOWN) and the 5 ordered modifiers from AI_BEHAVIOR.md 5.4. Strictly
+discards any model-supplied confidence per DEC-006.
+5. Unit tests: Created `tests/test_deterministic_summary.py` (3 tests), `tests/test_conflicts.py`
+(9 tests), `tests/test_blockers.py` (16 tests), `tests/test_risks.py` (8 tests), and
+`tests/test_confidence.py` (10 tests including all 7 worked examples).
+6. Exported public engine API symbols in `app/agent/__init__.py`.
+7. Marked P4-002, P4-003, P4-004, and P4-008 as DONE in `docs/TASKS.md`.
+
+### Changed
+`app/agent/deterministic_summary.py` (new), `app/agent/conflicts.py` (new), `app/agent/blockers.py`
+(new), `app/agent/risks.py` (new), `app/agent/confidence.py` (new), `app/agent/__init__.py`,
+`tests/test_deterministic_summary.py` (new), `tests/test_conflicts.py` (new),
+`tests/test_blockers.py` (new), `tests/test_risks.py` (new), `tests/test_confidence.py` (new),
+`docs/TASKS.md`, `WORKLOG.md`.
+
+### Next Step
+Handoff findings engine rules (conflicts, blockers, risks, confidence, deterministic summary) to
+Developer 2 for narrative generation (`P4-005`), narrative validation (`P4-006`), and agent run
+cache persistence (`P4-007`).
+
+---
+
 ## 2026-09-22 | Isiwara | P3-004
 Status: IN_REVIEW
 
