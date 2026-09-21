@@ -60,6 +60,49 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-21 | Keshan | P3-002 & P3-003
+Status: DONE
+
+### Completed
+Implemented read tools T-001 through T-006 (`P3-002`, Issue #22) and source health tool
+T-007 (`P3-003`, Issue #23):
+1. Created `app/tools/base.py` providing `execute_tool_query` with database statement timeout
+detection, UPSTREAM_ERROR mapping, and credential redaction (NFR-011).
+2. Implemented `app/tools/get_team_members.py` (T-001) returning team members with verified
+identity links and total unresolved unmatched entities count.
+3. Implemented `app/tools/get_assigned_work_items.py` (T-002) returning normalized work items,
+filtering by time window and statuses, and resolving open blocking dependencies.
+4. Implemented `app/tools/get_pull_requests.py` (T-003) returning pull requests authored by
+subject, filtering by states and draft flag.
+5. Implemented `app/tools/get_commits.py` (T-004) with window filtering and truncation
+detection (`truncated=True` when exceeding limit).
+6. Implemented `app/tools/get_reviews.py` (T-005) filtering reviews by direction (`given`,
+`received`, `both`) and timestamp window.
+7. Implemented `app/tools/get_work_item_links.py` (T-006) retrieving correlation links filtered
+by work item or pull request IDs and minimum confidence threshold.
+8. Implemented `app/tools/get_source_health.py` (T-007) evaluating 3-state source health
+(`fresh`, `stale`, `unavailable`) per DEC-010 with fail-closed error handling.
+9. Created `tests/test_tool_import_guard.py` mechanically asserting zero HTTP client imports
+under `app/tools/` (AC-1, DEC-002).
+10. Created `tests/test_tools.py` and `tests/test_source_health.py` with 13 comprehensive unit
+tests verifying success, empty results, filter options, truncation, timeout, and fail-closed
+behavior.
+11. Marked `P3-002` and `P3-003` as DONE in `docs/TASKS.md`.
+
+### Changed
+`app/tools/` (new package: `base.py`, `get_team_members.py`, `get_assigned_work_items.py`,
+`get_pull_requests.py`, `get_commits.py`, `get_reviews.py`, `get_work_item_links.py`,
+`get_source_health.py`, `__init__.py`), `tests/test_tool_import_guard.py` (new),
+`tests/test_tools.py` (new), `tests/test_source_health.py` (new), `docs/TASKS.md`,
+`WORKLOG.md`.
+
+### Next Step
+Hand off T-001 through T-007 to Developer 2 for agent planner and orchestrator (`P3-004`)
+and evidence builder (`P4-001`). Proceed to next assigned Developer 1 task (Findings engine
+rules in Phase 4: `P4-002` blockers, `P4-003` risks, `P4-004` conflicts).
+
+---
+
 ## 2026-09-21 | Keshan | P2 CI fixes
 Status: DONE
 
