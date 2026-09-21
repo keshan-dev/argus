@@ -76,7 +76,7 @@ slot for the question asked. The model is never reached. An unavailable optional
 adds a note. An invalid question type raises `InvalidQuestionTypeError` (422) before any tool runs.
 
 32 new tests, 11 planner and 21 orchestrator, with fake tools. No database and no Ollama.
-Full suite: NNN passed.
+Full suite: 197 passed.
 
 ### Changed
 New: `app/agent/__init__.py`, `app/agent/planner.py`, `app/agent/orchestrator.py`,
