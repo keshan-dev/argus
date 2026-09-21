@@ -1166,7 +1166,7 @@ every route.
 **Out of scope:** T-007, which is P3-003. Evidence building.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-001, P1-002, P1-004
 **Parallelizable:** YES.
 **Components:** Read path
@@ -1180,12 +1180,12 @@ every route.
 - `get_commits` must set `truncated` when more rows exist than `limit`.
 
 **Acceptance criteria:**
-- [ ] All 6 tools are implemented to their documented contracts.
-- [ ] A test asserts no HTTP client is imported under `app/tools/`.
-- [ ] Each tool returns typed output or a typed failure.
-- [ ] An empty result is a success, not a failure.
-- [ ] `truncated` is set correctly by `get_commits`.
-- [ ] Each tool has a unit test for success, empty and at least 1 failure.
+- [x] All 6 tools are implemented to their documented contracts.
+- [x] A test asserts no HTTP client is imported under `app/tools/`.
+- [x] Each tool returns typed output or a typed failure.
+- [x] An empty result is a success, not a failure.
+- [x] `truncated` is set correctly by `get_commits`.
+- [x] Each tool has a unit test for success, empty and at least 1 failure.
 
 **Testing required:** Unit tests per tool against a seeded test database.
 **Handoff notes:** The evidence builder consumes these.
@@ -1207,7 +1207,7 @@ The most important 20 lines in the system (DEC-010).
 **Out of scope:** Triggering a sync. It reports only.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P1-001, P1-003
 **Parallelizable:** YES. Can be built before P2-008 exists, using hand-written `sync_run`
 rows in a test database.
@@ -1223,11 +1223,11 @@ rows in a test database.
 - `last_error_type` is a typed enum, never a raw upstream string, so nothing can leak.
 
 **Acceptance criteria:**
-- [ ] A recent successful run returns `fresh`.
-- [ ] A success 30 hours ago returns `stale` with the age.
-- [ ] A most-recent failed attempt returns `unavailable` with the error type.
-- [ ] No sync history at all returns `unavailable`.
-- [ ] A tool error causes the caller to return UNKNOWN, not a healthy assumption.
+- [x] A recent successful run returns `fresh`.
+- [x] A success 30 hours ago returns `stale` with the age.
+- [x] A most-recent failed attempt returns `unavailable` with the error type.
+- [x] No sync history at all returns `unavailable`.
+- [x] A tool error causes the caller to return UNKNOWN, not a healthy assumption.
 
 **Testing required:** Unit tests for all 4 states plus the fail-closed case.
 **Handoff notes:** Every agent run calls this. It is never optional.

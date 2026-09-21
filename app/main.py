@@ -1,7 +1,7 @@
 """FastAPI application entry point.
 
-P0-003 scope is the skeleton only: the app object and a health endpoint. Routers,
-models, tools and agent code arrive in later phases.
+Wires the health endpoint, the scheduler lifespan and the auth routes. Member-data
+routes arrive in P5-001 and MUST take the MemberGuard dependency from app.web.auth.
 """
 
 from contextlib import asynccontextmanager
@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app.config import get_settings
 from app.scheduler import start_scheduler_task, stop_scheduler_task
+from app.web.auth import auth_router
 
 
 @asynccontextmanager
@@ -31,6 +32,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(auth_router)
 
 
 class Health(BaseModel):
