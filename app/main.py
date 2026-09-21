@@ -1,7 +1,7 @@
 """FastAPI application entry point.
 
-Wires the health endpoint and the auth routes. Member-data routes arrive in P5-001
-and MUST take the MemberGuard dependency from app.web.auth.
+Wires the health endpoint, the scheduler lifespan and the auth routes. Member-data
+routes arrive in P5-001 and MUST take the MemberGuard dependency from app.web.auth.
 """
 
 from contextlib import asynccontextmanager
