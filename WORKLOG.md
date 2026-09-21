@@ -60,6 +60,97 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-09-22 | Isiwara | P3-004
+Status: IN_REVIEW
+
+### Completed
+Stages S1 and S2 of the agent. `app/agent/planner.py` holds the 3 fixed plans (DEC-007):
+`current_work` and `blockers` need jira and github over 14 days, `risks` needs jira with
+github optional over 30 days plus all open items with a due date. `app/agent/orchestrator.py`
+has `run_s1_s2`, which calls T-007 first on every run, then the tools the plan lists, and
+returns an `AgentRunContext` carrying plan, retrieval, health, failures and the gate decision.
+
+The required-source gate is in. An unavailable required source, a required tool failure, or
+a T-007 failure closes it, and `unknown_response` then builds an UNKNOWN `MemberInsight` in the
+slot for the question asked. The model is never reached. An unavailable optional source only
+adds a note. An invalid question type raises `InvalidQuestionTypeError` (422) before any tool runs.
+
+32 new tests, 11 planner and 21 orchestrator, with fake tools. No database and no Ollama.
+Full suite: 197 passed.
+
+### Changed
+New: `app/agent/__init__.py`, `app/agent/planner.py`, `app/agent/orchestrator.py`,
+`tests/test_planner.py`, `tests/test_orchestrator.py`. No existing file was changed.
+
+### Discovered
+**T-006 is skipped when there are no ids.** `GetWorkItemLinksInput` rejects an empty id list,
+so S2 only calls it when a work item or pull request was found.
+
+**"All open items with a due date" is a second T-002 call** with `include_done=False` and a
+3650 day lookback (`OPEN_ITEMS_LOOKBACK_DAYS`), because T-002 filters on `source_updated_at`
+and an old open item would otherwise fall outside the window. Items without a due date are
+dropped in code. A dedicated tool parameter would be cleaner if Keshan prefers it.
+
+**A tool is only called when every source it depends on is usable** (fresh or stale). T-006
+depends on both jira and github, so it is skipped if either is unavailable.
+
+### Decisions Needed
+Six choices to check against `AGENT_ARCHITECTURE.md` 3.4 and 3.6, which I had not read:
+
+1. `AgentRunContext` field names follow the P3-004 issue text, not section 3.6.
+2. `risks` skips T-005 (reviews). It is one line in `PLANS` to change.
+3. A closed gate still retrieves from the usable sources. Only unavailable ones are skipped.
+4. `RISK_WINDOW_DAYS = 30` lives in `planner.py`, not `app/config.py`.
+5. `InvalidQuestionTypeError` extends FastAPI's `HTTPException`, so it answers 422 by itself.
+6. `unknown_response` puts an UNKNOWN insight in the slot for the question asked.
+
+### Next Step
+P4-001, the evidence builder, which builds on `AgentRunContext`.
+
+### AI Assistance
+An AI assistant wrote the code and tests and ran black, ruff and pytest against a copy of the
+schemas before I ran them on my machine. Needs a human check: the 6 decisions above.
+
+---
+
+## 2026-09-22 | Isiwara | P3-001
+Status: DONE
+
+### Completed
+Late entry. The work shipped inside PR #74, which is why it has no entry of its own.
+
+The login stub and the authorization seam are in `app/web/auth.py`. Login takes a user id,
+checks the user exists and is active, and sets a signed session cookie. The cookie is signed
+with `hmac` and a random key generated per process, so no dependency and no setting were
+added, and a restart logs everyone out. `can_view_member(actor, subject)` is the only place the
+same-team rule lives, and a person with no team can view nobody. Member routes take the
+`MemberGuard` dependency, which answers 401, 404 or 403, and logs every denial.
+
+29 tests in `tests/test_auth.py`, with no database. One of them scans every route in the real
+app and fails if a path starting with `/api/members/` or containing `{member_id}` does not use
+the guard.
+
+### Changed
+New: `app/web/__init__.py`, `app/web/auth.py`, `tests/test_auth.py`.
+Changed: `app/main.py`, only to add `app.include_router(auth_router)`.
+
+### Discovered
+**P5-001 must name its path parameter `member_id`**, not `id` as `TASKS.md` writes it. The guard
+and the coverage test both read that name.
+
+The login is exercised only against fake users. It has not run against a real seeded database,
+which waits for P2-009.
+
+### Problems
+My first `app/main.py` was pasted from a stale copy and deleted the scheduler `lifespan` that
+came with PR #70. `test_startup_fails_without_secrets` caught it. Fixed by restoring
+Keshan's file and adding only the router lines. Missing final newlines also failed black.
+
+### Next Step
+Keshan: please close #21 if it is still open.
+
+---
+
 ## 2026-09-21 | Keshan | P3-002 & P3-003
 Status: DONE
 
