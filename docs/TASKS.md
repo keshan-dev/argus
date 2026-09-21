@@ -1299,7 +1299,7 @@ generate summaries in code, sanitize excerpts, assign `ev_1..ev_n`.
 **Out of scope:** Reasoning. Confidence.
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P3-004
 **Parallelizable:** NO.
 **Components:** Agent
@@ -1317,13 +1317,13 @@ generate summaries in code, sanitize excerpts, assign `ev_1..ev_n`.
 - The set is frozen once built. Nothing may add to it later.
 
 **Acceptance criteria:**
-- [ ] IDs are assigned sequentially, unique within a run.
-- [ ] Duplicates appear once.
-- [ ] Every item has a source URL, both timestamps and a code-generated summary.
-- [ ] Excerpts are capped and URL-stripped.
-- [ ] Records with a null actor are excluded.
-- [ ] The set is truncated at `MAX_EVIDENCE_ITEMS` with the highest-ranked kept.
-- [ ] An empty evidence set is a valid outcome.
+- [x] IDs are assigned sequentially, unique within a run.
+- [x] Duplicates appear once.
+- [x] Every item has a source URL, both timestamps and a code-generated summary.
+- [x] Excerpts are capped and URL-stripped.
+- [x] Records with a null actor are excluded.
+- [x] The set is truncated at `MAX_EVIDENCE_ITEMS` with the highest-ranked kept.
+- [x] An empty evidence set is a valid outcome.
 
 **Testing required:** Unit tests for ID assignment, deduplication, ranking, truncation,
 null-actor exclusion, and the empty case.
@@ -1347,7 +1347,7 @@ trusted to find them.
 **Out of scope:** Resolving conflicts. ARGUS never picks a winner.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001
 **Parallelizable:** YES, alongside P4-003 and P4-004.
 **Components:** Agent
@@ -1362,11 +1362,11 @@ trusted to find them.
 - **MUST NOT resolve.** Report both states.
 
 **Acceptance criteria:**
-- [ ] All 4 rules are implemented and independently tested.
-- [ ] Each conflict cites evidence from both sides.
-- [ ] No rule picks a winner.
-- [ ] A conflict drops the affected claim's confidence 1 level.
-- [ ] No conflict is raised when the states agree.
+- [x] All 4 rules are implemented and independently tested.
+- [x] Each conflict cites evidence from both sides.
+- [x] No rule picks a winner.
+- [x] A conflict drops the affected claim's confidence 1 level.
+- [x] No conflict is raised when the states agree.
 
 **Testing required:** A unit test per rule, plus a negative case per rule.
 **Handoff notes:** Conflicts feed the confidence rules in P4-004.
@@ -1387,7 +1387,7 @@ trusted to find them.
 **Out of scope:** Any inference over free text.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001
 **Parallelizable:** YES.
 **Components:** Agent
@@ -1402,12 +1402,12 @@ trusted to find them.
   unavailable, the caller returns UNKNOWN rather than an empty list.
 
 **Acceptance criteria:**
-- [ ] All 8 blocker signals are implemented and independently tested.
-- [ ] All 4 risk signals are implemented and independently tested.
-- [ ] Every blocker and risk cites evidence IDs.
-- [ ] Thresholds come from config.
-- [ ] No statement describes a person.
-- [ ] An empty result is distinguishable from an unavailable source.
+- [x] All 8 blocker signals are implemented and independently tested.
+- [x] All 4 risk signals are implemented and independently tested.
+- [x] Every blocker and risk cites evidence IDs.
+- [x] Thresholds come from config.
+- [x] No statement describes a person.
+- [x] An empty result is distinguishable from an unavailable source.
 
 **Testing required:** A unit test per signal, positive and negative. 24 tests.
 **Handoff notes:** These populate `MemberInsight.blockers` and `.risks`.
@@ -1429,7 +1429,7 @@ against the review time. Get the comparison direction right and test it.
 **Out of scope:** Numeric confidence. Not in the MVP.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-001, P4-002
 **Parallelizable:** YES.
 **Components:** Agent
@@ -1446,12 +1446,12 @@ against the review time. Get the comparison direction right and test it.
 - **Model-supplied confidence is discarded.** A test must assert this.
 
 **Acceptance criteria:**
-- [ ] All 4 base levels are implemented.
-- [ ] All 5 modifiers are implemented and applied in order.
-- [ ] Every worked example in `AI_BEHAVIOR.md` 5.4 is a passing test.
-- [ ] Model-supplied confidence is ignored, asserted by a test.
-- [ ] A required source unavailable forces UNKNOWN regardless of other evidence.
-- [ ] Pure functions, testable with no model call.
+- [x] All 4 base levels are implemented.
+- [x] All 5 modifiers are implemented and applied in order.
+- [x] Every worked example in `AI_BEHAVIOR.md` 5.4 is a passing test.
+- [x] Model-supplied confidence is ignored, asserted by a test.
+- [x] A required source unavailable forces UNKNOWN regardless of other evidence.
+- [x] Pure functions, testable with no model call.
 
 **Testing required:** A unit test per base level, per modifier, and for each of the 7
 worked examples.
@@ -1475,7 +1475,7 @@ JSON schema, retry on schema failure, the deterministic fallback.
 from P4-002 to P4-004. Narrative validation is P4-006.
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-004, P0-005
 **Parallelizable:** NO.
 **Components:** Agent, local LLM
@@ -1500,15 +1500,15 @@ from P4-002 to P4-004. Narrative validation is P4-006.
 - The prompt is a versioned file. Changing it means a new version, by pull request.
 
 **Acceptance criteria:**
-- [ ] Exactly 1 model call per run.
-- [ ] No tools are passed, asserted by test.
-- [ ] `temperature: 0` and a fixed `seed` are sent.
-- [ ] The same findings produce byte-identical output across 2 runs.
-- [ ] Output validates against `NarrativeOutput`.
-- [ ] A schema failure retries once, then falls back.
-- [ ] Ollama not running falls back without failing the page, and logs how to start it.
-- [ ] Token counts and latency are captured.
-- [ ] **No code path lets the model emit an evidence ID**, asserted by test.
+- [x] Exactly 1 model call per run.
+- [x] No tools are passed, asserted by test.
+- [x] `temperature: 0` and a fixed `seed` are sent.
+- [x] The same findings produce byte-identical output across 2 runs.
+- [x] Output validates against `NarrativeOutput`.
+- [x] A schema failure retries once, then falls back.
+- [x] Ollama not running falls back without failing the page, and logs how to start it.
+- [x] Token counts and latency are captured.
+- [x] **No code path lets the model emit an evidence ID**, asserted by test.
 
 **Testing required:** Unit tests with a mocked HTTP client for success, schema failure then
 success, 2 failures then fallback, connection refused. 1 live smoke test run locally.
@@ -1533,7 +1533,7 @@ person.
 **Out of scope:** The findings themselves, which come from P4-002 to P4-004.
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-005
 **Parallelizable:** NO.
 **Components:** Agent
@@ -1554,12 +1554,12 @@ Checks in order:
 the findings are never affected.
 
 **Acceptance criteria:**
-- [ ] A narrative naming a ticket not in the findings is rejected and recorded.
-- [ ] A narrative containing forbidden language is rejected and recorded.
-- [ ] An empty or malformed field falls back.
-- [ ] A rejected narrative still produces a complete, correct response.
-- [ ] Findings are never modified by this stage.
-- [ ] Every rejection records a reason in `agent_run.dropped_claims`.
+- [x] A narrative naming a ticket not in the findings is rejected and recorded.
+- [x] A narrative containing forbidden language is rejected and recorded.
+- [x] An empty or malformed field falls back.
+- [x] A rejected narrative still produces a complete, correct response.
+- [x] Findings are never modified by this stage.
+- [x] Every rejection records a reason in `agent_run.dropped_claims`.
 
 **Testing required:** A unit test per check, plus a test feeding a deliberately fabricated
 narrative and asserting nothing invented reaches the output.
@@ -1570,6 +1570,8 @@ pattern. Reuse the one from P2-007.
 **Related requirements:** FR-017, FR-022
 **Completion evidence:** Merged pull request, all check tests passing, the fabrication test
 output.
+
+---
 
 ## P4-007
 
@@ -1583,7 +1585,7 @@ from being a new bill (FR-024, FR-031).
 **Out of scope:** A cost dashboard.
 **Owner:** Developer 2
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-006
 **Parallelizable:** NO.
 **Components:** Agent, database
@@ -1598,13 +1600,13 @@ from being a new bill (FR-024, FR-031).
 - **No secret may appear in any recorded field** (NFR-011).
 
 **Acceptance criteria:**
-- [ ] Every run writes an `agent_run` row, including failed runs.
-- [ ] Token counts and latency are recorded.
-- [ ] `dropped_claims` is recorded when the validator rejects a claim.
-- [ ] A repeated request with unchanged evidence makes 0 model calls.
-- [ ] Changed evidence produces a different hash and a fresh call.
-- [ ] The hash is stable across processes, asserted by a test.
-- [ ] No secret appears in any recorded field.
+- [x] Every run writes an `agent_run` row, including failed runs.
+- [x] Token counts and latency are recorded.
+- [x] `dropped_claims` is recorded when the validator rejects a claim.
+- [x] A repeated request with unchanged evidence makes 0 model calls.
+- [x] Changed evidence produces a different hash and a fresh call.
+- [x] The hash is stable across processes, asserted by a test.
+- [x] No secret appears in any recorded field.
 
 **Testing required:** Unit tests for hash stability, cache hit, cache miss on changed
 evidence, and persistence on a failed run.
@@ -1631,7 +1633,7 @@ from tool output.
 **Out of scope:** Inference. That is what the model is for.
 **Owner:** Developer 1
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P3-002
 **Parallelizable:** YES. Can be built before the reasoning stage exists.
 **Components:** Agent
@@ -1645,13 +1647,13 @@ from tool output.
   (FR-026).
 
 **Acceptance criteria:**
-- [ ] Produces assigned work with status and priority, open pull requests, recent commits
+- [x] Produces assigned work with status and priority, open pull requests, recent commits
       and reviews.
-- [ ] Makes 0 model calls.
-- [ ] Correct against seeded fixture data.
-- [ ] Reachable through the API without the agent.
-- [ ] When used as a fallback, the response says so.
-- [ ] Activity counts carry the context note.
+- [x] Makes 0 model calls.
+- [x] Correct against seeded fixture data.
+- [x] Reachable through the API without the agent.
+- [x] When used as a fallback, the response says so.
+- [x] Activity counts carry the context note.
 
 **Testing required:** Unit tests against seeded data, plus a test that the fallback path
 produces it when the model fails.

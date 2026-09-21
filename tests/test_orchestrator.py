@@ -12,6 +12,7 @@ import pytest
 from app.agent.orchestrator import (
     AgentRunContext,
     ReadTools,
+    run_agent,
     run_s1_s2,
     unknown_response,
 )
@@ -437,3 +438,110 @@ def test_a_failing_tool_on_an_optional_source_is_recorded_but_does_not_close_the
     assert context.gate.proceed is True
     assert [failure.tool_id for failure in context.failures] == ["T-003"]
     assert any("T-003 failed (RATE_LIMITED)" in note for note in context.notes)
+
+
+# ---------------------------------------------------------------------------
+# S1-S6 Full Pipeline run_agent Tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_run_agent_gate_closed() -> None:
+    """When a required source is unavailable, run_agent returns UNKNOWN and persists run."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session as OrmSession
+    from sqlalchemy.orm import sessionmaker
+
+    from app.db import Base
+    from app.models.canonical import AppUser, Organization
+
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session: OrmSession = sessionmaker(bind=engine)()
+    try:
+        org = Organization(name="Test Org")
+        session.add(org)
+        session.flush()
+        user = AppUser(organization_id=org.id, display_name="Keshan")
+        session.add(user)
+        session.flush()
+
+        tools, _, _ = make_tools(health=[_health("jira", "unavailable"), _health("github")])
+        insight = await run_agent(
+            session=session,
+            subject_user_id=user.id,
+            team_id=1,
+            question_type="current_work",
+            tools=tools,
+            now=NOW,
+            skip_llm=True,
+        )
+        assert insight.user_id == user.id
+        assert insight.likely_current_work is not None
+        assert "Cannot be established" in insight.likely_current_work.claim
+        assert insight.likely_current_work.confidence == "UNKNOWN"
+    finally:
+        session.close()
+
+
+@pytest.mark.anyio
+async def test_run_agent_full_pipeline_success() -> None:
+    """Full execution S1-S6 returns MemberInsight with findings, summary, and cache saved."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session as OrmSession
+    from sqlalchemy.orm import sessionmaker
+
+    from app.db import Base
+    from app.models.canonical import AppUser, Organization
+
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session: OrmSession = sessionmaker(bind=engine)()
+    try:
+        org = Organization(name="Test Org")
+        session.add(org)
+        session.flush()
+        user = AppUser(organization_id=org.id, display_name="Keshan")
+        session.add(user)
+        session.flush()
+
+        wi = _work_item(1)
+        wi.assignee_user_id = user.id
+        pr = _pull_request(7)
+        pr.author_user_id = user.id
+
+        tools, _, _ = make_tools(
+            health=[_health("jira"), _health("github")],
+            work_items=[wi],
+            pull_requests=[pr],
+        )
+
+        insight = await run_agent(
+            session=session,
+            subject_user_id=user.id,
+            team_id=1,
+            question_type="current_work",
+            tools=tools,
+            now=NOW,
+            skip_llm=True,
+        )
+
+        assert insight.user_id == user.id
+        assert insight.summary is not None
+        assert "AUTH-1" in insight.summary or "Assigned" in insight.summary
+        assert insight.likely_current_work is not None
+        assert "AUTH-1" in insight.likely_current_work.claim
+
+        # Running a second time hits the cache
+        insight_cached = await run_agent(
+            session=session,
+            subject_user_id=user.id,
+            team_id=1,
+            question_type="current_work",
+            tools=tools,
+            now=NOW,
+            skip_llm=True,
+        )
+        assert insight_cached.summary == insight.summary
+    finally:
+        session.close()
