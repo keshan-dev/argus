@@ -576,6 +576,7 @@ def test_execute_tool_query_maps_timeout_and_upstream_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """execute_tool_query converts timeouts to TIMEOUT and db exceptions to UPSTREAM_ERROR."""
+
     # 1. Simulated timeout
     def _timeout_op() -> None:
         raise RuntimeError("canceling statement due to statement timeout")
