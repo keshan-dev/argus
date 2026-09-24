@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from app.config import get_settings
 from app.scheduler import start_scheduler_task, stop_scheduler_task
 from app.web.auth import auth_router
+from app.web.routes import router as api_router
 
 
 @asynccontextmanager
@@ -34,6 +35,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(api_router)
 
 
 class Health(BaseModel):
