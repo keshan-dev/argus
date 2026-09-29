@@ -138,3 +138,51 @@ class MemberInsight(BaseModel):
         description="Per-source operational health and availability state",
     )
     summary: str | None = Field(default=None, description="Optional high-level narrative summary")
+
+
+# --- Team overview contracts (P5-001, Issue #33, FR-025, NFR-020) ---
+#
+# DRAFT: This schema did not exist before P5-001. It is proposed by Isiwara (Dev 2) and
+# needs Keshan's review before merge, since app/schemas/ is frozen and shared. See the
+# WORKLOG entry for this task for the explicit flag.
+
+
+class TeamMemberSummary(BaseModel):
+    """One team member's row in a team overview response."""
+
+    user_id: int = Field(description="Internal user ID of the member")
+    display_name: str = Field(description="Member's display name")
+    status: Literal["on_track", "needs_attention", "blocked", "unknown"] = Field(
+        description="Overall status for this member. A member with any unavailable "
+        "required source MUST be 'unknown', never 'on_track' (FR-025)."
+    )
+    reason: str | None = Field(
+        default=None,
+        description="Short, code-generated explanation for the status, "
+        "especially for 'blocked' or 'unknown'",
+    )
+    evidence: list[EvidenceItem] = Field(
+        default_factory=list,
+        description="Evidence backing this member's status; every status must be "
+        "backed by at least 1 evidence item unless status is 'unknown'",
+    )
+    last_synced: dict[str, datetime | None] = Field(
+        default_factory=dict,
+        description="Per-source last successful sync timestamp for this member",
+    )
+    source_health: list[SourceHealthOut] = Field(
+        default_factory=list,
+        description="Per-source operational health and availability state for this member",
+    )
+
+
+class TeamOverview(BaseModel):
+    """Full API response contract for a team's overview view."""
+
+    team_id: int = Field(description="Internal team ID")
+    members: list[TeamMemberSummary] = Field(
+        default_factory=list, description="Per-member status summaries"
+    )
+    generated_at: datetime = Field(
+        description="When this overview was computed; team overview is not cached"
+    )
