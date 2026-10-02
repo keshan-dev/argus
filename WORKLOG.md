@@ -60,6 +60,57 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-10-03 | Keshan | P5-001 CI fixes
+Status: IN_PROGRESS
+
+### Completed
+Made `Lint and format` and `Project rules` pass on pull request #84.
+1. Fixed the 11 ruff findings in `app/web/routes.py` and `tests/test_api_insights.py`:
+unsorted import blocks (I001), 3 unused imports (`fastapi.Depends`, `typing.Optional`,
+`pytest`), `typing.List` replaced with `list` (UP035, UP006), and 3 lines over 100
+characters (E501).
+2. Reformatted both files with black and added the missing trailing newline to
+`app/main.py`, which was the only black failure in the tree.
+3. Added this entry. `Project rules` was failing because pull request #84 targets
+`feat/phase-05`, and against that base the branch did not touch `WORKLOG.md`. It did
+against `main`, which is why the check passed earlier in the branch's life and started
+failing when the base was retargeted.
+
+### Changed
+`app/web/routes.py`, `tests/test_api_insights.py`, `app/main.py` (trailing newline only),
+`WORKLOG.md`.
+
+### Discovered
+The `WORKLOG.md` check in CI compares against `origin/${{ github.base_ref }}`, so it is
+relative to whatever branch a pull request targets. Retargeting a pull request can make a
+previously passing run fail without any code change.
+
+### Problems
+None in this change. It is formatting only, no behaviour was altered.
+
+### Decisions Needed
+`app/web/routes.py` as it stands returns hardcoded responses. It does not call the
+orchestrator, and it defines a local `can_view_member` stub rather than taking the
+`MemberGuard` dependency from `app/web/auth.py` that `app/main.py` names in its module
+docstring. Against the P5-001 acceptance criteria in `docs/TASKS.md` this leaves 3 unmet:
+per-source freshness is a fixed string rather than real data, the Unknown state for
+unavailable source data is not implemented in the team overview, and no overview state is
+backed by an evidence item. Leaving invented timestamps and summaries in a shipped
+endpoint also runs against CLAUDE.md rule 10. P5-001 should stay IN_PROGRESS and the
+endpoints should be wired to the orchestrator before the task is closed.
+
+### Next Step
+Wire both endpoints to the orchestrator and to `MemberGuard`, then re-check the P5-001
+acceptance criteria.
+
+### AI Assistance
+An AI assistant made the lint and format fixes and wrote this entry. The fixes are
+mechanical (import order, unused imports, line wrapping, trailing newline) and the diff is
+worth a quick read to confirm no behaviour changed. The gap described under Decisions
+Needed was found by reading `docs/TASKS.md`, not verified against a running system.
+
+---
+
 ## 2026-09-22 | Keshan | Phase 4 CI fixes
 Status: DONE
 
