@@ -145,6 +145,24 @@ class MemberInsight(BaseModel):
 # DRAFT: This schema did not exist before P5-001. It is proposed by Isiwara (Dev 2) and
 # needs Keshan's review before merge, since app/schemas/ is frozen and shared. See the
 # WORKLOG entry for this task for the explicit flag.
+# Field names (state_reason, kind) match the Headref UI pack's template contract,
+# docs/UI_IMPLEMENTATION.md section 9.3 gap G6.
+
+
+class AttentionItem(BaseModel):
+    """1 blocker or risk line shown on a member's card in the team overview."""
+
+    kind: Literal["blocker", "risk"] = Field(
+        description="Which tab and question type this item links to"
+    )
+    claim: str = Field(description="Short claim text shown on the card")
+    confidence: Literal["HIGH", "MEDIUM", "LOW", "UNKNOWN"] = Field(
+        description="Computed confidence level assigned by code, not by the model"
+    )
+    evidence: list[EvidenceItem] = Field(
+        default_factory=list,
+        description="Evidence backing this item; required unless status is 'unknown'",
+    )
 
 
 class TeamMemberSummary(BaseModel):
@@ -156,15 +174,14 @@ class TeamMemberSummary(BaseModel):
         description="Overall status for this member. A member with any unavailable "
         "required source MUST be 'unknown', never 'on_track' (FR-025)."
     )
-    reason: str | None = Field(
+    state_reason: str | None = Field(
         default=None,
         description="Short, code-generated explanation for the status, "
         "especially for 'blocked' or 'unknown'",
     )
-    evidence: list[EvidenceItem] = Field(
+    attention_items: list[AttentionItem] = Field(
         default_factory=list,
-        description="Evidence backing this member's status; every status must be "
-        "backed by at least 1 evidence item unless status is 'unknown'",
+        description="Up to 3 blocker/risk lines shown on the member's card",
     )
     last_synced: dict[str, datetime | None] = Field(
         default_factory=dict,
