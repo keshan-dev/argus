@@ -1678,7 +1678,7 @@ produces it when the model fails.
 **Out of scope:** Templates.
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** DONE
 **Dependencies:** P4-007, P3-001
 **Parallelizable:** NO.
 **Components:** API
@@ -1692,12 +1692,12 @@ produces it when the model fails.
   source data is unavailable is Unknown, never On Track (FR-025).
 
 **Acceptance criteria:**
-- [ ] Both endpoints return their documented schema.
-- [ ] An invalid question type returns 422.
-- [ ] An unauthorized subject returns 403.
-- [ ] Per-source freshness is in every response.
-- [ ] A member with unavailable source data shows Unknown, not On Track.
-- [ ] Every overview state is backed by at least 1 evidence item.
+- [x] Both endpoints return their documented schema.
+- [x] An invalid question type returns 422.
+- [x] An unauthorized subject returns 403.
+- [x] Per-source freshness is in every response.
+- [x] A member with unavailable source data shows Unknown, not On Track.
+- [x] Every overview state is backed by at least 1 evidence item.
 
 **Testing required:** API tests for both endpoints, the 422 case, the 403 case, and the
 unavailable-source case.

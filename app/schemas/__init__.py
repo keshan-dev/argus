@@ -1,7 +1,15 @@
 """Pydantic contracts and schemas for tools, errors, and insights (P1-002, Issue #8)."""
 
 from app.schemas.errors import ToolErrorType, ToolFailure
-from app.schemas.insight import Claim, EvidenceItem, Insight, MemberInsight
+from app.schemas.insight import (
+    AttentionItem,
+    Claim,
+    EvidenceItem,
+    Insight,
+    MemberInsight,
+    TeamMemberOverview,
+    TeamOverview,
+)
 from app.schemas.tools import (
     CommitOut,
     GetAssignedWorkItemsInput,
@@ -28,6 +36,7 @@ from app.schemas.tools import (
 )
 
 __all__ = [
+    "AttentionItem",
     "Claim",
     "CommitOut",
     "EvidenceItem",
@@ -52,6 +61,8 @@ __all__ = [
     "ReviewOut",
     "SourceHealthOut",
     "TeamMemberOut",
+    "TeamMemberOverview",
+    "TeamOverview",
     "ToolErrorType",
     "ToolFailure",
     "WorkItemLinkOut",

@@ -42,6 +42,7 @@ from app.agent.orchestrator import (
 )
 from app.agent.planner import QuestionType, RetrievalPlan, Source, build_plan
 from app.agent.risks import RiskFinding, detect_risks
+from app.agent.team_overview import generate_team_overview
 from app.agent.validation import ValidatedNarrative, validate_narrative
 
 __all__ = [
@@ -71,6 +72,7 @@ __all__ = [
     "evaluate_confidence",
     "generate_deterministic_summary",
     "generate_narrative",
+    "generate_team_overview",
     "get_cached_insight",
     "persist_agent_run",
     "run_agent",

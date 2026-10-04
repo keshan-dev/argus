@@ -1,96 +1,68 @@
+"""API routes for member insights and team overviews (P5-001, Issue #33).
+
+Every member route takes the MemberGuard dependency from app.web.auth (FR-028).
+Team overview enforces actor team membership. All question types are validated
+strictly against DEC-007 (current_work, blockers, risks).
+"""
+
+import logging
+
 from fastapi import APIRouter, HTTPException, Query, status
-from pydantic import BaseModel
+
+from app.agent.orchestrator import run_agent
+from app.agent.planner import build_plan
+from app.agent.team_overview import generate_team_overview
+from app.schemas.insight import MemberInsight, TeamOverview
+from app.web.auth import ActorDep, DbDep, MemberGuard
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["Insights & Teams"])
 
-# Allowed question types (must be exactly 3 values, otherwise 422)
-VALID_QUESTIONS = {"progress", "risks", "blockers"}
 
-
-class SourceHealth(BaseModel):
-    source_name: str
-    last_synced: str
-    health_state: str  # healthy, stale, unavailable
-
-
-class MemberInsightResponse(BaseModel):
-    member_id: str
-    question: str
-    summary: str
-    sources: list[SourceHealth]
-    fallback_used: bool
-
-
-class TeamOverviewResponse(BaseModel):
-    team_id: str
-    overall_status: str  # On Track, Needs Attention, Blocked, Unknown
-    members_summary: list[dict]
-
-
-def can_view_member(member_id: str, current_user_id: str = "user_default") -> bool:
-    """Stub for member view authorization check."""
-    # In production, check workspace permissions or role bindings
-    if member_id == "unauthorized_member":
-        return False
-    return True
-
-
-@router.get("/members/{id}/insight", response_model=MemberInsightResponse)
+@router.get("/members/{member_id}/insight", response_model=MemberInsight)
 async def get_member_insight(
-    id: str, question: str = Query(..., description="Question type: progress, risks, or blockers")
-):
-    """Retrieves member insight for a specific question type."""
-    if question not in VALID_QUESTIONS:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Invalid question type. Must be one of: {list(VALID_QUESTIONS)}",
-        )
+    member_id: int,
+    question: str = Query(..., description="Question type: current_work, blockers, or risks"),
+    member: MemberGuard = None,
+    actor: ActorDep = None,
+    db: DbDep = None,
+) -> MemberInsight:
+    """Retrieve member insight for a specific question type (FR-014, FR-028, DEC-007)."""
+    # 1. Validate question type (raises 422 InvalidQuestionTypeError if unknown)
+    plan = build_plan(question)
 
-    if not can_view_member(id):
+    # 2. MemberGuard already checked login (401), user existence (404), and team access (403).
+    # Execute full agent pipeline stages S1 through S6
+    insight = await run_agent(
+        session=db,
+        subject_user_id=member.id,
+        team_id=member.team_id,
+        question_type=plan.question_type,
+        actor_user_id=actor.id,
+    )
+    return insight
+
+
+@router.get("/teams/{team_id}/overview", response_model=TeamOverview)
+def get_team_overview(
+    team_id: int,
+    actor: ActorDep,
+    db: DbDep,
+) -> TeamOverview:
+    """Retrieve team overview status and member breakdowns (FR-025, Gap G6)."""
+    # 1. Verify actor has permission to view this team
+    if actor.team_id != team_id or actor.team_id is None:
+        logger.warning(
+            "team access denied: actor_id=%s actor_team=%s requested_team=%s",
+            actor.id,
+            actor.team_id,
+            team_id,
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view insights for this member.",
+            detail="Not allowed to view overview for this team",
         )
 
-    # Simulated data retrieval & freshness check
-    if id == "unknown_source_member":
-        sources = [
-            SourceHealth(source_name="github", last_synced="N/A", health_state="unavailable")
-        ]
-    else:
-        sources = [
-            SourceHealth(
-                source_name="github", last_synced="2026-09-24T12:00:00Z", health_state="healthy"
-            )
-        ]
-
-    return MemberInsightResponse(
-        member_id=id,
-        question=question,
-        summary=f"Member {id} insight summary for {question}.",
-        sources=sources,
-        fallback_used=False,
-    )
-
-
-@router.get("/teams/{id}/overview", response_model=TeamOverviewResponse)
-async def get_team_overview(id: str):
-    """Retrieves team overview status and member breakdowns."""
-    # Simulated team overview calculation
-    return TeamOverviewResponse(
-        team_id=id,
-        overall_status="On Track",
-        members_summary=[
-            {
-                "member_id": "member_1",
-                "status": "On Track",
-                "sources": [
-                    {
-                        "source_name": "jira",
-                        "last_synced": "2026-09-24T10:00:00Z",
-                        "health_state": "healthy",
-                    }
-                ],
-            }
-        ],
-    )
+    # 2. Generate deterministic overview from database and findings rules
+    return generate_team_overview(session=db, team_id=team_id)

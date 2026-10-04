@@ -60,6 +60,41 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-10-05 | Isiwara | P5-001 Member insight and team overview endpoints
+Status: DONE
+
+### Completed
+Closed issue #33 (task P5-001).
+1. Added `fallback_used: bool = False` to `MemberInsight` (Gap G1) and defined `AttentionItem`,
+`TeamMemberOverview`, and `TeamOverview` in `app/schemas/insight.py` (Gap G6), re-exporting
+them in `app/schemas/__init__.py`.
+2. Created `app/agent/team_overview.py` with `generate_team_overview()`, providing pure
+deterministic overview calculation from read tools T-001 and T-007 and findings rules
+(`detect_blockers`, `detect_risks`, `detect_conflicts`). Unavailable sources force member
+states to `unknown` per FR-025, and every state is backed by evidence items.
+3. Refactored `app/web/routes.py` to remove placeholder mocks and wire endpoints to real
+authorizations: `/api/members/{member_id}/insight` takes `MemberGuard` (FR-028) and executes
+`run_agent()` (FR-014, DEC-007), and `/api/teams/{team_id}/overview` verifies actor team
+membership before generating the overview.
+4. Added unit test suite `tests/test_team_overview.py` and updated `tests/test_api_insights.py`
+covering all 6 acceptance criteria (200 contracts, 422 question validation, 401/403/404
+security and access controls, unavailable source handling, and evidence backing).
+
+### Changed
+`app/schemas/insight.py`, `app/schemas/__init__.py`, `app/agent/team_overview.py`,
+`app/agent/__init__.py`, `app/web/routes.py`, `tests/test_team_overview.py`,
+`tests/test_api_insights.py`, `docs/TASKS.md`, `WORKLOG.md`,
+`impl/implementation_plan_issue_33.md`.
+
+### Discovered
+Wiring `MemberGuard` directly into `/api/members/{member_id}/insight` satisfies both the
+dynamic authorization check and the static AST inspection check in
+`tests/test_auth.py::test_no_member_route_in_the_real_app_bypasses_the_guard`.
+
+### Next Step
+P5-002: Member profile page (`member.html`).
+
+
 ## 2026-10-03 | Keshan | P5-001 CI fixes
 Status: IN_PROGRESS
 

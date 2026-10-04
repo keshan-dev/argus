@@ -138,3 +138,66 @@ class MemberInsight(BaseModel):
         description="Per-source operational health and availability state",
     )
     summary: str | None = Field(default=None, description="Optional high-level narrative summary")
+    fallback_used: bool = Field(
+        default=False, description="Whether deterministic fallback was used"
+    )
+
+
+class AttentionItem(BaseModel):
+    """An attention item on the team overview (blocker or risk, Gap G6)."""
+
+    kind: Literal["blocker", "risk"] = Field(description="Signal category")
+    claim: str = Field(description="Statement describing the attention item")
+    classification: Literal["fact", "inference", "unknown"] = Field(
+        default="fact", description="Epistemic classification"
+    )
+    confidence: Literal["HIGH", "MEDIUM", "LOW", "UNKNOWN"] = Field(
+        default="HIGH", description="Confidence level assigned by code"
+    )
+    evidence: list[EvidenceItem] = Field(
+        default_factory=list, description="Resolved evidence backing this item"
+    )
+
+
+class TeamMemberOverview(BaseModel):
+    """Per-member state rollup on the team overview."""
+
+    user_id: int = Field(description="Internal user ID")
+    display_name: str = Field(description="Display name of the team member")
+    role_label: str | None = Field(default=None, description="Role label if configured")
+    state: Literal["on_track", "needs_attention", "blocked", "unknown"] = Field(
+        description="Computed member state"
+    )
+    state_reason: str | None = Field(
+        default=None, description="Explanation when state is unknown"
+    )
+    attention_count: int = Field(default=0, description="Count of attention items")
+    attention_items: list[AttentionItem] = Field(
+        default_factory=list, description="Items needing attention"
+    )
+    backing_evidence: list[EvidenceItem] = Field(
+        default_factory=list, description="Evidence items backing this member state"
+    )
+
+
+class TeamOverview(BaseModel):
+    """Full API response contract for GET /api/teams/{team_id}/overview."""
+
+    team_id: int = Field(description="Internal team ID")
+    team_name: str = Field(description="Name of the team")
+    overall_status: Literal["On Track", "Needs Attention", "Blocked", "Unknown"] = Field(
+        description="High-level status of the team"
+    )
+    source_health: list[SourceHealthOut] = Field(
+        default_factory=list, description="Per-source health and availability"
+    )
+    last_synced: dict[str, datetime | None] = Field(
+        default_factory=dict, description="Per-source last sync timestamp"
+    )
+    unmatched_count: int = Field(
+        default=0, description="Count of unmatched accounts for the team"
+    )
+    members: list[TeamMemberOverview] = Field(
+        default_factory=list, description="Team member state rollups in alphabetical order"
+    )
+
