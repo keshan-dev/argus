@@ -82,7 +82,18 @@ from the status code, so no exception internals are exposed.
 team level denial say "You cannot view this member", which is the wrong statement.
 5. Split `GET /` and `GET /teams/{team_id}` into 2 handlers. Stacked on 1 handler with
 `team_id` defaulting to None, `team_id` was also accepted as a query parameter on `/`.
-6. Added `tests/test_web_hardening.py`, 21 tests: 11 open redirect cases including the
+6. Added a `RequestValidationError` handler. FastAPI handles that separately from
+`HTTPException`, so a browser hitting a page route with a malformed path or query
+parameter still got a JSON body listing the internal field locations. Page requests now
+get the error page; the API still gets the JSON error list.
+7. `_member_id_from` used `str.isdigit()`, which is True for characters `int()` rejects,
+such as the superscript 2. A 404 or 422 on `/members/<that>/x` would have raised inside
+the exception handler. Changed to `str.isdecimal()`.
+8. `safe_next()` strips tab, carriage return and newline before its checks. Browsers strip
+those from a `Location` value, so `/<TAB>//host` would otherwise resolve protocol
+relative. Starlette percent encodes them today, confirmed in this environment, but that is
+its behaviour to change, not a guarantee the validator should lean on.
+9. Added `tests/test_web_hardening.py`, 25 tests: 11 open redirect cases including the
 backslash and protocol relative variants, an AST check that `app/main.py` performs no
 filesystem write at import, a check that every `@font-face` source in `style.css` resolves
 to a file that exists, HTML versus JSON error rendering, the 403 copy split, avatar tints,
@@ -93,6 +104,13 @@ and an OpenAPI assertion that `/` declares no `team_id`.
 `tests/test_web_hardening.py`, `WORKLOG.md`.
 
 ### Discovered
+Ran the project security-review skill over the branch. It reported no HIGH or MEDIUM
+finding. It confirmed the redirect validator against Starlette's own quoting, confirmed
+`_scope_filter` builds its predicate entirely through SQLAlchemy with no string
+interpolation, confirmed no `|safe` or `Markup` anywhere, and confirmed the drawer in
+`app.js` uses `textContent` and `replaceChildren` rather than `innerHTML` for untrusted
+values. It surfaced the `isdigit` bug above, which is fixed here.
+
 The session cookie is set with `httponly` and `samesite=lax` but without `secure`. That is
 correct for the local HTTP demo and wrong for anything deployed. It is in `app/web/auth.py`
 from P3-001, not part of this change. Raised below rather than changed quietly.
@@ -110,7 +128,7 @@ WP4, the activity field on `MemberInsight`, then WP5 for truncation disclosure.
 ### AI Assistance
 An assistant implemented WP6 and ran the project security-review skill over the branch.
 Verified in a scratch virtual environment on Python 3.13, not the 3.11 that
-`pyproject.toml` pins: `344 passed, 1 skipped`, `ruff check app tests` clean,
+`pyproject.toml` pins: `348 passed, 1 skipped`, `ruff check app tests` clean,
 `black --check app tests` clean. Reproduce on 3.11 before merging. A human should confirm
 the redirect fix by hand against a real browser, because the tests assert the Location
 header rather than browser behaviour.

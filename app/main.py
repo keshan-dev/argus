@@ -10,6 +10,8 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -64,9 +66,45 @@ def _error_kind(path: str) -> str:
 def _member_id_from(path: str) -> int | None:
     """The member id in /members/{id}/..., for the 422 tab links."""
     parts = path.strip("/").split("/")
-    if len(parts) >= 2 and parts[0] == "members" and parts[1].isdigit():
+    if len(parts) >= 2 and parts[0] == "members" and parts[1].isdecimal():
         return int(parts[1])
     return None
+
+
+def _html_error(request: Request, code: int):
+    """Render error.html for a page request. The copy comes from the status code."""
+    path = request.url.path
+    return templates.TemplateResponse(
+        request=request,
+        name="error.html",
+        context={
+            "request": request,
+            "code": code,
+            "kind": "question" if code == 422 else _error_kind(path),
+            "member_id": _member_id_from(path),
+            "actor": None,
+            "team_name": "",
+            "unmatched_count": 0,
+            "nav_current": "",
+        },
+        status_code=code,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """A bad path or query parameter on a page route renders the error page.
+
+    FastAPI handles RequestValidationError separately from HTTPException, so without
+    this a browser hitting a route with a malformed parameter got a JSON body listing
+    the internal field locations.
+    """
+    if _wants_html(request):
+        return _html_error(request, status.HTTP_422_UNPROCESSABLE_ENTITY)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": jsonable_encoder(exc.errors())},
+    )
 
 
 @app.exception_handler(HTTPException)
@@ -86,24 +124,9 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         )
 
     if _wants_html(request):
-        path = request.url.path
         # exc.detail can carry internals. error.html picks fixed copy from the status
         # code instead, so nothing from the exception reaches the page.
-        return templates.TemplateResponse(
-            request=request,
-            name="error.html",
-            context={
-                "request": request,
-                "code": exc.status_code,
-                "kind": "question" if exc.status_code == 422 else _error_kind(path),
-                "member_id": _member_id_from(path),
-                "actor": None,
-                "team_name": "",
-                "unmatched_count": 0,
-                "nav_current": "",
-            },
-            status_code=exc.status_code,
-        )
+        return _html_error(request, exc.status_code)
 
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 

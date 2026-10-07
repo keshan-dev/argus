@@ -71,6 +71,9 @@ def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
         r"/\evil.example/",
         r"\\evil.example",
         "javascript:alert(1)",
+        "/\t//evil.example",
+        "/\n//evil.example",
+        "/\r//evil.example",
         "evil.example",
         "",
         None,
@@ -100,6 +103,21 @@ def test_login_page_does_not_echo_a_hostile_next(client: TestClient):
     response = client.get("/login?next=https://evil.example/")
     assert response.status_code == 200
     assert "evil.example" not in response.text
+
+
+def test_error_handler_survives_a_non_decimal_member_id(client: TestClient):
+    """str.isdigit() is True for characters int() rejects, such as the superscript 2.
+
+    The 404 handler parses the member id out of the path, so a path like
+    /members/<superscript 2>/x would have raised inside the exception handler.
+    """
+    client.post("/api/auth/login", json={"user_id": 1})
+    response = client.get("/members/²/panel", headers={"accept": "text/html"})
+
+    # FastAPI rejects the path parameter first, so this is a 422. What matters is
+    # that the error page renders instead of the handler raising a 500.
+    assert response.status_code == 422
+    assert "text/html" in response.headers["content-type"]
 
 
 # 2. Static assets ------------------------------------------------------------

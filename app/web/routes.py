@@ -499,8 +499,11 @@ def safe_next(value: str | None) -> str:
     """
     if not value or not value.startswith("/"):
         return "/"
-    normalised = value.replace("\\", "/")
-    if normalised.startswith("//"):
+    # Browsers strip tabs and newlines from a Location value, so "/<TAB>//host"
+    # would resolve protocol relative. Starlette percent encodes them today, but
+    # that is its behaviour to change, not a guarantee this function should lean on.
+    normalised = "".join(c for c in value if c not in "\t\r\n").replace("\\", "/")
+    if not normalised.startswith("/") or normalised.startswith("//"):
         return "/"
     return value
 
