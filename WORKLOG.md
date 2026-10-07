@@ -60,6 +60,177 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-10-08 | Isiwara | Ingestion scope configuration and honest sync endpoints (WP3)
+Status: IN_PROGRESS
+
+### Completed
+1. Ingestion scope now comes from configuration, not from a hardcoded default argument.
+`GITHUB_REPOS` and `JIRA_PROJECT_KEYS` are new settings in `app/config.py` with
+`github_scopes()` and `jira_scopes()` helpers, both added to `.env.example` per HOW_TO B2.
+The literal `"keshan-dev/argus"` is gone from `app/sync.py` and `app/scheduler.py`.
+`sync_github` and `sync_jira` resolve the scope when it is not passed, and raise rather
+than guess when several are configured. `run_scheduled_tick` iterates every configured
+scope and guards each one separately, and returns a per scope `details` map alongside the
+existing aggregate statuses.
+2. Added `resolve_team_scopes(team_id)` in `app/scheduler.py`. The MVP ingests 1 team, so
+it returns the configured scopes whatever team id is asked for. Per team scope is a column
+on the `team` table, which is a migration, and is deferred until a second team exists. The
+parameter is there so the call sites already pass it.
+3. WP3, the on-demand sync endpoints (P5-007, issue #49):
+   - Added the `SyncStatus`, `SyncTriggerResponse` and `SyncStatusResponse` contracts in
+     `app/schemas/sync.py` (gap G7). Both endpoints are typed; the `dict[str, Any]`
+     returns are gone, so they appear properly in the OpenAPI document.
+   - Removed the fabricated payload. The endpoint used to report GitHub and Jira as
+     `running` when no `sync_run` row existed. It now returns an empty `runs` list with
+     `started: true`, and the page says "starting". Rule 9: an absent row means "I cannot
+     see a run", not "a run is in progress".
+   - The in-flight guard filters `sync_run` by `source` and `scope` for this team's
+     configured scopes. It previously matched every running row in the table, so a sync
+     for an unrelated scope blocked the team.
+   - The background task handle is retained in a module level set with a done callback.
+     asyncio holds only a weak reference, so the task could be collected before it ran.
+     The suite no longer reports `coroutine 'to_thread' was never awaited`.
+   - `_do_background_sync` logs what it started and what came back, per rule 8.
+   - `app.js` reads the new `started` flag and says "A sync is already running" rather than
+     implying this click started one.
+4. Tests added: the 403 case now asserts nothing was started, a trigger with no rows
+asserts `runs == []`, and the in-flight query is asserted to be scope filtered by
+compiling the SQL. Ticked the P5-007 concurrency criterion in `docs/TASKS.md`.
+
+### Changed
+`app/config.py`, `.env.example`, `app/sync.py`, `app/scheduler.py`, `app/schemas/sync.py`,
+`app/schemas/__init__.py`, `app/web/routes.py`, `app/web/static/app.js`,
+`tests/test_api_sync.py`, `docs/TASKS.md`, `WORKLOG.md`.
+
+### Discovered
+`AppUser` now carries a `user_id` property aliasing `id`. That closes the avatar tint
+problem noted in the previous entry: `base.html` reads `actor.user_id` while the routes
+pass the ORM row, and every avatar was falling back to tint 0.
+
+### Problems
+Still open, tracked as WP4 to WP8 in `impl/implementation_plan_phase_5_completion.md`:
+`MemberInsight` has no `activity` field, so the activity card never renders, and no
+`truncated` field, so the truncation notice never fires. The login `next` parameter is an
+open redirect. `app/main.py` still copies fonts out of `docs/` at import time and renders
+every HTML error as raw JSON.
+
+### Decisions Needed
+Carried over from the previous entry and still unanswered: the uppercase display question
+from the design system, the untested dark theme contrast, and whether an empty team should
+report "On Track" or "Unknown".
+
+### Next Step
+WP6, the login open redirect, because it is the only remaining security defect.
+
+### AI Assistance
+An assistant implemented the configuration option and WP3, and split the Phase 5 work into
+separate commits. Verified in a scratch virtual environment on Python 3.13, not the 3.11
+that `pyproject.toml` pins: `323 passed, 1 skipped`, `ruff check app tests` clean,
+`black --check app tests` clean. Reproduce on 3.11 before merging. The choice to read
+scope from configuration rather than from the `team` table was made by the developers.
+
+---
+
+## 2026-10-08 | Isiwara | Phase 5 status correction, WP0 to WP2
+Status: IN_PROGRESS
+
+### Completed
+1. Corrected `docs/TASKS.md`. P5-002 to P5-007 were recorded DONE with every acceptance
+box ticked. They are back to IN_PROGRESS, and 4 boxes that were not true are unticked:
+P5-002 "Activity counts carry the context note", P5-003 "Clicking a link opens the correct
+source record", P5-006 "Truncation is disclosed", P5-007 "A sync already running returns
+the in-flight run, and no second run starts".
+2. WP1, made the suite run. It did not collect at all before this.
+   - `tests/test_ui_member.py` imported `ActivitySummary` and `AssignedWorkItem`, neither
+     of which exists. The fixture is rebuilt against the real `MemberInsight`: `user_id`,
+     not `member_id`, no `question_type`, and `assigned` as `WorkItemOut`.
+   - `tests/test_team_overview.py` used `SourceHealthOut(state="healthy")`, which is not a
+     valid literal, and built `GetCommitsOutput` without the required `truncated`.
+   - The same file left `assignee_user_id` and `author_user_id` unset. `build_evidence`
+     drops any row with a null actor (AC-14), so the evidence set came back empty and every
+     member fell through to "unknown". That is the code working correctly, so the fixtures
+     now carry the subject id.
+   - `tests/test_ui_team.py` built `TeamOverview` without the required `overall_status`.
+   - `tests/test_ui_freshness.py` rendered a template into a variable it never asserted on.
+3. WP2, fixed `GET /admin/unmatched`. It constructed `GetSourceHealthInput()` with no
+arguments while `team_id` and `sources` are required, so the page returned 500. The route
+now passes both, handles an actor with no team, and treats a `ToolFailure` from the health
+tool as unavailable with the typed error rather than letting it crash or silently read as
+an empty result (rule 9). Added a rendering case for the no team actor.
+4. `ruff check app tests` and `black app tests` applied, both clean.
+
+### Changed
+`docs/TASKS.md`, `app/web/routes.py`, `tests/test_team_overview.py`, `tests/test_ui_team.py`,
+`tests/test_ui_member.py`, `tests/test_ui_unmatched.py`, `tests/test_ui_freshness.py`,
+`impl/implementation_plan_phase_5_completion.md` (new).
+
+### Discovered
+1. `app/web/routes.py` binds `load_user` at import time, so a test that patches only
+`app.web.auth.load_user` leaves the form login path calling the real loader against a None
+session. The UI test fixtures now patch both bindings.
+2. `tests/test_ui_team.py` asserted `"rank" not in html`. The team page carries the
+disclaimer "Headref does not rank or compare people", which is exactly the copy
+AI_BEHAVIOR 5.11 asks for, so the assertion punished the right behaviour. It is replaced
+with a structural check: the disclaimer is present, member cards are in alphabetical order,
+and no sorting control or scoring vocabulary appears.
+3. `generate_team_overview` returns "On Track" for a team with no members. That asserts a
+state with no evidence behind it. Not changed here, raised below.
+
+### Problems
+Not fixed yet, tracked as WP3 to WP8 in `impl/implementation_plan_phase_5_completion.md`:
+`POST /api/teams/{id}/sync` reports GitHub and Jira as `running` when no `sync_run` row
+exists, its in flight guard is not scoped to the team, and the background task handle is
+discarded, which the suite still reports as `RuntimeWarning: coroutine 'to_thread' was
+never awaited`. `MemberInsight` still has no `activity` or `truncated` field. The login
+`next` parameter is an open redirect. `app/main.py` copies fonts out of `docs/` at import
+time and turns every HTML error page into raw JSON.
+
+### Decisions Needed
+1. The design reference in `impl/design system/` specifies uppercase display headings
+throughout. `style.css` sets no `text-transform: uppercase` anywhere. Recommend keeping
+sentence case: the subject matter is people, and the reference is a marketing site. Agree
+it explicitly so it is a decision rather than an accident.
+2. The dark theme block in `style.css` is untested for contrast and `--smoke` already fails
+AA as body text on white. Either fix the pairs or ship light only.
+3. An empty team reporting "On Track" needs a ruling. "Unknown" is the honest value.
+
+### Next Step
+WP3, the sync endpoints. That is the package with a direct rule 9 violation in it.
+
+### AI Assistance
+An assistant ran the audit, wrote the completion plan and applied WP0 to WP2. The test
+results below were produced in a scratch virtual environment on Python 3.13, not on the
+3.11 that `pyproject.toml` pins and CI runs, so reproduce them before merging:
+`321 passed, 1 skipped` for `pytest tests/`, clean `ruff check app tests` and
+`black --check app tests`. The 3 `Decisions Needed` items above are for the 2 developers,
+not for the assistant.
+
+---
+
+## 2026-10-05 | Isiwara | Phase 5 UI & API Implementation (P5-002 to P5-007)
+Status: DONE
+
+### Completed
+Delivered Phase 5 user interface and web application:
+1. P5-002 (Issue #34): Implemented member profile page (`member.html`, question tabs, claim cards with classification and categorical confidence badges, assigned work grouping, activity context disclaimer).
+2. P5-003 (Issue #35): Integrated evidence drawer in `app.js` with focus trapping, keyboard navigation (Tab/Esc), and safe HTML details fallback.
+3. P5-004 (Issue #36): Delivered team overview dashboard (`team.html`, hero status, alphabetical member cards, attention items linked to member tabs, unmatched banner).
+4. P5-005 (Issue #37): Implemented unmatched identity view (`unmatched.html`, `GET /admin/unmatched`) with occurrence counts, date tracking, and safe handle escaping.
+5. P5-006 (Issue #38): Delivered honest freshness component (`partials/freshness.html`), degraded-state notices (`partials/notices.html`), and client-side time localizer in `app.js`.
+6. P5-007 (Issue #49): Built asynchronous on-demand refresh (`POST /api/teams/{id}/sync` returning 202 in <500ms) and status polling (`GET /api/teams/{id}/sync/status`) with cached data retention on failure.
+7. Mounted static asset pipeline (`StaticFiles`), self-hosted IBM Plex fonts, and registered pure Jinja2 formatting helpers in `app/web/ui_format.py`.
+8. Added test suites: `tests/web/test_ui_templates.py`, `tests/test_ui_team.py`, `tests/test_ui_member.py`, `tests/test_ui_unmatched.py`, `tests/test_ui_freshness.py`, and `tests/test_api_sync.py`.
+
+### Changed
+`app/main.py`, `app/web/routes.py`, `app/web/ui_format.py`, `app/web/static/` (`app.js`, `favicon.svg`), `app/web/templates/` (`base.html`, `login.html`, `error.html`, `team.html`, `member.html`, `unmatched.html`, `partials/*.html`), `tests/web/test_ui_templates.py`, `tests/test_ui_team.py`, `tests/test_ui_member.py`, `tests/test_ui_unmatched.py`, `tests/test_ui_freshness.py`, `tests/test_api_sync.py`, `docs/TASKS.md`, `WORKLOG.md`.
+
+### Discovered
+All member routes (`/members/{member_id}` and `/members/{member_id}/panel`) take `MemberGuard` to satisfy the security guard inspection in `tests/test_auth.py`. Using pure urllib parse in `post_login` allows robust form decoding without requiring `python-multipart`.
+
+### Next Step
+Phase 6: Testing and Evaluation.
+
+
 ## 2026-10-05 | Isiwara | P5-001 Member insight and team overview endpoints
 Status: DONE
 

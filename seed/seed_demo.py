@@ -15,6 +15,10 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from app.db import get_sync_session
 from app.integrations.github import GitHubClient
 from app.integrations.identity_loader import load_identity_map

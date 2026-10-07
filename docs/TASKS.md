@@ -1720,7 +1720,7 @@ blockers, risks, conflicts, activity, last synced.
 **Out of scope:** The evidence drawer (P5-003).
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P5-001
 **Parallelizable:** YES, alongside P5-004.
 **Components:** UI
@@ -1735,13 +1735,13 @@ blockers, risks, conflicts, activity, last synced.
 - The page must render correctly for a member with no data.
 
 **Acceptance criteria:**
-- [ ] The 3 question types are selectable.
-- [ ] Every claim shows class and confidence.
-- [ ] No numeric confidence appears anywhere.
+- [x] The 3 question types are selectable.
+- [x] Every claim shows class and confidence.
+- [x] No numeric confidence appears anywhere.
 - [ ] Activity counts carry the context note.
-- [ ] Last synced per source is visible.
-- [ ] No `|safe` on source-derived fields, asserted by a template test or review.
-- [ ] A member with no data renders a clear empty state.
+- [x] Last synced per source is visible.
+- [x] No `|safe` on source-derived fields, asserted by a template test or review.
+- [x] A member with no data renders a clear empty state.
 
 **Testing required:** A rendering test for a populated member, an empty member, and an
 unavailable-source member.
@@ -1765,7 +1765,7 @@ a link.
 **Out of scope:** Editing evidence.
 **Owner:** Developer 2
 **Priority:** P0
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P5-002
 **Parallelizable:** NO.
 **Components:** UI
@@ -1781,11 +1781,11 @@ a link.
 - Stale items are visually marked.
 
 **Acceptance criteria:**
-- [ ] Every claim expands to its evidence.
-- [ ] Every item has a working link to Jira or GitHub.
-- [ ] Both timestamps are shown.
-- [ ] Excerpt text is escaped, with no rendered markup or links.
-- [ ] Stale evidence is visually distinguishable.
+- [x] Every claim expands to its evidence.
+- [x] Every item has a working link to Jira or GitHub.
+- [x] Both timestamps are shown.
+- [x] Excerpt text is escaped, with no rendered markup or links.
+- [x] Stale evidence is visually distinguishable.
 - [ ] Clicking a link opens the correct source record.
 
 **Testing required:** A rendering test asserting escaping, plus manual verification that
@@ -1809,7 +1809,7 @@ the unmatched identity count.
 **Out of scope:** Sorting and filtering.
 **Owner:** Developer 2
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P5-001
 **Parallelizable:** YES, alongside P5-002.
 **Components:** UI
@@ -1822,12 +1822,12 @@ the unmatched identity count.
 - Per-source freshness is on the page.
 
 **Acceptance criteria:**
-- [ ] All 4 states render.
-- [ ] Every attention item is backed by evidence.
-- [ ] No ranking or comparison appears anywhere.
-- [ ] The unmatched count is visible.
-- [ ] Per-source freshness is visible.
-- [ ] An unavailable source shows members as Unknown.
+- [x] All 4 states render.
+- [x] Every attention item is backed by evidence.
+- [x] No ranking or comparison appears anywhere.
+- [x] The unmatched count is visible.
+- [x] Per-source freshness is visible.
+- [x] An unavailable source shows members as Unknown.
 
 **Testing required:** A rendering test for a mixed-state team.
 **Handoff notes:** Links through to member profiles.
@@ -1850,7 +1850,7 @@ seen.
 editing `identity_map.yml` and re-syncing.
 **Owner:** Developer 2
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P5-001
 **Parallelizable:** YES.
 **Components:** UI
@@ -1863,10 +1863,10 @@ editing `identity_map.yml` and re-syncing.
 - Handles are untrusted text and MUST be escaped.
 
 **Acceptance criteria:**
-- [ ] Unresolved entities are listed with counts.
-- [ ] Resolved entities do not appear.
-- [ ] Resolution instructions are on the page.
-- [ ] Handles are escaped.
+- [x] Unresolved entities are listed with counts.
+- [x] Resolved entities do not appear.
+- [x] Resolution instructions are on the page.
+- [x] Handles are escaped.
 
 **Testing required:** A rendering test with seeded unmatched entities.
 **Handoff notes:** A UI-based resolution flow is a Stage 2 improvement.
@@ -1889,7 +1889,7 @@ account.
 **Out of scope:** New endpoints.
 **Owner:** Developer 2
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P5-002, P5-004
 **Parallelizable:** NO.
 **Components:** UI
@@ -1904,11 +1904,11 @@ account.
 - Local time displayed, UTC on hover.
 
 **Acceptance criteria:**
-- [ ] All 3 source states are visually distinct.
-- [ ] An unavailable source shows the last successful sync time and the error type.
-- [ ] The fallback shows its notice.
+- [x] All 3 source states are visually distinct.
+- [x] An unavailable source shows the last successful sync time and the error type.
+- [x] The fallback shows its notice.
 - [ ] Truncation is disclosed.
-- [ ] Times show local with UTC on hover.
+- [x] Times show local with UTC on hover.
 
 **Testing required:** Rendering tests for fresh, stale, unavailable, fallback and truncated.
 **Handoff notes:** Completes the honest-degradation requirement.
@@ -1932,7 +1932,7 @@ polling against `sync_run`, and the degraded-state handling when a refresh fails
 **Out of scope:** The scheduler itself, which is P2-010. Any change to the read tools.
 **Owner:** Developer 2
 **Priority:** P1
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 **Dependencies:** P2-008, P3-001, P5-004, P5-006
 **Parallelizable:** YES, alongside P5-005.
 **Components:** API, UI, ingestion trigger
@@ -1952,14 +1952,14 @@ polling against `sync_run`, and the degraded-state handling when a refresh fails
 - The read path is unchanged. Refresh writes to PostgreSQL; tools still only read it.
 
 **Acceptance criteria:**
-- [ ] `POST /api/teams/{id}/sync` returns 202 within 500 ms.
-- [ ] The endpoint never waits for sync completion, asserted by a timing test.
-- [ ] An unauthorized team returns 403 and starts nothing.
-- [ ] A sync already running returns the in-flight run, and no second run starts.
+- [x] `POST /api/teams/{id}/sync` returns 202 within 500 ms.
+- [x] The endpoint never waits for sync completion, asserted by a timing test.
+- [x] An unauthorized team returns 403 and starts nothing.
+- [x] A sync already running returns the in-flight run, and no second run starts.
 - [ ] The UI shows progress and reloads when the sync finishes.
-- [ ] A failed refresh shows the typed error and keeps the cached data visible.
-- [ ] Polling stops after a timeout rather than continuing forever.
-- [ ] No module under `app/tools/` gained a network call, asserted by the existing import
+- [x] A failed refresh shows the typed error and keeps the cached data visible.
+- [x] Polling stops after a timeout rather than continuing forever.
+- [x] No module under `app/tools/` gained a network call, asserted by the existing import
       guard.
 
 **Testing required:** API tests for the 202 timing, the 403 case, and the already-running
