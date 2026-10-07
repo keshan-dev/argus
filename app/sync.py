@@ -16,6 +16,7 @@ from typing import Any
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.config import github_scopes, jira_scopes
 from app.db import get_sync_session
 from app.integrations.errors import IntegrationError
 from app.integrations.github import GitHubClient
@@ -101,14 +102,31 @@ def advance_cursor(
     return new_cursor
 
 
+def _only_configured_scope(scopes: list[str], source: str) -> str:
+    """Return the single configured scope, or fail loudly rather than guess.
+
+    A deployment that ingests several scopes must say which one this run is for.
+    Picking the first silently would sync 1 repository and report success for all.
+    """
+    if not scopes:
+        raise ValueError(f"No {source} scope is configured. Set it in the environment.")
+    if len(scopes) > 1:
+        raise ValueError(
+            f"{len(scopes)} {source} scopes are configured, so scope cannot be inferred. "
+            f"Pass scope explicitly."
+        )
+    return scopes[0]
+
+
 def sync_github(
     session: Session,
     team_id: int = 1,
-    scope: str = "keshan-dev/argus",
+    scope: str | None = None,
     reset_cursor: bool = False,
     gh_client: GitHubClient | None = None,
 ) -> SyncRun:
     """Run end-to-end GitHub ingestion, normalization, identity attribution and links."""
+    scope = scope or _only_configured_scope(github_scopes(), "GitHub")
     logger.info("Starting GitHub sync for scope=%s, team_id=%d", scope, team_id)
 
     # 1. Reset cursor if requested
@@ -225,11 +243,12 @@ def sync_github(
 def sync_jira(
     session: Session,
     team_id: int = 1,
-    scope: str = "ALL",
+    scope: str | None = None,
     reset_cursor: bool = False,
     jira_client: JiraClient | None = None,
 ) -> SyncRun:
     """Run end-to-end Jira ingestion, normalization, dependencies and remote links."""
+    scope = scope or _only_configured_scope(jira_scopes(), "Jira")
     logger.info("Starting Jira sync for scope=%s, team_id=%d", scope, team_id)
 
     # 1. Reset cursor if requested

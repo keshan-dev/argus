@@ -17,6 +17,8 @@ from app.config import (
     SCHEDULER_ENABLED,
     STUCK_SYNC_TIMEOUT_MINUTES,
     SYNC_INTERVAL_MINUTES,
+    github_scopes,
+    jira_scopes,
     settings,
 )
 from app.db import get_sync_session
@@ -75,53 +77,99 @@ def recover_stuck_syncs(
     return has_active_run
 
 
+def resolve_team_scopes(team_id: int) -> tuple[list[str], list[str]]:
+    """GitHub and Jira scopes for a team, as (github, jira).
+
+    The MVP ingests 1 team, so the scopes come from GITHUB_REPOS and JIRA_PROJECT_KEYS
+    and are the same whatever team id is asked for. Per team scope is a column on the
+    team table, not a configuration value, and is deferred until a second team exists.
+    The parameter is here so call sites already pass it when that day comes.
+    """
+    return github_scopes(), jira_scopes()
+
+
+def _aggregate(statuses: list[str]) -> str | None:
+    """Collapse per scope statuses into 1 value for the tick result.
+
+    Failure wins, because a tick that failed anywhere has not fully succeeded. If every
+    scope was skipped the tick did nothing. Otherwise report the first real status.
+    """
+    if not statuses:
+        return None
+    if "failed" in statuses:
+        return "failed"
+    if all(s == "skipped_running" for s in statuses):
+        return "skipped_running"
+    return next(s for s in statuses if s != "skipped_running")
+
+
+def _run_source_tick(
+    session: Session,
+    source: str,
+    scopes: list[str],
+    sync_fn: Any,
+    team_id: int,
+    stuck_timeout_minutes: int,
+) -> tuple[str | None, dict[str, str]]:
+    """Run 1 source across every configured scope, guarding each scope separately."""
+    per_scope: dict[str, str] = {}
+
+    for scope in scopes:
+        if recover_stuck_syncs(
+            session=session,
+            source=source,
+            scope=scope,
+            timeout_minutes=stuck_timeout_minutes,
+        ):
+            logger.warning("%s sync for %s already running; skipping tick", source, scope)
+            per_scope[scope] = "skipped_running"
+            continue
+
+        try:
+            run = sync_fn(session, team_id=team_id, scope=scope)
+            per_scope[scope] = run.status
+            logger.info(
+                "%s sync finished for scope=%s team=%d status=%s",
+                source,
+                scope,
+                team_id,
+                run.status,
+            )
+        except Exception as exc:
+            logger.error("Error during scheduled %s sync for %s: %s", source, scope, exc)
+            per_scope[scope] = "failed"
+
+    return _aggregate(list(per_scope.values())), per_scope
+
+
 def run_scheduled_tick(
     session: Session,
     team_id: int = 1,
-    gh_scope: str = "keshan-dev/argus",
-    jira_scope: str = "ALL",
+    gh_scope: str | None = None,
+    jira_scope: str | None = None,
     stuck_timeout_minutes: int = STUCK_SYNC_TIMEOUT_MINUTES,
 ) -> dict[str, Any]:
-    """Execute one scheduled sync tick across GitHub and Jira with concurrency guards."""
-    results: dict[str, Any] = {"github": None, "jira": None}
+    """Execute one scheduled sync tick across GitHub and Jira with concurrency guards.
 
-    # 1. GitHub sync guard
-    is_gh_running = recover_stuck_syncs(
-        session=session,
-        source="github",
-        scope=gh_scope,
-        timeout_minutes=stuck_timeout_minutes,
+    Scopes default to the deployment configuration. Pass gh_scope or jira_scope to run
+    a single named scope instead, which is what the tests and manual runs do.
+    """
+    configured_gh, configured_jira = resolve_team_scopes(team_id)
+    gh_scopes = [gh_scope] if gh_scope else configured_gh
+    jira_scope_list = [jira_scope] if jira_scope else configured_jira
+
+    gh_status, gh_detail = _run_source_tick(
+        session, "github", gh_scopes, sync_github, team_id, stuck_timeout_minutes
     )
-    if is_gh_running:
-        logger.warning("GitHub sync for %s already running; skipping tick", gh_scope)
-        results["github"] = "skipped_running"
-    else:
-        try:
-            gh_run = sync_github(session, team_id=team_id, scope=gh_scope)
-            results["github"] = gh_run.status
-        except Exception as exc:
-            logger.error("Error during scheduled GitHub sync: %s", exc)
-            results["github"] = "failed"
-
-    # 2. Jira sync guard
-    is_jira_running = recover_stuck_syncs(
-        session=session,
-        source="jira",
-        scope=jira_scope,
-        timeout_minutes=stuck_timeout_minutes,
+    jira_status, jira_detail = _run_source_tick(
+        session, "jira", jira_scope_list, sync_jira, team_id, stuck_timeout_minutes
     )
-    if is_jira_running:
-        logger.warning("Jira sync for %s already running; skipping tick", jira_scope)
-        results["jira"] = "skipped_running"
-    else:
-        try:
-            jira_run = sync_jira(session, team_id=team_id, scope=jira_scope)
-            results["jira"] = jira_run.status
-        except Exception as exc:
-            logger.error("Error during scheduled Jira sync: %s", exc)
-            results["jira"] = "failed"
 
-    return results
+    return {
+        "github": gh_status,
+        "jira": jira_status,
+        "details": {"github": gh_detail, "jira": jira_detail},
+    }
 
 
 async def scheduler_loop(

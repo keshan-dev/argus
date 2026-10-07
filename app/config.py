@@ -125,6 +125,22 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("MAX_EVIDENCE_ITEMS", "max_evidence_items"),
         description="Maximum evidence items presented to reasoning stage.",
     )
+    github_repos: str = Field(
+        default="keshan-dev/argus",
+        validation_alias=AliasChoices("GITHUB_REPOS", "github_repos"),
+        description=(
+            "Comma separated owner/repo scopes this deployment ingests. "
+            "The MVP has 1 team, so these are the team's GitHub scopes."
+        ),
+    )
+    jira_project_keys: str = Field(
+        default="ALL",
+        validation_alias=AliasChoices("JIRA_PROJECT_KEYS", "jira_project_keys"),
+        description=(
+            "Comma separated Jira project keys this deployment ingests, or ALL. "
+            "The MVP has 1 team, so these are the team's Jira scopes."
+        ),
+    )
     sync_interval_minutes: int = Field(
         default=5,
         validation_alias=AliasChoices("SYNC_INTERVAL_MINUTES", "sync_interval_minutes"),
@@ -266,3 +282,18 @@ def get_settings() -> Settings:
     if settings is None:
         settings = load_settings()
     return settings
+
+
+def _split_scopes(raw: str) -> list[str]:
+    """Split a comma separated scope setting, dropping blanks."""
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
+def github_scopes() -> list[str]:
+    """GitHub owner/repo scopes this deployment ingests, from GITHUB_REPOS."""
+    return _split_scopes(get_settings().github_repos)
+
+
+def jira_scopes() -> list[str]:
+    """Jira project key scopes this deployment ingests, from JIRA_PROJECT_KEYS."""
+    return _split_scopes(get_settings().jira_project_keys)
