@@ -10,6 +10,7 @@ from app.schemas.insight import (
     TeamMemberOverview,
     TeamOverview,
 )
+from app.schemas.sync import SyncStatus, SyncStatusResponse, SyncTriggerResponse
 from app.schemas.tools import (
     CommitOut,
     GetAssignedWorkItemsInput,
@@ -60,6 +61,9 @@ __all__ = [
     "PullRequestOut",
     "ReviewOut",
     "SourceHealthOut",
+    "SyncStatus",
+    "SyncStatusResponse",
+    "SyncTriggerResponse",
     "TeamMemberOut",
     "TeamMemberOverview",
     "TeamOverview",

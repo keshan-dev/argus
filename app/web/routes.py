@@ -5,6 +5,7 @@ Team routes enforce actor team membership. All question types are validated
 strictly against DEC-007 (current_work, blockers, risks).
 """
 
+import asyncio
 import logging
 from datetime import UTC, datetime
 from typing import Any, Literal
@@ -12,16 +13,20 @@ from urllib.parse import parse_qs
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 
 from app.agent.orchestrator import run_agent
 from app.agent.planner import build_plan
 from app.agent.team_overview import generate_team_overview
 from app.config import get_settings
+from app.db import get_sync_session
 from app.models.canonical import AppUser, Team
 from app.models.identity import IdentityLink, UnmatchedEntity
+from app.models.operations import SyncRun
+from app.scheduler import resolve_team_scopes, run_scheduled_tick
 from app.schemas.errors import ToolFailure
 from app.schemas.insight import MemberInsight, TeamOverview
+from app.schemas.sync import SyncStatus, SyncStatusResponse, SyncTriggerResponse
 from app.schemas.tools import (
     GetSourceHealthInput,
     LinkedAccount,
@@ -88,6 +93,143 @@ def get_team_overview(
             detail="Not allowed to view overview for this team",
         )
     return generate_team_overview(session=db, team_id=team_id)
+
+
+# Keeping a reference stops the event loop garbage collecting a running background
+# sync before it finishes. asyncio only holds a weak reference to a task.
+_BACKGROUND_SYNCS: set[asyncio.Task[None]] = set()
+
+
+def _do_background_sync(team_id: int) -> None:
+    """Run a sync tick off the request thread, logging what happened either way."""
+    session = get_sync_session()
+    try:
+        results = run_scheduled_tick(session, team_id=team_id)
+        logger.info(
+            "Background sync finished for team=%d github=%s jira=%s",
+            team_id,
+            results.get("github"),
+            results.get("jira"),
+        )
+    except Exception as exc:
+        logger.error("Background sync failed for team=%d: %s", team_id, exc)
+    finally:
+        session.close()
+
+
+def _scope_filter(team_id: int) -> Any:
+    """SQL predicate matching only the sync_run rows belonging to a team's scopes."""
+    gh_scopes, jira_scope_list = resolve_team_scopes(team_id)
+    return or_(
+        and_(SyncRun.source == "github", SyncRun.scope.in_(gh_scopes)),
+        and_(SyncRun.source == "jira", SyncRun.scope.in_(jira_scope_list)),
+    )
+
+
+def _to_status(run: SyncRun) -> SyncStatus:
+    return SyncStatus(
+        run_id=run.id,
+        source=run.source,
+        scope=run.scope,
+        status=run.status,
+        error_type=run.error_type,
+        items_skipped=run.items_skipped or 0,
+        started_at=run.started_at,
+        finished_at=run.finished_at,
+    )
+
+
+def _running_runs(db: Any, team_id: int) -> list[SyncRun]:
+    """Rows still marked running for this team's scopes."""
+    if db is None:
+        return []
+    return list(
+        db.scalars(select(SyncRun).where(SyncRun.status == "running", _scope_filter(team_id))).all()
+    )
+
+
+@router.post(
+    "/api/teams/{team_id}/sync",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=SyncTriggerResponse,
+)
+async def trigger_team_sync(
+    team_id: int,
+    actor: ActorDep,
+    db: DbDep,
+) -> SyncTriggerResponse:
+    """Trigger an on-demand sync for a team (Issue #49, P5-007, DEC-016).
+
+    Returns 202 in under 500 ms and never waits for the sync. If a run is already in
+    flight for this team's scopes, that run is returned and no second run starts.
+    """
+    if actor.team_id != team_id or actor.team_id is None:
+        logger.warning(
+            "refresh denied: actor_id=%s actor_team=%s requested_team=%s",
+            actor.id,
+            actor.team_id,
+            team_id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only refresh your own team.",
+        )
+
+    in_flight = _running_runs(db, team_id)
+    if in_flight:
+        logger.info(
+            "refresh skipped for team=%d, %d run(s) already in flight", team_id, len(in_flight)
+        )
+        return SyncTriggerResponse(
+            started=False,
+            all_finished=False,
+            runs=[_to_status(r) for r in in_flight],
+        )
+
+    task = asyncio.create_task(asyncio.to_thread(_do_background_sync, team_id))
+    _BACKGROUND_SYNCS.add(task)
+    task.add_done_callback(_BACKGROUND_SYNCS.discard)
+    logger.info("refresh started for team=%d", team_id)
+
+    # No sync_run row exists yet. Reporting one here would state a fact the database
+    # does not hold (rule 9), so the list is empty and the UI says "starting".
+    return SyncTriggerResponse(started=True, all_finished=False, runs=[])
+
+
+@router.get("/api/teams/{team_id}/sync/status", response_model=SyncStatusResponse)
+def get_team_sync_status(
+    team_id: int,
+    actor: ActorDep,
+    db: DbDep,
+) -> SyncStatusResponse:
+    """Poll sync status for team refresh (Issue #49, P5-007).
+
+    Reports the most recent run per source and scope. A scope with no recorded run is
+    simply absent. An empty list means nothing has been recorded, not that a sync is
+    running.
+    """
+    if actor.team_id != team_id or actor.team_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only refresh your own team.",
+        )
+
+    latest: list[SyncRun] = []
+    if db:
+        gh_scopes, jira_scope_list = resolve_team_scopes(team_id)
+        for source, scopes in (("github", gh_scopes), ("jira", jira_scope_list)):
+            for scope in scopes:
+                run = db.scalar(
+                    select(SyncRun)
+                    .where(SyncRun.source == source, SyncRun.scope == scope)
+                    .order_by(SyncRun.started_at.desc())
+                    .limit(1)
+                )
+                if run:
+                    latest.append(run)
+
+    all_finished = bool(latest and all(r.status != "running" for r in latest))
+    return SyncStatusResponse(all_finished=all_finished, runs=[_to_status(r) for r in latest])
 
 
 # ---------------------------------------------------------------------------
