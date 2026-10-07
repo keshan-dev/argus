@@ -30,7 +30,6 @@ from app.schemas.tools import (
     GetTeamMembersInput,
     SourceHealthOut,
 )
-from app.tools.get_source_health import get_source_health
 from app.tools.get_team_members import get_team_members
 
 

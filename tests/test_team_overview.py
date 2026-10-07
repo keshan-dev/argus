@@ -30,10 +30,8 @@ from app.schemas.tools import (
     GetTeamMembersOutput,
     GetWorkItemLinksOutput,
     PullRequestOut,
-    ReviewOut,
     SourceHealthOut,
     TeamMemberOut,
-    WorkItemLinkOut,
     WorkItemOut,
 )
 
@@ -58,11 +56,18 @@ def _team_member(user_id: int = 1, name: str = "Alice") -> TeamMemberOut:
     )
 
 
+# The actor id matters. build_evidence drops any row with a null actor (AC-14), so a
+# fixture that leaves it unset produces an empty evidence set and every member falls
+# through to "unknown".
+SUBJECT_USER_ID = 1
+
+
 def _work_item(
     work_item_id: int = 1,
     status: str = "in_progress",
     raw_status: str = "In Progress",
     due_date: datetime | None = None,
+    assignee_user_id: int | None = SUBJECT_USER_ID,
 ) -> WorkItemOut:
     return WorkItemOut(
         work_item_id=work_item_id,
@@ -70,6 +75,7 @@ def _work_item(
         title=f"Task {work_item_id}",
         status=status,
         raw_status=raw_status,
+        assignee_user_id=assignee_user_id,
         due_date=due_date,
         source_url=f"https://example.atlassian.net/browse/AUTH-{work_item_id}",
         source_updated_at=NOW - timedelta(days=1),
@@ -77,7 +83,11 @@ def _work_item(
     )
 
 
-def _pull_request(pr_id: int = 10, state: str = "open") -> PullRequestOut:
+def _pull_request(
+    pr_id: int = 10,
+    state: str = "open",
+    author_user_id: int | None = SUBJECT_USER_ID,
+) -> PullRequestOut:
     return PullRequestOut(
         pull_request_id=pr_id,
         number=pr_id,
@@ -87,6 +97,7 @@ def _pull_request(pr_id: int = 10, state: str = "open") -> PullRequestOut:
         is_draft=False,
         review_state="approved",
         checks_state="passing",
+        author_user_id=author_user_id,
         created_at=NOW - timedelta(days=2),
         source_url=f"https://github.com/acme/api/pull/{pr_id}",
         source_updated_at=NOW - timedelta(days=1),
@@ -94,12 +105,13 @@ def _pull_request(pr_id: int = 10, state: str = "open") -> PullRequestOut:
     )
 
 
-def _commit(commit_id: int = 100) -> CommitOut:
+def _commit(commit_id: int = 100, author_user_id: int | None = SUBJECT_USER_ID) -> CommitOut:
     return CommitOut(
         commit_id=commit_id,
         sha=f"sha{commit_id}",
         repo_full_name="acme/api",
         message_excerpt=f"Commit {commit_id}",
+        author_user_id=author_user_id,
         committed_at=NOW - timedelta(days=1),
         source_url=f"https://github.com/acme/api/commit/sha{commit_id}",
         retrieved_at=NOW,
@@ -123,7 +135,7 @@ def test_generate_team_overview_unavailable_source_forces_unknown() -> None:
 
     tools = ReadTools(
         source_health=lambda s, d: GetSourceHealthOutput(
-            sources=[_health("jira", "healthy"), _health("github", "unavailable")]
+            sources=[_health("jira", "fresh"), _health("github", "unavailable")]
         )
     )
 
@@ -158,13 +170,13 @@ def test_generate_team_overview_blocked_member() -> None:
 
     tools = ReadTools(
         source_health=lambda s, d: GetSourceHealthOutput(
-            sources=[_health("jira", "healthy"), _health("github", "healthy")]
+            sources=[_health("jira", "fresh"), _health("github", "fresh")]
         ),
         assigned_work_items=lambda s, d: GetAssignedWorkItemsOutput(
             items=[_work_item(1, status="blocked", raw_status="Blocked")]
         ),
         pull_requests=lambda s, d: GetPullRequestsOutput(pull_requests=[]),
-        commits=lambda s, d: GetCommitsOutput(commits=[]),
+        commits=lambda s, d: GetCommitsOutput(commits=[], truncated=False),
         reviews=lambda s, d: GetReviewsOutput(reviews=[]),
         work_item_links=lambda s, d: GetWorkItemLinksOutput(links=[]),
     )
@@ -200,13 +212,13 @@ def test_generate_team_overview_needs_attention_member() -> None:
     due_tomorrow = NOW + timedelta(days=1)
     tools = ReadTools(
         source_health=lambda s, d: GetSourceHealthOutput(
-            sources=[_health("jira", "healthy"), _health("github", "healthy")]
+            sources=[_health("jira", "fresh"), _health("github", "fresh")]
         ),
         assigned_work_items=lambda s, d: GetAssignedWorkItemsOutput(
             items=[_work_item(1, status="in_progress", due_date=due_tomorrow)]
         ),
         pull_requests=lambda s, d: GetPullRequestsOutput(pull_requests=[]),
-        commits=lambda s, d: GetCommitsOutput(commits=[]),
+        commits=lambda s, d: GetCommitsOutput(commits=[], truncated=False),
         reviews=lambda s, d: GetReviewsOutput(reviews=[]),
         work_item_links=lambda s, d: GetWorkItemLinksOutput(links=[]),
     )
@@ -242,7 +254,7 @@ def test_generate_team_overview_on_track_member() -> None:
     due_next_month = NOW + timedelta(days=25)
     tools = ReadTools(
         source_health=lambda s, d: GetSourceHealthOutput(
-            sources=[_health("jira", "healthy"), _health("github", "healthy")]
+            sources=[_health("jira", "fresh"), _health("github", "fresh")]
         ),
         assigned_work_items=lambda s, d: GetAssignedWorkItemsOutput(
             items=[_work_item(1, status="in_progress", due_date=due_next_month)]
@@ -250,7 +262,7 @@ def test_generate_team_overview_on_track_member() -> None:
         pull_requests=lambda s, d: GetPullRequestsOutput(
             pull_requests=[_pull_request(10, state="open")]
         ),
-        commits=lambda s, d: GetCommitsOutput(commits=[_commit(100)]),
+        commits=lambda s, d: GetCommitsOutput(commits=[_commit(100)], truncated=False),
         reviews=lambda s, d: GetReviewsOutput(reviews=[]),
         work_item_links=lambda s, d: GetWorkItemLinksOutput(links=[]),
     )
@@ -283,11 +295,11 @@ def test_generate_team_overview_no_activity_unknown() -> None:
 
     tools = ReadTools(
         source_health=lambda s, d: GetSourceHealthOutput(
-            sources=[_health("jira", "healthy"), _health("github", "healthy")]
+            sources=[_health("jira", "fresh"), _health("github", "fresh")]
         ),
         assigned_work_items=lambda s, d: GetAssignedWorkItemsOutput(items=[]),
         pull_requests=lambda s, d: GetPullRequestsOutput(pull_requests=[]),
-        commits=lambda s, d: GetCommitsOutput(commits=[]),
+        commits=lambda s, d: GetCommitsOutput(commits=[], truncated=False),
         reviews=lambda s, d: GetReviewsOutput(reviews=[]),
         work_item_links=lambda s, d: GetWorkItemLinksOutput(links=[]),
     )

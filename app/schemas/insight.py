@@ -168,9 +168,7 @@ class TeamMemberOverview(BaseModel):
     state: Literal["on_track", "needs_attention", "blocked", "unknown"] = Field(
         description="Computed member state"
     )
-    state_reason: str | None = Field(
-        default=None, description="Explanation when state is unknown"
-    )
+    state_reason: str | None = Field(default=None, description="Explanation when state is unknown")
     attention_count: int = Field(default=0, description="Count of attention items")
     attention_items: list[AttentionItem] = Field(
         default_factory=list, description="Items needing attention"
@@ -194,10 +192,7 @@ class TeamOverview(BaseModel):
     last_synced: dict[str, datetime | None] = Field(
         default_factory=dict, description="Per-source last sync timestamp"
     )
-    unmatched_count: int = Field(
-        default=0, description="Count of unmatched accounts for the team"
-    )
+    unmatched_count: int = Field(default=0, description="Count of unmatched accounts for the team")
     members: list[TeamMemberOverview] = Field(
         default_factory=list, description="Team member state rollups in alphabetical order"
     )
-

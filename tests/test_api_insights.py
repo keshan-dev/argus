@@ -14,7 +14,6 @@ Verifies:
 
 from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
