@@ -14,13 +14,14 @@
 
 {% block content %}
 {% set copy = {
-  "403": ("You cannot view this member", "Headref shows members of your own team only."),
+  "403member": ("You cannot view this member", "Headref shows members of your own team only."),
+  "403page": ("You cannot view this page", "Headref shows your own team only."),
   "404member": ("Member not found", "There is no team member with this ID."),
   "404page": ("Page not found", "Check the address."),
   "422question": ("Unknown question type", "Choose Current work, Blockers or Risks."),
   "500": ("Something failed on the server", "The error was logged. Recorded data is unchanged. Try again, or check the logs."),
 } %}
-{% set key = (code|string) ~ (kind if code in [404, 422] else "") %}
+{% set key = (code|string) ~ (kind if code in [403, 404, 422] else "") %}
 {% set heading, body = copy.get(key, copy["404page"]) %}
 <section class="hero" style="grid-template-columns: minmax(0, 1fr)">
   <div>

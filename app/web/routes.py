@@ -237,13 +237,11 @@ def get_team_sync_status(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response_class=HTMLResponse)
-@router.get("/teams/{team_id}", response_class=HTMLResponse)
-def get_team_page(
+def _render_team_page(
     request: Request,
-    actor: ActorDep,
-    db: DbDep,
-    team_id: int | None = None,
+    actor: Any,
+    db: Any,
+    team_id: int | None,
 ) -> HTMLResponse:
     """Team overview dashboard (P5-004, Issue #36)."""
     target_team_id = actor.team_id if team_id is None else team_id
@@ -268,6 +266,27 @@ def get_team_page(
             "now": datetime.now(UTC),
         },
     )
+
+
+@router.get("/", response_class=HTMLResponse)
+def get_home_page(request: Request, actor: ActorDep, db: DbDep) -> HTMLResponse:
+    """The signed in actor's own team overview.
+
+    Separate from the /teams/{team_id} handler so that "/" takes no team parameter
+    at all. Stacked on 1 handler, team_id was accepted from the query string here.
+    """
+    return _render_team_page(request, actor, db, None)
+
+
+@router.get("/teams/{team_id}", response_class=HTMLResponse)
+def get_team_page(
+    request: Request,
+    team_id: int,
+    actor: ActorDep,
+    db: DbDep,
+) -> HTMLResponse:
+    """Team overview dashboard for a named team (P5-004, Issue #36)."""
+    return _render_team_page(request, actor, db, team_id)
 
 
 def _build_team_member_out(db: DbDep, member: Any) -> TeamMemberOut:
@@ -470,6 +489,22 @@ def get_unmatched_page(
 # ---------------------------------------------------------------------------
 
 
+def safe_next(value: str | None) -> str:
+    """Accept only a same site absolute path as a post-login destination.
+
+    ``next`` arrives from the query string and from the login form, so it is
+    attacker controlled. Anything that could leave this origin becomes "/".
+    Rejected: an absolute URL with a scheme, a protocol relative "//host" or its
+    backslash variants, and anything that is not rooted at "/".
+    """
+    if not value or not value.startswith("/"):
+        return "/"
+    normalised = value.replace("\\", "/")
+    if normalised.startswith("//"):
+        return "/"
+    return value
+
+
 @router.get("/login", response_class=HTMLResponse)
 def get_login_page(
     request: Request,
@@ -481,7 +516,7 @@ def get_login_page(
         users = db.scalars(
             select(AppUser).where(AppUser.is_active.is_(True)).order_by(AppUser.display_name)
         ).all()
-    next_url = request.query_params.get("next", "/")
+    next_url = safe_next(request.query_params.get("next"))
     return templates.TemplateResponse(
         request=request,
         name="login.html",
@@ -505,12 +540,12 @@ async def post_login(
     if "application/json" in content_type:
         data = await request.json()
         user_id = int(data.get("user_id", 0))
-        next_url = str(data.get("next", "/"))
+        next_url = safe_next(str(data.get("next", "/")))
     else:
         body = (await request.body()).decode("utf-8")
         parsed = parse_qs(body)
         user_id = int(parsed.get("user_id", ["0"])[0])
-        next_url = parsed.get("next", ["/"])[0]
+        next_url = safe_next(parsed.get("next", ["/"])[0])
 
     user = load_user(db, user_id)
     if user is None or not user.is_active:

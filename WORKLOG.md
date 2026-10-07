@@ -60,6 +60,63 @@ criterion in `TASKS.md` is met.
 
 ---
 
+## 2026-10-08 | Isiwara | Web shell hardening (WP6)
+Status: IN_PROGRESS
+
+### Completed
+1. Closed the open redirect on login. `next` arrives from the query string on `GET /login`
+and from the form body on `POST /login`, and went straight into `RedirectResponse` with no
+validation, so `GET /login?next=https://evil.example/` sent the user off site after a
+successful login. Added `safe_next()`, which accepts only a path rooted at `/`, normalises
+backslashes and rejects a protocol relative `//host`. Both login paths use it.
+2. Removed the font copy from `app/main.py`. The application was running
+`shutil.copytree` from `docs/headref-ui-pack/` into `app/web/static/fonts/` at import
+time. The fonts are committed repository assets with their OFL licence, and a docs
+directory is not a runtime asset source.
+3. HTML routes now render `error.html` instead of raw JSON. The exception handler returned
+`JSONResponse` for every status except 401, so a 403 or 404 on a page showed a JSON body
+and `error.html` was referenced by nothing. The API path is unchanged and still returns
+its JSON body. `exc.detail` never reaches the HTML page: the template picks fixed copy
+from the status code, so no exception internals are exposed.
+4. `error.html` gained a `403page` copy variant. Wiring every 403 to the template made a
+team level denial say "You cannot view this member", which is the wrong statement.
+5. Split `GET /` and `GET /teams/{team_id}` into 2 handlers. Stacked on 1 handler with
+`team_id` defaulting to None, `team_id` was also accepted as a query parameter on `/`.
+6. Added `tests/test_web_hardening.py`, 21 tests: 11 open redirect cases including the
+backslash and protocol relative variants, an AST check that `app/main.py` performs no
+filesystem write at import, a check that every `@font-face` source in `style.css` resolves
+to a file that exists, HTML versus JSON error rendering, the 403 copy split, avatar tints,
+and an OpenAPI assertion that `/` declares no `team_id`.
+
+### Changed
+`app/main.py`, `app/web/routes.py`, `app/web/templates/error.html`,
+`tests/test_web_hardening.py`, `WORKLOG.md`.
+
+### Discovered
+The session cookie is set with `httponly` and `samesite=lax` but without `secure`. That is
+correct for the local HTTP demo and wrong for anything deployed. It is in `app/web/auth.py`
+from P3-001, not part of this change. Raised below rather than changed quietly.
+
+### Decisions Needed
+1. Should the session cookie set `secure=True` when the app is not running locally, keyed
+off `APP_ENV`? Needed before anything is deployed over HTTPS.
+2. Still unanswered from the previous 2 entries: the uppercase display question from the
+design system, the untested dark theme contrast, and whether an empty team should report
+"On Track" or "Unknown".
+
+### Next Step
+WP4, the activity field on `MemberInsight`, then WP5 for truncation disclosure.
+
+### AI Assistance
+An assistant implemented WP6 and ran the project security-review skill over the branch.
+Verified in a scratch virtual environment on Python 3.13, not the 3.11 that
+`pyproject.toml` pins: `344 passed, 1 skipped`, `ruff check app tests` clean,
+`black --check app tests` clean. Reproduce on 3.11 before merging. A human should confirm
+the redirect fix by hand against a real browser, because the tests assert the Location
+header rather than browser behaviour.
+
+---
+
 ## 2026-10-08 | Isiwara | Ingestion scope configuration and honest sync endpoints (WP3)
 Status: IN_PROGRESS
 
