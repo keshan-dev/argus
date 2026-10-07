@@ -4,10 +4,14 @@ Wires the health endpoint, the scheduler lifespan and the auth routes. Member-da
 routes arrive in P5-001 and MUST take the MemberGuard dependency from app.web.auth.
 """
 
+import shutil
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.config import get_settings
@@ -34,8 +38,38 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+static_dir = Path(__file__).resolve().parent / "web" / "static"
+fonts_src = (
+    Path(__file__).resolve().parent.parent
+    / "docs"
+    / "headref-ui-pack"
+    / "app"
+    / "web"
+    / "static"
+    / "fonts"
+)
+fonts_dst = static_dir / "fonts"
+if fonts_src.exists() and not fonts_dst.exists():
+    shutil.copytree(fonts_src, fonts_dst)
+
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 app.include_router(auth_router)
 app.include_router(api_router)
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Redirect unauthenticated browser requests to /login, while preserving API 401."""
+    if exc.status_code == status.HTTP_401_UNAUTHORIZED:
+        if not request.url.path.startswith("/api"):
+            next_url = request.url.path
+            if request.url.query:
+                next_url = f"{next_url}?{request.url.query}"
+            return RedirectResponse(
+                url=f"/login?next={next_url}",
+                status_code=status.HTTP_303_SEE_OTHER,
+            )
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 class Health(BaseModel):
